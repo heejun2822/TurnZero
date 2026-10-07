@@ -38,6 +38,7 @@
 /TurnZero/*.csproj
 /TurnZero/*.unityproj
 /TurnZero/*.sln
+/TurnZero/*.slnx
 /TurnZero/*.suo
 /TurnZero/*.tmp
 /TurnZero/*.user
