@@ -76,11 +76,11 @@
 
 ### VisualStudioCode ###
 /TurnZero/.vscode/*
-/TurnZero/!.vscode/settings.json
-/TurnZero/!.vscode/tasks.json
-/TurnZero/!.vscode/launch.json
-/TurnZero/!.vscode/extensions.json
-/TurnZero/!.vscode/*.code-snippets
+!/TurnZero/.vscode/settings.json
+!/TurnZero/.vscode/tasks.json
+!/TurnZero/.vscode/launch.json
+!/TurnZero/.vscode/extensions.json
+!/TurnZero/.vscode/*.code-snippets
 
 # Local History for Visual Studio Code
 /TurnZero/.history/
