@@ -1,0 +1,23 @@
+# Graphify also reads .gitignore. Keep project-local agent instructions out of the code graph.
+/.agents/
+/TurnZero/.vscode/
+
+# Unity-generated caches, builds, and local editor data.
+/TurnZero/[Ll]ibrary/
+/TurnZero/[Tt]emp/
+/TurnZero/[Oo]bj/
+/TurnZero/[Bb]uild/
+/TurnZero/[Bb]uilds/
+/TurnZero/[Ll]ogs/
+/TurnZero/[Uu]ser[Ss]ettings/
+/TurnZero/[Mm]emoryCaptures/
+/TurnZero/[Rr]ecordings/
+
+# Unity asset metadata and binary art do not describe the C# architecture.
+/TurnZero/Assets/**/*.meta
+/TurnZero/Assets/**/*.png
+/TurnZero/Assets/**/*.jpg
+/TurnZero/Assets/**/*.jpeg
+/TurnZero/Assets/**/*.gif
+/TurnZero/Assets/**/*.webp
+/TurnZero/Assets/**/*.svg

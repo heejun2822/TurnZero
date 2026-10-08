@@ -2,7 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=unity,visualstudiocode
 
 ### Unity ###
-# This .gitignore file should be placed at the root of your Unity project directory
+# Unity project is located in /TurnZero.
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 /TurnZero/[Ll]ibrary/
@@ -12,6 +12,7 @@
 /TurnZero/[Bb]uilds/
 /TurnZero/[Ll]ogs/
 /TurnZero/[Uu]ser[Ss]ettings/
+/TurnZero/.utmp/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -28,6 +29,7 @@
 
 # Visual Studio cache directory
 /TurnZero/.vs/
+/TurnZero/.idea/
 
 # Gradle cache directory
 /TurnZero/.gradle/
@@ -67,6 +69,16 @@
 
 # Crashlytics generated file
 /TurnZero/crashlytics-build.properties
+/TurnZero/mono_crash.*
+
+# Unity-generated test and UI Toolkit files
+/TurnZero/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+/TurnZero/UIElementsSchema/
+
+# Addressables build output
+/TurnZero/ServerData/
+/TurnZero/[Aa]ssets/[Aa]ddressables_[Tt]emp*
+/TurnZero/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/link.xml*
 
 # Packed Addressables
 /TurnZero/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
@@ -95,3 +107,7 @@
 /TurnZero/.ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/unity,visualstudiocode
+
+# Graphify local output
+/graphify-out/
+/TurnZero/graphify-out/
