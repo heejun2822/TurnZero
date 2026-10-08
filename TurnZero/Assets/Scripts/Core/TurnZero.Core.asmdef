@@ -1,0 +1,7 @@
+{
+    "name": "TurnZero.Core",
+    "rootNamespace": "TurnZero",
+    "references": [],
+    "autoReferenced": true,
+    "noEngineReferences": true
+}
