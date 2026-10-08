@@ -1,7 +1,7 @@
 {
     "name": "TurnZero.Tests",
     "rootNamespace": "TurnZero.Tests",
-    "references": ["TurnZero.Core"],
+    "references": ["TurnZero.Core", "TurnZero.Prototype", "UnityEngine.UI"],
     "includePlatforms": ["Editor"],
     "optionalUnityReferences": ["TestAssemblies"]
 }

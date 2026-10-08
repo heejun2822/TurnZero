@@ -31,8 +31,8 @@ namespace TurnZero.Tests
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
 #endif
             yield return SceneManager.LoadSceneAsync("Battle", LoadSceneMode.Single);
-            root = GameObject.Find("Battle Prototype");
-            Assert.That(root.GetComponent<BattlePrototype>(), Is.Not.Null);
+            root = GameObject.Find("Battle Session");
+            Assert.That(root.GetComponent<BattleController>(), Is.Not.Null);
             yield return null;
             yield return null;
             Canvas.ForceUpdateCanvases();
@@ -185,19 +185,30 @@ namespace TurnZero.Tests
         }
 
         [UnityTest]
-        public IEnumerator RestartAppliesChangedMapRulesWithoutDuplicatingUI()
+        public IEnumerator RestartReusesAuthoredObjectsAndAppliesCombatRules()
         {
-            var configuration = JsonUtility.ToJson(new BattleRules { Width = 10, Height = 12 });
-            JsonUtility.FromJsonOverwrite("{\"rules\":" + configuration + "}", root.GetComponent<BattlePrototype>());
-            // The running UI still uses its original match settings until restart.
+            var objects = root.GetComponentsInChildren<Transform>(true);
+            var canvas = root.GetComponentInChildren<Canvas>();
+            var map = root.GetComponentInChildren<BattleMapView>();
+            var actor = root.GetComponentsInChildren<BattleActorView>(true)[0];
+            JsonUtility.FromJsonOverwrite("{\"rules\":" + JsonUtility.ToJson(new BattleRules { UnitHealth = 5 }) + "}", root.GetComponent<BattleController>());
             Tile(2, 2);
             Button("Restart").onClick.Invoke();
+            Button("Restart").onClick.Invoke();
             yield return null;
-            Assert.That(GameObject.Find("Tile 9,11"), Is.Not.Null);
+            CollectionAssert.AreEquivalent(objects, root.GetComponentsInChildren<Transform>(true));
+            Assert.That(root.GetComponentInChildren<Canvas>(), Is.SameAs(canvas));
+            Assert.That(root.GetComponentInChildren<BattleMapView>(), Is.SameAs(map));
+            Assert.That(root.GetComponentsInChildren<BattleActorView>(true), Does.Contain(actor));
+            Assert.That(map.Width, Is.EqualTo(8));
+            Assert.That(map.Height, Is.EqualTo(10));
             Assert.That(root.GetComponentsInChildren<Canvas>().Length, Is.EqualTo(1));
             Assert.That(root.GetComponentsInChildren<EventSystem>().Length, Is.EqualTo(1));
-            Assert.That(root.GetComponentsInChildren<BattleWorldView>().Length, Is.EqualTo(1));
-            Assert.That(Text("Phase").text, Does.Contain("PLACE YOUR BASE"));
+            Tile(2, 2);
+            Tile(5, 7);
+            Assert.That(Text("Selected HP").text, Is.EqualTo("HP  5 / 5"));
+            Button("Resolve Turn").onClick.Invoke();
+            Assert.That(Text("Phase").text, Does.Contain("TURN 02"));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -237,8 +248,8 @@ namespace TurnZero.Tests
         public IEnumerator WorldUsesPerspectiveMeshesAndCameraControls()
         {
             var tile = GameObject.Find("Tile 2,2");
-            Assert.That(tile.GetComponent<MeshRenderer>(), Is.Not.Null);
-            Assert.That(tile.GetComponent<BoxCollider>(), Is.Not.Null);
+            Assert.That(tile.GetComponentInChildren<MeshRenderer>(), Is.Not.Null);
+            Assert.That(tile.GetComponentInChildren<BoxCollider>(), Is.Not.Null);
             Assert.That(tile.GetComponent<Button>(), Is.Null);
             Assert.That(Camera.main.orthographic, Is.False);
             Assert.That(Camera.main.GetComponent<PhysicsRaycaster>(), Is.Not.Null);

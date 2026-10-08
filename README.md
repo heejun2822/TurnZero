@@ -19,6 +19,21 @@ Unity 6000.3.5f2 기반의 3D 동시 턴 전술 게임 프로토타입.
 
 룰과 검증용 수치는 [Development.md](Development.md), 원본 기획은 [Plan.md](Plan.md)를 참고한다. 현재 구현은 로컬 기본 전투이며 온라인·스킬·아이템·부활·필드 편집·재화는 이후 단계다.
 
+## 씬과 프리팹 편집
+
+`Battle.unity`에는 `Battle Session` 프리팹이 미리 배치되어 있다. Play 전에도 고정 맵, 양측 캐릭터와 기지, HUD를 확인하고 편집할 수 있다. Play와 RESTART는 경기 데이터와 표시 상태만 초기화하며 오브젝트를 생성하거나 교체하지 않는다. 캐릭터의 편집기 위치는 미리보기이며 실제 시작 위치는 기지 선택 후 정해진다.
+
+- `Assets/Prefabs/Map`: 타일과 8×10 고정 맵. `BattleMapView`가 좌표·시야·강조 표시를 담당한다.
+- `Assets/Prefabs/Characters`: Guardian, Scout, Ranger, Support, Base. `BattleActorView`가 위치·표시·라벨을 갱신한다. 모델을 교체할 때 루트의 스크립트와 연결된 라벨·선택 대상을 유지한다.
+- `Assets/Prefabs/UI`: 상단 바, 명령 패널, 역할별 카드, AP 패널, 툴바와 HUD. 각 View의 Inspector에서 UI와 초상화 참조를 편집한다.
+- `BattleCameraRig`: 원근 카메라와 `BattleCameraRig` 스크립트. `BattleHudLayout`은 화면 방향·안전 영역에 따라 HUD 배치를 조정한다.
+- `LastSeenMarker`: 마지막 관측 위치와 당시 HP 표시. 씬에 준비된 마커를 켜고 끈다.
+- `BattleSession`: 위 프리팹들의 연결과 `BattleController`. Controller의 Rules에서 HP·AP·공격·턴 시간을 변경한다. 맵 크기는 배치된 `BattleMapView`를 기준으로 한다.
+
+전투 상태·명령 검증·동시 판정은 `Scripts/Core`에 유지한다. 런타임 스크립트는 프리팹이나 UI를 만들지 않는다. 임시 모델과 UI를 만드는 코드는 `Assets/Editor/BattlePrefabBuilder.*.cs`에 있으며 플레이어 빌드에 포함되지 않는다.
+
+`TurnZero > Rebuild Prototype Scene and Prefabs`는 임시 에셋과 씬을 명시적으로 다시 만드는 개발 도구다. 직접 수정한 프리팹과 씬 배치를 덮어쓰므로 일반 실행이나 UI 편집에는 사용하지 않는다.
+
 ## 테스트와 기록
 
 - Unity 메뉴 `Window > General > Test Runner`에서 EditMode와 PlayMode 테스트를 실행한다.
