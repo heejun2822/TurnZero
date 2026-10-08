@@ -9,5 +9,6 @@
 
 ## 코드 작업
 
+- 코드 수정 전 저장소 루트에 `graphify-out/graph.json`이 없으면 `graphify .`으로 생성한다. `graphify query "<변경 대상에 관한 질문>"`로 관련 구조와 호출 관계를 조회한 뒤 실제 코드를 확인한다.
 - 구조적 코드 수정(모듈, 클래스, 책임 또는 호출 관계 변경) 시 프로젝트 로컬 `karpathy-guidelines`와 `ponytail` 스킬을 함께 적용한다.
-- 코드 수정 후 저장소 루트에서 `graphify update .`를 실행해 그래프를 갱신한다. `graphify-out/graph.json`이 없다면 먼저 `graphify .`으로 초기 그래프를 생성한다.
+- 코드 수정과 검증 후 저장소 루트에서 `graphify update .`를 실행해 변경 사항을 그래프에 반영한다.
