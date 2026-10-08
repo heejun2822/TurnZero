@@ -1,0 +1,6 @@
+{
+    "name": "TurnZero.Prototype",
+    "rootNamespace": "TurnZero",
+    "references": ["TurnZero.Core", "Unity.InputSystem", "UnityEngine.UI"],
+    "autoReferenced": true
+}

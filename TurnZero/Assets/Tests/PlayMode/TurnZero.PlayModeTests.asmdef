@@ -1,0 +1,6 @@
+{
+    "name": "TurnZero.PlayModeTests",
+    "rootNamespace": "TurnZero.Tests",
+    "references": ["TurnZero.Core", "TurnZero.Prototype", "Unity.InputSystem", "UnityEngine.UI", "Unity.RenderPipelines.Universal.Runtime"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}
