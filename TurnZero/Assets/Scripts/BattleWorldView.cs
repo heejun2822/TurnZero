@@ -241,6 +241,15 @@ namespace TurnZero
             result.Label.alignment = TextAlignment.Center;
             result.Label.color = ghost ? new Color(0.65f, 0.68f, 0.73f) : Color.white;
             result.Label.GetComponent<Renderer>().sharedMaterial = font.material;
+            if (!ghost && entity.Kind == EntityKind.Unit)
+            {
+                var badge = new GameObject("Unit Number Badge", typeof(SpriteRenderer));
+                badge.transform.SetParent(labelObject.transform, false);
+                badge.transform.localPosition = Vector3.forward * 0.015f;
+                badge.transform.localScale = Vector3.one * 0.55f;
+                badge.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("PrototypeUI/badge");
+                badge.GetComponent<SpriteRenderer>().color = entity.Owner == 0 ? Gold : Red;
+            }
             return result;
         }
 

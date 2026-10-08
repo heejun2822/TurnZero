@@ -202,6 +202,38 @@ namespace TurnZero.Tests
         }
 
         [UnityTest]
+        public IEnumerator ReferenceHudTracksOrdersAPCancelAndReadiness()
+        {
+            Tile(3, 2);
+            Tile(4, 7);
+            Assert.That(Text("Selected Unit").text, Is.EqualTo("02 SCOUT"));
+            Assert.That(Text("Enemy Base HP").text, Is.EqualTo("? / 8"));
+            Assert.That(Button("Skill").interactable, Is.False);
+            Assert.That(Button("Item").interactable, Is.False);
+            Button("Unit 2").onClick.Invoke();
+            Tile(4, 3);
+            Assert.That(Text("AP").text, Is.EqualTo("3 / 8"));
+            Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 1"));
+            Assert.That(Text("Order Details").text, Is.EqualTo("MOVE  /  1 AP"));
+            Assert.That(GameObject.Find("Command Path").GetComponent<LineRenderer>().positionCount, Is.EqualTo(5));
+            Assert.That(Button("Unit 2").transform.Find("Card Order/Card Order Text").GetComponent<Text>().text, Is.EqualTo("MOVE / 1 AP"));
+            yield return Preview("reference-hud.png");
+            yield return Preview("reference-hud-portrait.png", 900, 1600);
+            Button("Wait").onClick.Invoke();
+            Assert.That(Text("AP").text, Is.EqualTo("4 / 8"));
+            Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
+            Assert.That(GameObject.Find("Command Path"), Is.Null);
+            Tile(4, 3);
+            Button("Lock Orders").onClick.Invoke();
+            Assert.That(Button("Move").interactable, Is.False);
+            Assert.That(Button("Lock Orders").transform.Find("Label").GetComponent<Text>().text, Is.EqualTo("READY / LOCKED"));
+            Button("Switch Player").onClick.Invoke();
+            Assert.That(Text("AP").text, Is.EqualTo("4 / 8"));
+            Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator WorldUsesPerspectiveMeshesAndCameraControls()
         {
             var tile = GameObject.Find("Tile 2,2");
