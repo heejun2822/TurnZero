@@ -283,15 +283,192 @@ namespace TurnZero.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        private static void CameraMouse(BattleCameraRig rig, Mouse mouse, Vector2 pointer, float wheel = 0, bool held = false)
+        {
+            var state = new MouseState { position = pointer, scroll = new Vector2(0, wheel) };
+            if (held) state = state.WithButton(MouseButton.Left);
+            InputSystem.QueueStateEvent(mouse, state);
+            InputSystem.Update();
+            typeof(BattleCameraRig).GetMethod("ReadMouse", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(rig, new object[] { 0.1f });
+        }
 
+        [UnityTest]
+        public IEnumerator MouseWheelAndButtonsRespectZoomLimitsAndHud()
+        {
+            var rig = root.GetComponentInChildren<BattleCameraRig>();
+            rig.enabled = false;
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var area = root.GetComponentInChildren<BattleHudLayout>().FieldViewport;
+            var center = Vector2.Scale(area.center, new Vector2(Screen.width, Screen.height));
+            var full = rig.Camera.transform.position;
+            try
+            {
+                CameraMouse(rig, mouse, center, 1);
+                Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.GreaterThan(0.1f));
+                var zoomed = rig.Camera.transform.position;
+                CameraMouse(rig, mouse, new Vector2(-1, Screen.height * 0.5f), 1);
+                Assert.That(rig.Camera.transform.position, Is.EqualTo(zoomed));
 
+                var overlay = new GameObject("Camera Test HUD", typeof(RectTransform), typeof(Image));
+                try
+                {
+                    var rect = overlay.GetComponent<RectTransform>();
+                    rect.SetParent(root.GetComponentInChildren<Canvas>().transform, false);
+                    rect.anchorMin = rect.anchorMax = area.center;
+                    rect.anchoredPosition = Vector2.zero;
+                    rect.sizeDelta = new Vector2(100, 100);
+                    yield return null;
+                    Canvas.ForceUpdateCanvases();
+                    CameraMouse(rig, mouse, RectTransformUtility.WorldToScreenPoint(null, rect.position), 1);
+                    Assert.That(rig.Camera.transform.position, Is.EqualTo(zoomed), "Wheel over HUD must not zoom the field.");
+                }
+                finally { Object.DestroyImmediate(overlay); }
 
+                rig.Zoom(-100);
+                var nearest = rig.Camera.transform.position;
+                Button("Zoom In").onClick.Invoke();
+                Assert.That(rig.Camera.transform.position, Is.EqualTo(nearest));
+                rig.Zoom(100);
+                Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
+                Button("Zoom Out").onClick.Invoke();
+                Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
+            }
+            finally { InputSystem.RemoveDevice(mouse); }
+            yield return null;
+            LogAssert.NoUnexpectedReceived();
+        }
 
+        [UnityTest]
+        public IEnumerator EdgeScrollingFollowsScreenDirectionsAndIgnoresDragging()
+        {
+            var rig = root.GetComponentInChildren<BattleCameraRig>();
+            rig.enabled = false;
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var center = new Vector2(Screen.width, Screen.height) * 0.5f;
+            try
+            {
+                for (int rotation = 0; rotation < 3; rotation++)
+                {
+                    foreach (var edge in new[] { new Vector2(1, center.y), new Vector2(Screen.width - 1, center.y),
+                        new Vector2(center.x, 1), new Vector2(center.x, Screen.height - 1) })
+                    {
+                        rig.Zoom(100);
+                        rig.Zoom(-100);
+                        var before = rig.Camera.transform.position;
+                        CameraMouse(rig, mouse, center);
+                        CameraMouse(rig, mouse, edge, held: true);
+                        CameraMouse(rig, mouse, new Vector2(-1, center.y));
+                        Assert.That(rig.Camera.transform.position, Is.EqualTo(before));
+                        CameraMouse(rig, mouse, edge);
+                        var motion = rig.Camera.transform.position - before;
+                        var expected = edge.x < center.x ? -rig.Camera.transform.right :
+                            edge.x > center.x ? rig.Camera.transform.right :
+                            edge.y < center.y ? -rig.Camera.transform.forward : rig.Camera.transform.forward;
+                        expected.y = 0;
+                        Assert.That(Vector3.Dot(motion, expected.normalized), Is.GreaterThan(0.01f), "Scroll direction after rotation.");
+                    }
+                    rig.Rotate();
+                }
+                var beforeTouch = rig.Camera.transform.position;
+                var touch = InputSystem.AddDevice<Touchscreen>();
+                try
+                {
+                    InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Began, position = center });
+                    InputSystem.Update();
+                    CameraMouse(rig, mouse, new Vector2(1, 1));
+                    Assert.That(rig.Camera.transform.position, Is.EqualTo(beforeTouch));
+                }
+                finally { InputSystem.RemoveDevice(touch); }
+            }
+            finally { InputSystem.RemoveDevice(mouse); }
+            yield return null;
+            LogAssert.NoUnexpectedReceived();
+        }
 
+        private static void AssertCameraBounds(BattleCameraRig rig, BattleMapView map, BattleHudLayout layout)
+        {
+            var field = layout.FieldViewport;
+            var ground = new Plane(map.transform.up, map.transform.position);
+            var points = new Vector2[4];
+            for (int i = 0; i < 4; i++)
+            {
+                var ray = rig.Camera.ViewportPointToRay(new Vector3(i % 2 == 0 ? field.xMin : field.xMax,
+                    i / 2 == 0 ? field.yMin : field.yMax, 0));
+                Assert.That(ground.Raycast(ray, out float distance), Is.True);
+                var point = map.transform.InverseTransformPoint(ray.GetPoint(distance));
+                points[i] = new Vector2(point.x, point.z);
+            }
+            var half = new Vector2(map.Width * 0.5f + 0.65f, map.Height * 0.5f + 0.65f) * map.Spacing;
+            for (int axis = 0; axis < 2; axis++)
+            {
+                float minimum = points.Min(p => p[axis]);
+                float maximum = points.Max(p => p[axis]);
+                if (maximum - minimum > half[axis] * 2) continue;
+                Assert.That(minimum, Is.GreaterThanOrEqualTo(-half[axis] - 0.001f));
+                Assert.That(maximum, Is.LessThanOrEqualTo(half[axis] + 0.001f));
+            }
+        }
 
-
-
-
+        [UnityTest]
+        public IEnumerator CameraStaysWithinFieldWhenPanningRotatingAndResizing()
+        {
+            var rig = root.GetComponentInChildren<BattleCameraRig>();
+            var map = root.GetComponentInChildren<BattleMapView>();
+            var layout = root.GetComponentInChildren<BattleHudLayout>();
+            rig.enabled = false;
+            var mouse = InputSystem.AddDevice<Mouse>();
+            float previousAspect = rig.Camera.aspect;
+            var full = rig.Camera.transform.position;
+            try
+            {
+                rig.Zoom(-100);
+                foreach (var edge in new[] { new Vector2(1, 1), new Vector2(Screen.width - 1, Screen.height - 1) })
+                {
+                    for (int i = 0; i < 150; i++) CameraMouse(rig, mouse, edge);
+                    var limit = rig.Camera.transform.position;
+                    CameraMouse(rig, mouse, edge);
+                    Assert.That(Vector3.Distance(limit, rig.Camera.transform.position), Is.LessThan(0.001f));
+                    AssertCameraBounds(rig, map, layout);
+                    rig.Rotate();
+                    AssertCameraBounds(rig, map, layout);
+                }
+                CameraMouse(rig, mouse, new Vector2(Screen.width, Screen.height) * 0.5f);
+                rig.enabled = true;
+                yield return Preview("camera-zoomed.png");
+                rig.enabled = false;
+                foreach (float aspect in new[] { 9f / 16, 16f / 9 })
+                {
+                    rig.Camera.aspect = aspect;
+                    rig.Zoom(100);
+                    foreach (int x in new[] { 0, map.Width - 1 })
+                        foreach (int y in new[] { 0, map.Height - 1 })
+                        {
+                            var point = rig.Camera.WorldToViewportPoint(map.Position(new Cell(x,y)) + Vector3.up * 1.9f);
+                            Assert.That(layout.FieldViewport.Contains(new Vector2(point.x, point.y)), Is.True, "Full board must fit the available HUD area.");
+                            Assert.That(point.z, Is.GreaterThan(rig.Camera.nearClipPlane));
+                            Assert.That(point.z, Is.LessThan(rig.Camera.farClipPlane), "Expanded field must not be clipped.");
+                        }
+                    rig.Zoom(-100);
+                    rig.Reframe();
+                    AssertCameraBounds(rig, map, layout);
+                }
+                rig.Camera.aspect = previousAspect;
+                // Restore the initial rotation and verify zooming out returns to the full board.
+                for (int i = 0; i < 6; i++) rig.Rotate();
+                rig.Zoom(100);
+                Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
+                CameraMouse(rig, mouse, new Vector2(1, 1));
+                Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
+            }
+            finally
+            {
+                rig.Camera.aspect = previousAspect;
+                InputSystem.RemoveDevice(mouse);
+            }
+            yield return null;
+            LogAssert.NoUnexpectedReceived();
+        }
 
         [UnityTest]
         public IEnumerator WorldHidesUnobservedEnemiesAndRendersOnlyLastSeenSnapshot()

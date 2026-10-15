@@ -205,3 +205,9 @@ MonoBehaviour:
   pitch: 56
   yaw: 0
   zoom: 1
+  minimumZoom: 0.15
+  maximumZoom: 1
+  wheelSensitivity: 0.1
+  edgeSize: 24
+  panSpeed: 12
+  fieldPadding: 0.65
