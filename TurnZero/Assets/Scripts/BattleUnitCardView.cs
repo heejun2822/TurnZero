@@ -1,3 +1,4 @@
+using TMPro;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace TurnZero
         [SerializeField] private Sprite portrait, weaponIcon;
         [SerializeField] private Sprite moveIcon, attackIcon, waitIcon;
         [SerializeField] private Button unitButton;
-        [SerializeField] private Text unitLabel, unitHealthText, unitOrderText;
+        [SerializeField] private TMP_Text unitLabel, unitHealthText, unitOrderText;
         [SerializeField] private Image unitHealth, unitOrderPanel, unitOrderIcon;
         public int Slot => slot;
         public string RoleName => roleName;

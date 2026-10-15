@@ -1,3 +1,4 @@
+using TMPro;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace TurnZero
     public sealed class BattleToolbarView : MonoBehaviour
     {
         [SerializeField] private Button switchButton, rotateButton, zoomInButton, zoomOutButton, resolveButton, exportButton, restartButton;
-        [SerializeField] private Text switchText;
+        [SerializeField] private TMP_Text switchText;
         public void Bind(Action switchPlayer, BattleCameraRig camera, Action resolve, Action save, Action restart)
         {
             switchButton.onClick.AddListener(() => switchPlayer());

@@ -1,3 +1,4 @@
+using TMPro;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace TurnZero
         [SerializeField] private BattleToolbarView toolbar;
         [SerializeField] private BattleApPanelView apPanel;
         [SerializeField] private BattleUnitCardView[] cards;
-        [SerializeField] private Text messageText, logText;
+        [SerializeField] private TMP_Text messageText, logText;
         public string Message { set => messageText.text = value; }
         public void Bind(Action<int> selectSlot, Action<ActionKind> mode, Action wait, Action ready,
             Action switchPlayer, BattleCameraRig camera, Action resolve, Action save, Action restart)

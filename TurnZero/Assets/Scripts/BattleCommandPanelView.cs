@@ -1,3 +1,4 @@
+using TMPro;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace TurnZero
 {
     public sealed class BattleCommandPanelView : MonoBehaviour
     {
-        [SerializeField] private Text selectionText, selectedHealthText, equipmentText, detailsText, orderTargetText, lockText;
+        [SerializeField] private TMP_Text selectionText, selectedHealthText, equipmentText, detailsText, orderTargetText, lockText;
         [SerializeField] private Image selectedPortrait, selectedHealth, equipmentIcon, previewArrow;
         [SerializeField] private Image[] previewCells;
         [SerializeField] private Button moveButton, attackButton, waitButton, lockButton;

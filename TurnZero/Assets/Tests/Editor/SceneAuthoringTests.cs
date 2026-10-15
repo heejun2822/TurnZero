@@ -1,4 +1,5 @@
 using System.Linq;
+using TMPro;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,6 +10,40 @@ namespace TurnZero.Tests
 {
     public sealed class SceneAuthoringTests
     {
+        [Test]
+        public void EverySceneAndPrefabUsesTmpWithSavedFontResources()
+        {
+            var previous = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                foreach (var path in AssetDatabase.GetAllAssetPaths().Where(p => p.StartsWith("Assets/") && (p.EndsWith(".prefab") || p.EndsWith(".unity"))))
+                {
+                    GameObject prefab = null;
+                    var roots = path.EndsWith(".unity") ? EditorSceneManager.OpenScene(path).GetRootGameObjects() :
+                        new[] { prefab = PrefabUtility.LoadPrefabContents(path) };
+                    try
+                    {
+                        foreach (var root in roots)
+                        {
+                            Assert.That(root.GetComponentsInChildren<Text>(true), Is.Empty, path);
+                            Assert.That(root.GetComponentsInChildren<TextMesh>(true), Is.Empty, path);
+                            foreach (var text in root.GetComponentsInChildren<TMP_Text>(true))
+                            {
+                                Assert.That(AssetDatabase.Contains(text.font), Is.True, path + ": " + text.name);
+                                Assert.That(AssetDatabase.Contains(text.fontSharedMaterial), Is.True, path + ": " + text.name);
+                            }
+                        }
+                    }
+                    finally { if (prefab != null) PrefabUtility.UnloadPrefabContents(prefab); }
+                }
+            }
+            finally
+            {
+                if (previous.Any(s => s.isLoaded && s.isActive)) EditorSceneManager.RestoreSceneManagerSetup(previous);
+                else EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            }
+        }
+
         [Test]
         public void BattleSceneHasAuthoredMapActorsHudAndNestedPrefabsBeforePlay()
         {
@@ -45,7 +80,7 @@ namespace TurnZero.Tests
                     Assert.That(card.Portrait.texture, Is.Not.Null);
                     Assert.That(PrefabUtility.IsPartOfPrefabInstance(card), Is.True);
                 }
-                Assert.That(root.GetComponentInChildren<BattleHudView>().GetComponentInChildren<Text>().font, Is.Not.Null);
+                Assert.That(root.GetComponentInChildren<BattleHudView>().GetComponentInChildren<TMP_Text>().font, Is.Not.Null);
                 Assert.That(EditorApplication.isPlaying, Is.False);
             }
             finally

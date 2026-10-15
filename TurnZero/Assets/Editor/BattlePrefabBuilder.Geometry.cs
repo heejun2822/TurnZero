@@ -1,4 +1,5 @@
 using System.Linq;
+using TMPro;
 using UnityEngine;
 namespace TurnZero.Editor
 {
@@ -10,7 +11,7 @@ namespace TurnZero.Editor
         private static readonly Color Fog = new Color(0.065f, 0.075f, 0.083f);
         private static readonly Color Ghost = new Color(0.3f, 0.33f, 0.38f);
         private const float Spacing = 1.1f;
-        private sealed class Actor { public GameObject Root; public TextMesh Label; public BattleWorldTarget Target; }
+        private sealed class Actor { public GameObject Root; public TMP_Text Label; public BattleWorldTarget Target; }
         private Vector3 MapPosition(Cell cell) => new Vector3((cell.X - (rules.Width - 1) * 0.5f) * Spacing, 0, (cell.Y - (rules.Height - 1) * 0.5f) * Spacing);
         private Actor CreateActor(EntityState entity, bool ghost)
         {
@@ -69,17 +70,18 @@ namespace TurnZero.Editor
                     Shape("Bow", root.transform, PrimitiveType.Cube, new Vector3(0.32f, 0.72f, 0.17f), new Vector3(0.06f, 0.65f, 0.08f), leather, !ghost);
                 }
             }
-            var labelObject = new GameObject("World HP Label", typeof(TextMesh));
+            var labelObject = new GameObject("World HP Label", typeof(TextMeshPro));
             labelObject.transform.SetParent(root.transform, false);
             labelObject.transform.localPosition = Vector3.up * (entity.Kind == EntityKind.Base ? 1.9f : 1.6f);
-            result.Label = labelObject.GetComponent<TextMesh>();
+            result.Label = labelObject.GetComponent<TextMeshPro>();
             result.Label.font = font;
-            result.Label.fontSize = 40;
-            result.Label.characterSize = ghost || entity.Kind == EntityKind.Base ? 0.065f : 0.1f;
-            result.Label.anchor = TextAnchor.MiddleCenter;
-            result.Label.alignment = TextAlignment.Center;
+            result.Label.fontSize = ghost || entity.Kind == EntityKind.Base ? 2.6f : 4;
+            result.Label.rectTransform.sizeDelta = new Vector2(2,1);
+            result.Label.alignment = TextAlignmentOptions.Center;
+            result.Label.isOrthographic = false;
+            result.Label.textWrappingMode = TextWrappingModes.NoWrap;
+            result.Label.raycastTarget = false;
             result.Label.color = ghost ? new Color(0.65f, 0.68f, 0.73f) : Color.white;
-            result.Label.GetComponent<Renderer>().sharedMaterial = font.material;
             if (!ghost && entity.Kind == EntityKind.Unit)
             {
                 var badge = new GameObject("Unit Number Badge", typeof(SpriteRenderer));

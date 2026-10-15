@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace TurnZero
@@ -7,7 +8,7 @@ namespace TurnZero
     {
         [SerializeField] private int entityId;
         [SerializeField] private BattleWorldTarget target;
-        [SerializeField] private TextMesh label;
+        [SerializeField] private TMP_Text label;
         private Camera labelCamera;
         public int EntityId => entityId;
 

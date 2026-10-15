@@ -1,3 +1,4 @@
+using TMPro;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
@@ -51,7 +52,7 @@ namespace TurnZero.Tests
         }
 
         private static Button Button(string name) => GameObject.Find(name).GetComponent<Button>();
-        private static Text Text(string name) => GameObject.Find(name).GetComponent<Text>();
+        private static TMP_Text Text(string name) => GameObject.Find(name).GetComponent<TMP_Text>();
         private static void Tile(int x, int y) => GameObject.Find($"Tile {x},{y}").GetComponent<BattleWorldTarget>()
             .OnPointerClick(new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left });
 
@@ -227,7 +228,7 @@ namespace TurnZero.Tests
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 1"));
             Assert.That(Text("Order Details").text, Is.EqualTo("MOVE  /  1 AP"));
             Assert.That(GameObject.Find("Command Path").GetComponent<LineRenderer>().positionCount, Is.EqualTo(5));
-            Assert.That(Button("Unit 2").transform.Find("Card Order/Card Order Text").GetComponent<Text>().text, Is.EqualTo("MOVE / 1 AP"));
+            Assert.That(Button("Unit 2").transform.Find("Card Order/Card Order Text").GetComponent<TMP_Text>().text, Is.EqualTo("MOVE / 1 AP"));
             yield return Preview("reference-hud.png");
             yield return Preview("reference-hud-portrait.png", 900, 1600);
             Button("Wait").onClick.Invoke();
@@ -237,7 +238,7 @@ namespace TurnZero.Tests
             Tile(4, 3);
             Button("Lock Orders").onClick.Invoke();
             Assert.That(Button("Move").interactable, Is.False);
-            Assert.That(Button("Lock Orders").transform.Find("Label").GetComponent<Text>().text, Is.EqualTo("READY / LOCKED"));
+            Assert.That(Button("Lock Orders").transform.Find("Label").GetComponent<TMP_Text>().text, Is.EqualTo("READY / LOCKED"));
             Button("Switch Player").onClick.Invoke();
             Assert.That(Text("AP").text, Is.EqualTo("4 / 8"));
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
@@ -288,7 +289,7 @@ namespace TurnZero.Tests
             Assert.That(GameObject.Find("Entity 7"), Is.Null);
             var ghost = GameObject.Find("Last Seen 7");
             Assert.That(ghost.transform.position, Is.EqualTo(world.Position(new Cell(2, 5))));
-            Assert.That(ghost.GetComponentInChildren<TextMesh>().text, Does.Contain("3 HP / T1"));
+            Assert.That(ghost.GetComponentInChildren<TMP_Text>().text, Does.Contain("3 HP / T1"));
             Assert.That(ghost.GetComponent<BattleWorldTarget>(), Is.Null);
             yield return null;
             Assert.That(ghost.GetComponentsInChildren<Collider>(), Is.Empty);

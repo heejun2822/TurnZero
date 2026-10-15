@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -53,7 +54,7 @@ namespace TurnZero.Editor
             Directory.CreateDirectory(Art);
             AssetDatabase.Refresh();
             surface = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/PrototypeSurface.mat");
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
             facetedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(Art + "FacetedMesh.asset");
             if (facetedMesh == null) { facetedMesh = FacetedMesh(); AssetDatabase.CreateAsset(facetedMesh, Art + "FacetedMesh.asset"); }
             BakePortraits();
@@ -205,14 +206,17 @@ namespace TurnZero.Editor
         {
             var root = new GameObject("Last Seen Marker");
             var marker = root.AddComponent<BattleLastSeenView>();
-            var textObject = new GameObject("World HP Label", typeof(TextMesh));
+            var textObject = new GameObject("World HP Label", typeof(TextMeshPro));
             textObject.transform.SetParent(root.transform, false);
             textObject.transform.localPosition = Vector3.up * 0.4f;
-            var label = textObject.GetComponent<TextMesh>();
-            label.font = font; label.fontSize = 40; label.characterSize = 0.065f;
-            label.anchor = TextAnchor.MiddleCenter; label.alignment = TextAlignment.Center;
+            var label = textObject.GetComponent<TextMeshPro>();
+            label.font = font; label.fontSize = 2.6f;
+            label.rectTransform.sizeDelta = new Vector2(2,1);
+            label.alignment = TextAlignmentOptions.Center;
+            label.isOrthographic = false;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.raycastTarget = false;
             label.color = new Color(0.65f, 0.68f, 0.73f);
-            label.GetComponent<Renderer>().sharedMaterial = font.material;
             var outline = new GameObject("Memory Outline", typeof(LineRenderer)).GetComponent<LineRenderer>();
             outline.transform.SetParent(root.transform, false);
             outline.useWorldSpace = false; outline.loop = true; outline.positionCount = 4;
@@ -290,7 +294,7 @@ namespace TurnZero.Editor
                 view.Entities.Add(entity);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(actor.transform);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(actor.GetComponent<BattleWorldTarget>());
-                PrefabUtility.RecordPrefabInstancePropertyModifications(actor.GetComponentInChildren<TextMesh>());
+                PrefabUtility.RecordPrefabInstancePropertyModifications(actor.GetComponentInChildren<TMP_Text>());
             }
             hud.Render(view, rules, 2, ActionKind.Move);
             messageText.text = "Scene preview. Play to choose bases and begin a match.";

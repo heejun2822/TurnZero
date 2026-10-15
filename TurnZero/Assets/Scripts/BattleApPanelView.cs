@@ -1,3 +1,4 @@
+using TMPro;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace TurnZero
 {
     public sealed class BattleApPanelView : MonoBehaviour
     {
-        [SerializeField] private Text apText, reservedText;
+        [SerializeField] private TMP_Text apText, reservedText;
         [SerializeField] private Image[] apPips;
         public void Render(PlayerView view, BattleRules rules)
         {
