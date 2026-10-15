@@ -1111,6 +1111,10 @@ PrefabInstance:
       propertyPath: m_TrackedDeviceOrientationAction
       value: 
       objectReference: {fileID: 1135801049}
+    - target: {fileID: 4061823004304849234, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: far clip plane
+      value: 212.97949
+      objectReference: {fileID: 0}
     - target: {fileID: 4343113225797884660, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1151,6 +1155,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 12.054642
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 98.54239
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -70.84453
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.8829476
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.4694716
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912466030230031300, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
     - target: {fileID: 8412118812565572944, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
       propertyPath: m_Name
       value: Battle Session
@@ -1158,7 +1190,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1215066335950955022, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3860766956236219905, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8767077278191165768, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 5084942217707485173, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 4956776864443488725, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8416709241574437999, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 1875835437370539456, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2612754288489094449, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2059328281519690895, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7398219431204780031, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 0c0d19dc5e7392745b7e209f10978949, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

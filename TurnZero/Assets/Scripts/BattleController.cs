@@ -39,6 +39,7 @@ namespace TurnZero
             // The authored map is the authority for board dimensions.
             activeRules.Width = world.Map.Width;
             activeRules.Height = world.Map.Height;
+            activeRules.NeutralHeight = world.Map.NeutralHeight;
             activeRules.Validate();
             world.Bind(activeRules, cameraRig.Camera, ClickCell);
             match = new BattleMatch(activeRules);

@@ -8,6 +8,7 @@ namespace TurnZero
     {
         public int Width = 8;
         public int Height = 10;
+        public int NeutralHeight;
         public int UnitHealth = 3;
         public int BaseHealth = 8;
         public int AttackDamage = 1;
@@ -24,12 +25,12 @@ namespace TurnZero
 
         public void Validate()
         {
-            if (Width < 4 || Height < 6 || Height % 2 != 0 || UnitHealth < 1 || BaseHealth < 1 ||
+            if (Width < 4 || Height < 6 || NeutralHeight < 0 || NeutralHeight > Height - 6 || (Height - NeutralHeight) % 2 != 0 || UnitHealth < 1 || BaseHealth < 1 ||
                 AttackDamage < 1 || AttackRange < 1 || VisionRange < 1 || InitialAP < 0 ||
                 TurnIncome < 0 || MaximumAP < 1 || InitialAP > MaximumAP || MoveCost < 1 ||
                 AttackCost < 1 || MoveCost > MaximumAP || AttackCost > MaximumAP ||
                 float.IsNaN(PlanningSeconds) || float.IsInfinity(PlanningSeconds) || PlanningSeconds <= 0)
-                throw new ArgumentException("Invalid prototype rules. Use an even map height and positive combat values.");
+                throw new ArgumentException("Invalid prototype rules. Use equal home fields of at least three rows and positive combat values.");
         }
 
         public bool Contains(Cell cell) => cell.X >= 0 && cell.Y >= 0 && cell.X < Width && cell.Y < Height;
@@ -37,8 +38,9 @@ namespace TurnZero
         public bool CanPlaceBase(int player, Cell cell)
         {
             if (player < 0 || player > 1 || cell.X < 1 || cell.X >= Width - 1) return false;
-            int localY = cell.Y - player * (Height / 2);
-            return localY >= 1 && localY < Height / 2 - 1;
+            int homeHeight = (Height - NeutralHeight) / 2;
+            int localY = cell.Y - player * (homeHeight + NeutralHeight);
+            return localY >= 1 && localY < homeHeight - 1;
         }
 
         public int Cost(ActionKind action) => action == ActionKind.Move ? MoveCost : action == ActionKind.Attack ? AttackCost : 0;

@@ -43,6 +43,21 @@ namespace TurnZero.Tests
         }
 
         [Test]
+        public void NeutralRowsAndHomeBordersRejectBasesAndSpawnsStayInHomeFields()
+        {
+            var rules = new BattleRules { Width = 16, Height = 24, NeutralHeight = 4 };
+            for (int y = 10; y < 14; y++)
+                for (int x = 0; x < 16; x++)
+                    for (int player = 0; player < 2; player++) Assert.That(rules.CanPlaceBase(player, new Cell(x,y)), Is.False);
+            Assert.That(rules.CanPlaceBase(0, new Cell(7,9)), Is.False);
+            Assert.That(rules.CanPlaceBase(1, new Cell(7,14)), Is.False);
+            var match = Start(rules, new Cell(7,8), new Cell(8,15));
+            Assert.That(match.View(0,10).Entities.Where(e => e.Owner == 0).All(e => e.Position.Y < 10), Is.True);
+            Assert.That(match.View(1,10).Entities.Where(e => e.Owner == 1).All(e => e.Position.Y >= 14), Is.True);
+            Assert.Throws<ArgumentException>(() => new BattleMatch(new BattleRules { Height = 24, NeutralHeight = 19 }));
+        }
+
+        [Test]
         public void PlacementRejectsEdgesAndWrongPlayerAndSpawnsFourUnitsEach()
         {
             var rules = new BattleRules();

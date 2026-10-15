@@ -1,5 +1,7 @@
 using TMPro;
 using System.Collections;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -53,8 +55,16 @@ namespace TurnZero.Tests
 
         private static Button Button(string name) => GameObject.Find(name).GetComponent<Button>();
         private static TMP_Text Text(string name) => GameObject.Find(name).GetComponent<TMP_Text>();
-        private static void Tile(int x, int y) => GameObject.Find($"Tile {x},{y}").GetComponent<BattleWorldTarget>()
+        private static GameObject Floor(int x, int y) => Object.FindObjectsByType<BattleTileView>(FindObjectsSortMode.None)
+            .Single(t => t.Cell == new Cell(x,y)).gameObject;
+        private static void Tile(int x, int y) => Floor(x,y).GetComponent<BattleWorldTarget>()
             .OnPointerClick(new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left });
+
+
+
+
+
+
 
         [UnityTest]
         public IEnumerator PlacementPlanningResolutionAndRestartAreConnected()
@@ -64,7 +74,7 @@ namespace TurnZero.Tests
             Assert.That(Text("Phase").text, Does.Contain("P1"));
             Tile(2, 2);
             Assert.That(Text("Phase").text, Does.Contain("P2"));
-            Tile(5, 7);
+            Tile(5, 20);
             Assert.That(Text("Phase").text, Does.Contain("TURN 01"));
             Button("Unit 1").onClick.Invoke();
             Button("Move").onClick.Invoke();
@@ -141,24 +151,31 @@ namespace TurnZero.Tests
         public IEnumerator BaseDestructionShowsVictoryAndRestartRestoresPlacement()
         {
             Tile(2, 3);
-            Tile(2, 6);
+            Tile(2, 15);
+            for (int y = 5; y <= 13; y++)
+            {
+                Button("Unit 1").onClick.Invoke();
+                Button("Move").onClick.Invoke();
+                Tile(2,y);
+                Button("Resolve Turn").onClick.Invoke();
+            }
             // Clear the enemy in front of the base, then advance into its vacated tile.
             for (int hit = 0; hit < 3; hit++)
             {
                 Button("Unit 1").onClick.Invoke();
                 Button("Attack").onClick.Invoke();
-                Tile(2, 5);
+                Tile(2, 14);
                 Button("Resolve Turn").onClick.Invoke();
             }
             Button("Unit 1").onClick.Invoke();
             Button("Move").onClick.Invoke();
-            Tile(2, 5);
+            Tile(2, 14);
             Button("Resolve Turn").onClick.Invoke();
             for (int hit = 0; hit < 8; hit++)
             {
                 Button("Unit 1").onClick.Invoke();
                 Button("Attack").onClick.Invoke();
-                Tile(2, 6);
+                Tile(2, 15);
                 Button("Resolve Turn").onClick.Invoke();
             }
             Assert.That(Text("Phase").text, Is.EqualTo("PLAYER 1 WINS"));
@@ -201,12 +218,12 @@ namespace TurnZero.Tests
             Assert.That(root.GetComponentInChildren<Canvas>(), Is.SameAs(canvas));
             Assert.That(root.GetComponentInChildren<BattleMapView>(), Is.SameAs(map));
             Assert.That(root.GetComponentsInChildren<BattleActorView>(true), Does.Contain(actor));
-            Assert.That(map.Width, Is.EqualTo(8));
-            Assert.That(map.Height, Is.EqualTo(10));
+            Assert.That(map.Width, Is.EqualTo(16));
+            Assert.That(map.Height, Is.EqualTo(24));
             Assert.That(root.GetComponentsInChildren<Canvas>().Length, Is.EqualTo(1));
             Assert.That(root.GetComponentsInChildren<EventSystem>().Length, Is.EqualTo(1));
             Tile(2, 2);
-            Tile(5, 7);
+            Tile(5, 20);
             Assert.That(Text("Selected HP").text, Is.EqualTo("HP  5 / 5"));
             Button("Resolve Turn").onClick.Invoke();
             Assert.That(Text("Phase").text, Does.Contain("TURN 02"));
@@ -217,7 +234,7 @@ namespace TurnZero.Tests
         public IEnumerator ReferenceHudTracksOrdersAPCancelAndReadiness()
         {
             Tile(3, 2);
-            Tile(4, 7);
+            Tile(4, 20);
             Assert.That(Text("Selected Unit").text, Is.EqualTo("02 SCOUT"));
             Assert.That(Text("Enemy Base HP").text, Is.EqualTo("? / 8"));
             Assert.That(Button("Skill").interactable, Is.False);
@@ -248,7 +265,7 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator WorldUsesPerspectiveMeshesAndCameraControls()
         {
-            var tile = GameObject.Find("Tile 2,2");
+            var tile = Floor(2,2);
             Assert.That(tile.GetComponentInChildren<MeshRenderer>(), Is.Not.Null);
             Assert.That(tile.GetComponentInChildren<BoxCollider>(), Is.Not.Null);
             Assert.That(tile.GetComponent<Button>(), Is.Null);
@@ -261,20 +278,31 @@ namespace TurnZero.Tests
             Button("Zoom In").onClick.Invoke();
             Assert.That(Camera.main.transform.position, Is.Not.EqualTo(position));
             Tile(2, 3);
-            Tile(2, 6);
+            Tile(2, 15);
             yield return Preview("combat-3d.png");
             LogAssert.NoUnexpectedReceived();
         }
+
+
+
+
+
+
+
+
+
+
 
         [UnityTest]
         public IEnumerator WorldHidesUnobservedEnemiesAndRendersOnlyLastSeenSnapshot()
         {
             Tile(2, 3);
-            Tile(2, 6);
-            Assert.That(GameObject.Find("Entity 7"), Is.Not.Null);
+            Tile(2, 15);
+            Assert.That(GameObject.Find("Entity 7"), Is.Null);
             Assert.That(GameObject.Find("Entity 5"), Is.Null);
             Button("Switch Player").onClick.Invoke();
             Assert.That(GameObject.Find("Entity 5"), Is.Not.Null);
+            Assert.That(GameObject.Find("Entity 7"), Is.Not.Null);
             Button("Switch Player").onClick.Invoke();
             Assert.That(GameObject.Find("Entity 5"), Is.Null);
 
@@ -288,6 +316,7 @@ namespace TurnZero.Tests
             world.Refresh(hidden, 0, ActionKind.Move);
             Assert.That(GameObject.Find("Entity 7"), Is.Null);
             var ghost = GameObject.Find("Last Seen 7");
+            Assert.That(ghost, Is.Not.Null);
             Assert.That(ghost.transform.position, Is.EqualTo(world.Position(new Cell(2, 5))));
             Assert.That(ghost.GetComponentInChildren<TMP_Text>().text, Does.Contain("3 HP / T1"));
             Assert.That(ghost.GetComponent<BattleWorldTarget>(), Is.Null);
@@ -306,7 +335,7 @@ namespace TurnZero.Tests
             try
             {
                 Physics.SyncTransforms();
-                Vector2 first = Camera.main.WorldToScreenPoint(GameObject.Find("Tile 2,2").transform.position + Vector3.up * 0.08f);
+                Vector2 first = Camera.main.WorldToScreenPoint(Floor(2,2).transform.position + Vector3.up * 0.08f);
                 InputSystem.QueueStateEvent(mouse, new MouseState { position = first });
                 yield return null;
                 InputSystem.QueueStateEvent(mouse, new MouseState { position = first }.WithButton(MouseButton.Left));
@@ -314,7 +343,7 @@ namespace TurnZero.Tests
                 InputSystem.QueueStateEvent(mouse, new MouseState { position = first });
                 yield return null;
                 Assert.That(Text("Phase").text, Does.Contain("P2"));
-                Vector2 second = Camera.main.WorldToScreenPoint(GameObject.Find("Tile 5,7").transform.position + Vector3.up * 0.08f);
+                Vector2 second = Camera.main.WorldToScreenPoint(Floor(5,20).transform.position + Vector3.up * 0.08f);
                 InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Began, position = second, pressure = 1 });
                 yield return null;
                 InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Ended, position = second });

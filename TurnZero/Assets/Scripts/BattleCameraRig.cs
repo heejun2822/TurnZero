@@ -17,7 +17,7 @@ namespace TurnZero
         public void Zoom(float change) { zoom = Mathf.Clamp(zoom + change, 0.75f, 1.4f); Reframe(); }
         public void Reframe()
         {
-            if (map == null || layout == null || cameraView == null) return;
+            if (map == null || map.AlliedField == null || layout == null || cameraView == null) return;
             layout.Refresh();
             viewport = layout.FieldViewport;
             if (viewport.width <= 0 || viewport.height <= 0) return;
@@ -45,6 +45,7 @@ namespace TurnZero
                             Mathf.Abs(local.y - centerY * vertical * local.z) / (viewport.height * 0.94f * vertical) - local.z);
                     }
             distance *= zoom;
+            cameraView.farClipPlane = Mathf.Max(200, distance + (map.Width + map.Height) * map.Spacing + 4);
             cameraView.transform.SetPositionAndRotation(focus + rotation * new Vector3(-centerX * distance * horizontal,
                 -centerY * distance * vertical, -distance), rotation);
         }

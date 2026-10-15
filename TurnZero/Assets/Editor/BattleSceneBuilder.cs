@@ -131,39 +131,21 @@ namespace TurnZero.Editor
 
         private BattleMapView BuildMap()
         {
-            BuildSurroundings();
-            var tiles = new BattleTileView[rules.Width * rules.Height];
             var tileRoot = new GameObject("Tile", typeof(BattleWorldTarget), typeof(BattleTileView));
             var ground = Shape("Surface", tileRoot.transform, PrimitiveType.Cube, Vector3.down * 0.08f,
-                new Vector3(1, 0.16f, 1), Color.white, true);
+                new Vector3(2, 0.16f, 2), Color.white, true);
             var border = Shape("Selection Border", tileRoot.transform, PrimitiveType.Cube, Vector3.down * 0.06f,
-                new Vector3(1.07f, 0.08f, 1.07f), WorldCyan, false);
+                new Vector3(2.14f, 0.08f, 2.14f), WorldCyan, false);
             border.SetActive(false);
             Wire(tileRoot.GetComponent<BattleTileView>(), ("surface", ground.GetComponent<Renderer>()),
-                ("border", border), ("target", tileRoot.GetComponent<BattleWorldTarget>()), ("terrainColor", new Color(0.62f, 0.58f, 0.49f)));
-            var tilePrefab = PrefabUtility.SaveAsPrefabAsset(tileRoot, Prefabs + "Map/BattleTile.prefab");
+                ("border", border), ("target", tileRoot.GetComponent<BattleWorldTarget>()));
+            PrefabUtility.SaveAsPrefabAsset(tileRoot, Prefabs + "Map/BattleTile.prefab");
             UnityEngine.Object.DestroyImmediate(tileRoot);
-            for (int y = 0; y < rules.Height; y++)
-                for (int x = 0; x < rules.Width; x++)
-                {
-                    var cell = new Cell(x, y);
-                    var tile = (GameObject)PrefabUtility.InstantiatePrefab(tilePrefab, mapRoot.transform);
-                    tile.name = $"Tile {x},{y}";
-                    tile.transform.localPosition = MapPosition(cell);
-                    var target = tile.GetComponent<BattleWorldTarget>();
-                    target.Cell = cell;
-                    EditorUtility.SetDirty(target);
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                    Color terrain = (x * 13 + y * 7) % 5 < 2 ? new Color(0.44f, 0.53f, 0.25f) :
-                        (x + y) % 2 == 0 ? new Color(0.62f, 0.58f, 0.49f) : new Color(0.53f, 0.52f, 0.45f);
-                    tiles[y * rules.Width + x] = tile.GetComponent<BattleTileView>();
-                    Wire(tiles[y * rules.Width + x], ("terrainColor", terrain));
-                    ground = tile.transform.Find("Surface").gameObject;
-                    ground.GetComponent<Renderer>().sharedMaterial = Surface(terrain);
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(ground.GetComponent<Renderer>());
-                }
             var map = mapRoot.AddComponent<BattleMapView>();
-            Wire(map, ("width", rules.Width), ("height", rules.Height), ("spacing", Spacing), ("tiles", tiles));
+            BattleTilemapAssets.BuildMap(map);
+            rules.Width = map.Width;
+            rules.Height = map.Height;
+            rules.NeutralHeight = map.NeutralHeight;
             Save(mapRoot, "Map/FixedBattleMap.prefab");
             return map;
         }

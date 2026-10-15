@@ -1,17 +1,36 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace TurnZero
 {
+    [ExecuteAlways]
     public sealed class BattleTileView : MonoBehaviour
     {
         [SerializeField] private Renderer surface;
         [SerializeField] private GameObject border;
-        [SerializeField] private Color terrainColor;
+        [SerializeField] private Color terrainColor = new Color(0.62f, 0.58f, 0.49f);
         [SerializeField] private BattleWorldTarget target;
         private MaterialPropertyBlock tint;
-        public Cell Cell => target.Cell;
-
-        public void Bind(System.Action<Cell> click) => target.Click = click;
+        public Cell Cell
+        {
+            get
+            {
+                var tilemap = GetComponentInParent<Tilemap>();
+                if (tilemap == null) return target.Cell;
+                var cell = tilemap.WorldToCell(transform.position);
+                return new Cell(cell.x, cell.y);
+            }
+        }
+        public Color TerrainColor => terrainColor;
+        public void Bind(System.Action<Cell> click)
+        {
+            target.Cell = Cell;
+            target.Click = click;
+        }
+        private void OnEnable()
+        {
+            if (!Application.IsPlaying(gameObject) && surface != null) Render(true, false, false, false);
+        }
 
         public void Render(bool visible, bool placement, bool highlighted, bool selected)
         {

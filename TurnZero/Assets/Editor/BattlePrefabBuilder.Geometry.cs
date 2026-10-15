@@ -12,7 +12,6 @@ namespace TurnZero.Editor
         private static readonly Color Ghost = new Color(0.3f, 0.33f, 0.38f);
         private const float Spacing = 1.1f;
         private sealed class Actor { public GameObject Root; public TMP_Text Label; public BattleWorldTarget Target; }
-        private Vector3 MapPosition(Cell cell) => new Vector3((cell.X - (rules.Width - 1) * 0.5f) * Spacing, 0, (cell.Y - (rules.Height - 1) * 0.5f) * Spacing);
         private Actor CreateActor(EntityState entity, bool ghost)
         {
             var root = new GameObject($"{(ghost ? "Last Seen" : "Entity")} {entity.Id}");
@@ -109,29 +108,6 @@ namespace TurnZero.Editor
                 UnityEngine.Object.DestroyImmediate(collider);
             }
             return shape;
-        }
-        private void BuildSurroundings()
-        {
-            Shape("Terrain Foundation", mapRoot.transform, PrimitiveType.Cube, new Vector3(0, -0.27f, 0), new Vector3(40, 0.35f, 40), Fog, false);
-            for (int y = -5; y < rules.Height + 5; y++)
-                for (int x = -5; x < rules.Width + 5; x++)
-                {
-                    if (x >= 0 && x < rules.Width && y >= 0 && y < rules.Height) continue;
-                    var cell = new Cell(x, y);
-                    Color terrain = (x * 13 + y * 7) % 3 == 0 ? new Color(0.13f, 0.17f, 0.1f) : new Color(0.15f, 0.17f, 0.16f);
-                    Shape("Surrounding Tile", mapRoot.transform, PrimitiveType.Cube, MapPosition(cell) + Vector3.down * 0.08f, new Vector3(1.07f, 0.16f, 1.07f), terrain, false);
-                    if ((x * x + y * y) % 4 != 0 || x == -1 || x == rules.Width || y == -1 || y == rules.Height) continue;
-                    var point = MapPosition(cell);
-                    Shape("Tree Trunk", mapRoot.transform, PrimitiveType.Cube, point + Vector3.up * 0.38f, new Vector3(0.13f, 0.75f, 0.13f), new Color(0.12f, 0.105f, 0.08f), false);
-                    Shape("Tree Crown", mapRoot.transform, PrimitiveType.Sphere, point + Vector3.up * 0.85f, new Vector3(0.9f, 1.25f, 0.9f), new Color(0.105f, 0.19f, 0.13f), false);
-                }
-            foreach (int x in new[] { -1, rules.Width })
-                for (int y = 0; y < rules.Height; y += 2)
-                {
-                    var point = MapPosition(new Cell(x, y));
-                    Shape("Ruined Wall", mapRoot.transform, PrimitiveType.Cube, point + Vector3.up * 0.29f, new Vector3(0.4f, 0.58f, 1.3f), new Color(0.22f, 0.25f, 0.23f), false);
-                    Shape("Wall Cap", mapRoot.transform, PrimitiveType.Cube, point + Vector3.up * 0.65f, new Vector3(0.55f, 0.2f, 0.5f), new Color(0.26f, 0.28f, 0.25f), false);
-                }
         }
         private static Mesh FacetedMesh()
         {
