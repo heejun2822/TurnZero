@@ -10,6 +10,7 @@ namespace TurnZero
         private BattleState state = new BattleState();
         private readonly Dictionary<int, ActionOrder>[] orders = { new Dictionary<int, ActionOrder>(), new Dictionary<int, ActionOrder>() };
         private readonly Dictionary<int, Observation>[] memory = { new Dictionary<int, Observation>(), new Dictionary<int, Observation>() };
+        private readonly HashSet<Cell>[] explored = { new HashSet<Cell>(), new HashSet<Cell>() };
         private readonly List<string>[] messages = { new List<string>(), new List<string>() };
         private readonly bool[] locked = new bool[2];
         private readonly BattleRecording recording;
@@ -26,6 +27,11 @@ namespace TurnZero
             configuration.Validate();
             rules = configuration.Copy();
             recording = new BattleRecording { Rules = rules.Copy() };
+            int homeHeight = (rules.Height - rules.NeutralHeight) / 2;
+            for (int player = 0; player < 2; player++)
+                for (int y = 0; y < homeHeight; y++)
+                    for (int x = 0; x < rules.Width; x++)
+                        explored[player].Add(new Cell(x, y + player * (homeHeight + rules.NeutralHeight)));
         }
 
         public bool PlaceBase(int player, Cell cell, double now, out string error)
@@ -50,8 +56,8 @@ namespace TurnZero
                 state.Turn = 1;
                 state.Phase = MatchPhase.Planning;
                 deadline = now + rules.PlanningSeconds;
-                RefreshMemory();
             }
+            RefreshMemory();
             return true;
         }
 
@@ -76,22 +82,28 @@ namespace TurnZero
             return true;
         }
 
-        public bool Tick(double now)
+        public bool Tick(double now, bool showResolution = false)
         {
+            if (state.Phase == MatchPhase.Resolving)
+            {
+                if (now < deadline) return false;
+                BeginNextTurn(now);
+                return true;
+            }
             if (state.Phase != MatchPhase.Planning || now < deadline) return false;
-            ResolveTurn(now);
+            ResolveTurn(now, showResolution);
             return true;
         }
 
         // Explicit local testing control. Locking both players does not shorten the normal shared timer.
-        public bool ResolveNow(double now)
+        public bool ResolveNow(double now, bool showResolution = false)
         {
             if (state.Phase != MatchPhase.Planning) return false;
-            ResolveTurn(now);
+            ResolveTurn(now, showResolution);
             return true;
         }
 
-        private void ResolveTurn(double now)
+        private void ResolveTurn(double now, bool showResolution)
         {
             var one = orders[0].Values.OrderBy(o => o.UnitId).Select(o => o.Copy()).ToList();
             var two = orders[1].Values.OrderBy(o => o.UnitId).Select(o => o.Copy()).ToList();
@@ -105,14 +117,24 @@ namespace TurnZero
                 messages[player].Add($"Turn {state.Turn} resolved.");
                 messages[player].AddRange(result.Messages[player]);
                 foreach (var observation in result.Observations[player]) memory[player][observation.Entity.Id] = observation.Copy();
+                explored[player].UnionWith(result.SeenCells[player]);
                 orders[player].Clear();
                 locked[player] = false;
             }
             RefreshMemory();
             if (state.Phase == MatchPhase.Finished) return;
+            if (showResolution) { state.Phase = MatchPhase.Resolving; deadline = now + 0.75; }
+            else BeginNextTurn(now);
+        }
+
+        private void BeginNextTurn(double now)
+        {
             state.Turn++;
+            state.Phase = MatchPhase.Planning;
+            state.VisionReveals.Clear();
             for (int player = 0; player < 2; player++) state.AP[player] = Math.Min(rules.MaximumAP, state.AP[player] + rules.TurnIncome);
             deadline = now + rules.PlanningSeconds;
+            RefreshMemory();
         }
 
         private void RefreshMemory()
@@ -120,6 +142,7 @@ namespace TurnZero
             for (int player = 0; player < 2; player++)
             {
                 var vision = BattleResolver.Vision(state, player, rules);
+                explored[player].UnionWith(vision);
                 foreach (var entity in state.Entities.Where(e => e.Owner != player && vision.Contains(e.Position)))
                     memory[player][entity.Id] = new Observation { Entity = entity.Copy(), SeenOnTurn = state.Turn };
                 foreach (int id in memory[player].Keys.ToList())
@@ -138,7 +161,7 @@ namespace TurnZero
             var vision = BattleResolver.Vision(state, player, rules);
             var view = new PlayerView { Player = player, Turn = state.Turn, Phase = state.Phase, Outcome = state.Outcome,
                 AP = state.AP[player], ReservedAP = orders[player].Values.Sum(o => rules.Cost(o.Kind)), Locked = locked[player],
-                SecondsLeft = SecondsLeft(now), VisibleCells = vision };
+                SecondsLeft = SecondsLeft(now), VisibleCells = vision, ExploredCells = new HashSet<Cell>(explored[player]) };
             foreach (var entity in state.Entities.OrderBy(e => e.Id))
                 if (entity.Owner == player || vision.Contains(entity.Position) && entity.Health > 0) view.Entities.Add(entity.Copy());
             foreach (var observation in memory[player].Values.OrderBy(o => o.Entity.Id))

@@ -43,6 +43,127 @@ namespace TurnZero.Tests
         }
 
         [Test]
+        public void FogStartsWithOnlyEachPlayersHomeFieldExplored()
+        {
+            var rules = new BattleRules { Width = 16, Height = 24, NeutralHeight = 4 };
+            var match = new BattleMatch(rules);
+            for (int player = 0; player < 2; player++)
+            {
+                var view = match.View(player, 0);
+                Assert.That(view.VisibleCells, Is.Empty);
+                Assert.That(view.ExploredCells.Count, Is.EqualTo(160));
+                for (int y = 0; y < 24; y++)
+                    for (int x = 0; x < 16; x++)
+                    {
+                        bool home = player == 0 ? y < 10 : y >= 14;
+                        Assert.That(view.Visibility(new Cell(x,y)), Is.EqualTo(home ? TileVisibility.Explored : TileVisibility.Unexplored));
+                    }
+                view.ExploredCells.Clear();
+                Assert.That(match.View(player, 0).ExploredCells.Count, Is.EqualTo(160));
+            }
+        }
+
+        [Test]
+        public void ScoutingNeutralAndEnemyTilesPersistsAfterLeavingVision()
+        {
+            var rules = new BattleRules { Width = 16, Height = 24, NeutralHeight = 4 };
+            var match = Start(rules, new Cell(7,8), new Cell(14,22));
+            var neutral = new Cell(7,11);
+            Assert.That(match.View(0, 10).Visibility(neutral), Is.EqualTo(TileVisibility.Visible));
+            Assert.That(match.View(1, 10).Visibility(neutral), Is.EqualTo(TileVisibility.Unexplored));
+            for (int y = 10; y <= 14; y++)
+            {
+                Assert.That(match.QueueOrder(0, match.Turn, ActionOrder.Move(1, new Cell(7,y)), out _), Is.True);
+                match.ResolveNow(11 + y);
+            }
+            var enemy = new Cell(7,16);
+            Assert.That(match.View(0, 30).Visibility(enemy), Is.EqualTo(TileVisibility.Visible));
+            Assert.That(match.View(0, 30).Visibility(neutral), Is.EqualTo(TileVisibility.Explored));
+            match.QueueOrder(0, match.Turn, ActionOrder.Move(1, new Cell(7,13)), out _);
+            match.ResolveNow(31);
+            Assert.That(match.View(0, 31).Visibility(enemy), Is.EqualTo(TileVisibility.Explored));
+            Assert.That(match.View(0, 31).Visibility(new Cell(0,23)), Is.EqualTo(TileVisibility.Unexplored));
+        }
+
+        [Test]
+        public void ActionRevealIsOneCellForItsOwnerAndExpiresWithItsTurn()
+        {
+            var rules = new BattleRules();
+            var state = Combat(new Cell(1,2), new Cell(6,7));
+            var point = new Cell(3,6);
+            state.RevealCell(0, point);
+            Assert.That(BattleResolver.Vision(state, 0, rules).Contains(point), Is.True);
+            Assert.That(BattleResolver.Vision(state, 0, rules).Contains(new Cell(3,7)), Is.False);
+            Assert.That(BattleResolver.Vision(state, 1, rules).Contains(point), Is.False);
+            var copy = state.Copy();
+            copy.VisionReveals.Clear();
+            Assert.That(BattleResolver.Vision(state, 0, rules).Contains(point), Is.True);
+            state.Turn++;
+            Assert.That(BattleResolver.Vision(state, 0, rules).Contains(point), Is.False);
+        }
+
+        [Test]
+        public void AttackRevealSurvivesItsSourceDeathAndIsRecordedAsExplored()
+        {
+            var rules = new BattleRules { AttackDamage = 3 };
+            var state = Combat(new Cell(3,4), new Cell(3,6));
+            // Keep another unit alive so the game can advance after the mutual kill.
+            state.Entities.Add(Entity(2, 0, EntityKind.Unit, 0, 0));
+            state.Entities.Add(Entity(6, 1, EntityKind.Unit, 7, 9));
+            var result = BattleResolver.Resolve(state, rules,
+                new[] { ActionOrder.Attack(1,5) }, new[] { ActionOrder.Attack(5,1) });
+            Assert.That(result.State.Phase, Is.EqualTo(MatchPhase.Planning));
+            Assert.That(result.State.Entities.Single(e => e.Id == 1).Health, Is.Zero);
+            Assert.That(result.State.VisionReveals.Any(r => r.Player == 0 && r.Position == new Cell(3,6)), Is.True);
+            Assert.That(BattleResolver.Vision(result.State, 0, rules).Contains(new Cell(3,6)), Is.True);
+            Assert.That(result.SeenCells[0].Contains(new Cell(3,6)), Is.True);
+            result.State.Turn++;
+            Assert.That(BattleResolver.Vision(result.State, 0, rules).Contains(new Cell(3,6)), Is.False);
+        }
+
+        [Test]
+        public void ResolutionDisplaysTheSameTurnAndDelaysTheNextPlanningTimer()
+        {
+            var match = Start();
+            Assert.That(match.ResolveNow(11, true), Is.True);
+            Assert.That(match.Phase, Is.EqualTo(MatchPhase.Resolving));
+            Assert.That(match.Turn, Is.EqualTo(1));
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Wait(1), out _), Is.False);
+            Assert.That(match.Tick(11.5, true), Is.False);
+            Assert.That(match.Tick(11.75, true), Is.True);
+            Assert.That(match.Phase, Is.EqualTo(MatchPhase.Planning));
+            Assert.That(match.Turn, Is.EqualTo(2));
+            Assert.That(match.SecondsLeft(11.75), Is.EqualTo(30));
+            var record = match.ExportRecording().Turns.Single();
+            SameState(BattleResolver.Resolve(record.Before, new BattleRules(), record.PlayerOneOrders, record.PlayerTwoOrders).State, record.After);
+        }
+
+        [Test]
+        public void AttackPointBecomesExploredWhenResolutionEndsAndItsSourceIsDead()
+        {
+            var rules = new BattleRules { Height = 12, NeutralHeight = 2, VisionRange = 1, AttackRange = 1, AttackDamage = 3 };
+            var match = Start(rules, new Cell(2,2), new Cell(5,9));
+            var enemyPath = new[] { new Cell(5,7), new Cell(5,6), new Cell(5,5), new Cell(4,5), new Cell(3,5) };
+            for (int i = 0; i < enemyPath.Length; i++)
+            {
+                if (i < 2) Assert.That(match.QueueOrder(0, match.Turn, ActionOrder.Move(1, new Cell(2,4+i)), out _), Is.True);
+                Assert.That(match.QueueOrder(1, match.Turn, ActionOrder.Move(7, enemyPath[i]), out _), Is.True);
+                match.ResolveNow(11+i);
+            }
+            var point = new Cell(3,5);
+            Assert.That(match.QueueOrder(0, match.Turn, ActionOrder.Attack(1,7), out _), Is.True);
+            Assert.That(match.QueueOrder(1, match.Turn, ActionOrder.Attack(7,1), out _), Is.True);
+            match.ResolveNow(20, true);
+            Assert.That(match.View(0, 20).Entities.Single(e => e.Id == 1).Health, Is.Zero);
+            Assert.That(match.View(0, 20).Visibility(point), Is.EqualTo(TileVisibility.Visible));
+            match.Tick(20.75);
+            Assert.That(match.View(0, 20.75).Visibility(point), Is.EqualTo(TileVisibility.Explored));
+            Assert.That(match.View(0, 20.75).VisibleCells.Contains(point), Is.False);
+            var fresh = new BattleMatch(rules);
+            Assert.That(fresh.View(0, 0).Visibility(point), Is.EqualTo(TileVisibility.Unexplored));
+        }
+
+        [Test]
         public void NeutralRowsAndHomeBordersRejectBasesAndSpawnsStayInHomeFields()
         {
             var rules = new BattleRules { Width = 16, Height = 24, NeutralHeight = 4 };

@@ -13,7 +13,7 @@ namespace TurnZero
         public void Render(PlayerView view, BattleRules rules)
         {
             phaseText.text = view.Phase == MatchPhase.Placement ? $"P{view.Player + 1} / PLACE YOUR BASE" : view.Phase == MatchPhase.Finished ? Outcome(view.Outcome) :
-                $"TURN {view.Turn:00}  |  PLAN ORDERS";
+                $"TURN {view.Turn:00}  |  {(view.Phase == MatchPhase.Resolving ? "RESOLVING" : "PLAN ORDERS")}";
             phaseText.color = view.Phase == MatchPhase.Finished ? Gold : Muted;
             Timer(view.Phase, view.SecondsLeft);
             Gauge(view, rules, view.Player, ownBaseText, ownBaseBar, Health);

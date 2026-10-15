@@ -61,7 +61,8 @@ namespace TurnZero
         public static bool operator !=(Cell left, Cell right) => !left.Equals(right);
     }
 
-    public enum MatchPhase { Placement, Planning, Finished }
+    public enum MatchPhase { Placement, Planning, Finished, Resolving }
+    public enum TileVisibility { Unexplored, Explored, Visible }
     public enum ActionKind { Wait, Move, Attack }
     public enum EntityKind { Unit, Base }
     public enum BattleOutcome { None, PlayerOne, PlayerTwo, Draw }
@@ -100,12 +101,27 @@ namespace TurnZero
         public BattleOutcome Outcome;
         public int[] AP = new int[2];
         public List<EntityState> Entities = new List<EntityState>();
+        // Reconstructed from actions during replay; these cells belong only to their stamped turn.
+        [NonSerialized] public List<VisionReveal> VisionReveals = new List<VisionReveal>();
+        public void RevealCell(int player, Cell position)
+        {
+            if (player < 0 || player > 1) throw new ArgumentOutOfRangeException(nameof(player));
+            VisionReveals.Add(new VisionReveal { Player = player, Position = position, Turn = Turn });
+        }
         public BattleState Copy()
         {
             var copy = new BattleState { Turn = Turn, Phase = Phase, Outcome = Outcome, AP = (int[])AP.Clone() };
             foreach (var entity in Entities) copy.Entities.Add(entity.Copy());
+            copy.VisionReveals.AddRange(VisionReveals);
             return copy;
         }
+    }
+
+    public struct VisionReveal
+    {
+        public int Player;
+        public Cell Position;
+        public int Turn;
     }
 
     [Serializable]
@@ -128,15 +144,19 @@ namespace TurnZero
         public bool Locked;
         public double SecondsLeft;
         public HashSet<Cell> VisibleCells = new HashSet<Cell>();
+        public HashSet<Cell> ExploredCells = new HashSet<Cell>();
         public List<EntityState> Entities = new List<EntityState>();
         public List<Observation> LastSeen = new List<Observation>();
         public List<ActionOrder> Orders = new List<ActionOrder>();
         public List<string> Messages = new List<string>();
+        public TileVisibility Visibility(Cell cell) => VisibleCells.Contains(cell) ? TileVisibility.Visible :
+            ExploredCells.Contains(cell) ? TileVisibility.Explored : TileVisibility.Unexplored;
     }
 
     public sealed class TurnResult
     {
         public BattleState State;
+        public HashSet<Cell>[] SeenCells = { new HashSet<Cell>(), new HashSet<Cell>() };
         public List<Observation>[] Observations = { new List<Observation>(), new List<Observation>() };
         public List<string>[] Messages = { new List<string>(), new List<string>() };
     }

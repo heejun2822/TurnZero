@@ -74,7 +74,7 @@ namespace TurnZero
                 bool ordered = view.Orders.Any(o => o.Kind == ActionKind.Move && o.Destination == cell ||
                     o.Kind == ActionKind.Attack && entity != null && o.TargetId == entity.Id);
                 bool selection = entity != null && entity.Id == selectedId;
-                tile.Render(visible, view.Phase == MatchPhase.Placement && rules.CanPlaceBase(view.Player, cell),
+                tile.Render(view.Visibility(cell), view.Phase == MatchPhase.Placement && rules.CanPlaceBase(view.Player, cell),
                     range || ordered || selection, selection);
             }
         }

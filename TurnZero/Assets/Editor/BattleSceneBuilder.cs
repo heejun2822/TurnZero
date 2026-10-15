@@ -103,7 +103,7 @@ namespace TurnZero.Editor
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 200;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.035f, 0.055f, 0.09f);
+            camera.backgroundColor = Color.black;
             if (camera.GetComponent<PhysicsRaycaster>() == null) camera.gameObject.AddComponent<PhysicsRaycaster>();
             var rig = rigObject.AddComponent<BattleCameraRig>();
             Wire(rig, ("cameraView", camera));

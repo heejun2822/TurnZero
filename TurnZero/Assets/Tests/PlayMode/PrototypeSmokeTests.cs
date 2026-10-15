@@ -60,11 +60,84 @@ namespace TurnZero.Tests
         private static void Tile(int x, int y) => Floor(x,y).GetComponent<BattleWorldTarget>()
             .OnPointerClick(new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left });
 
+        private static IEnumerator ResolveTurn()
+        {
+            Button("Resolve Turn").onClick.Invoke();
+            float timeout = Time.realtimeSinceStartup + 3;
+            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout) yield return null;
+            Assert.That(Text("Phase").text, Does.Not.Contain("RESOLVING"));
+        }
 
+        [UnityTest]
+        public IEnumerator FogShowsUniformDarkUnexploredTilesAndDimsExploredTerrainIncludingProps()
+        {
+            void AssertUnexplored(BattleTileView tile)
+            {
+                var surface = tile.transform.Find("Surface").GetComponent<Renderer>();
+                Assert.That(surface.enabled, Is.True);
+                Assert.That(tile.GetComponentsInChildren<Renderer>(true).Where(r => r != surface).All(r => !r.enabled), Is.True);
+                var tint = new MaterialPropertyBlock();
+                surface.GetPropertyBlock(tint);
+                Assert.That(Vector4.Distance(tint.GetColor("_BaseColor"), new Color(0.045f, 0.055f, 0.07f)), Is.LessThan(0.001f));
+            }
+            Assert.That(Camera.main.backgroundColor, Is.EqualTo(Color.black));
+            var tree = Floor(3,10).GetComponent<BattleTileView>();
+            var wall = Floor(4,10).GetComponent<BattleTileView>();
+            AssertUnexplored(tree);
+            AssertUnexplored(wall);
+            AssertUnexplored(Floor(15,23).GetComponent<BattleTileView>());
+            var home = Floor(15,9).GetComponent<BattleTileView>();
+            var property = new MaterialPropertyBlock();
+            home.transform.Find("Surface").GetComponent<Renderer>().GetPropertyBlock(property);
+            var dim = property.GetColor("_BaseColor");
+            Assert.That(dim.r, Is.EqualTo(home.TerrainColor.r * 0.3f).Within(0.001f));
+            var view = new PlayerView { Player = 0, Phase = MatchPhase.Planning };
+            view.ExploredCells.Add(tree.Cell);
+            view.ExploredCells.Add(wall.Cell);
+            var world = root.GetComponentInChildren<BattleWorldView>();
+            world.Refresh(view, 0, ActionKind.Move);
+            var trunk = tree.transform.Find("Tree").GetComponentInChildren<Renderer>();
+            Assert.That(trunk.enabled, Is.True);
+            trunk.GetPropertyBlock(property);
+            Assert.That(property.GetColor("_BaseColor").r, Is.EqualTo(trunk.sharedMaterial.GetColor("_BaseColor").r * 0.3f).Within(0.001f));
+            Assert.That(wall.transform.Find("RuinedWall").GetComponentsInChildren<Renderer>().All(r => r.enabled), Is.True);
+            view.VisibleCells.Add(tree.Cell);
+            world.Refresh(view, 0, ActionKind.Move);
+            trunk.GetPropertyBlock(property);
+            Assert.That(Vector4.Distance(property.GetColor("_BaseColor"), trunk.sharedMaterial.GetColor("_BaseColor")), Is.LessThan(0.001f));
+            tree.transform.Find("Surface").GetComponent<Renderer>().GetPropertyBlock(property);
+            Assert.That(Vector4.Distance(property.GetColor("_BaseColor"), tree.TerrainColor), Is.LessThan(0.001f));
+            world.Refresh(new PlayerView(), 0, ActionKind.Move);
+            AssertUnexplored(tree);
+            tree.Render(TileVisibility.Unexplored, true, true, true);
+            AssertUnexplored(tree);
+            Assert.That(tree.transform.Find("Selection Border").gameObject.activeSelf, Is.False);
+            Button("Restart").onClick.Invoke();
+            Tile(7,8);
+            Tile(8,20);
+            yield return Preview("fog-states.png");
+            Button("Switch Player").onClick.Invoke();
+            AssertUnexplored(Floor(3,1).GetComponent<BattleTileView>());
+            yield return Preview("fog-player-two.png");
+            LogAssert.NoUnexpectedReceived();
+        }
 
-
-
-
+        [UnityTest]
+        public IEnumerator ResolutionKeepsItsTurnVisibleBeforeStartingTheNextPlanningWindow()
+        {
+            Tile(7,8);
+            Tile(8,20);
+            Button("Resolve Turn").onClick.Invoke();
+            Assert.That(Text("Phase").text, Does.Contain("TURN 01").And.Contain("RESOLVING"));
+            Assert.That(Button("Resolve Turn").interactable, Is.False);
+            Assert.That(Button("Move").interactable, Is.False);
+            float timeout = Time.realtimeSinceStartup + 3;
+            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout) yield return null;
+            Assert.That(Text("Phase").text, Does.Contain("TURN 02").And.Contain("PLAN ORDERS"));
+            Assert.That(Text("Timer").text, Is.EqualTo("00:30"));
+            Assert.That(Button("Resolve Turn").interactable, Is.True);
+            LogAssert.NoUnexpectedReceived();
+        }
 
         [UnityTest]
         public IEnumerator PlacementPlanningResolutionAndRestartAreConnected()
@@ -82,7 +155,7 @@ namespace TurnZero.Tests
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 1"));
             Button("Switch Player").onClick.Invoke();
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
-            Button("Resolve Turn").onClick.Invoke();
+            yield return ResolveTurn();
             Assert.That(Text("Phase").text, Does.Contain("TURN 02"));
             Button("Switch Player").onClick.Invoke();
             Assert.That(GameObject.Find("Entity 1").GetComponent<BattleWorldTarget>().Cell, Is.EqualTo(new Cell(2, 4)));
@@ -157,7 +230,7 @@ namespace TurnZero.Tests
                 Button("Unit 1").onClick.Invoke();
                 Button("Move").onClick.Invoke();
                 Tile(2,y);
-                Button("Resolve Turn").onClick.Invoke();
+                yield return ResolveTurn();
             }
             // Clear the enemy in front of the base, then advance into its vacated tile.
             for (int hit = 0; hit < 3; hit++)
@@ -165,18 +238,18 @@ namespace TurnZero.Tests
                 Button("Unit 1").onClick.Invoke();
                 Button("Attack").onClick.Invoke();
                 Tile(2, 14);
-                Button("Resolve Turn").onClick.Invoke();
+                yield return ResolveTurn();
             }
             Button("Unit 1").onClick.Invoke();
             Button("Move").onClick.Invoke();
             Tile(2, 14);
-            Button("Resolve Turn").onClick.Invoke();
+            yield return ResolveTurn();
             for (int hit = 0; hit < 8; hit++)
             {
                 Button("Unit 1").onClick.Invoke();
                 Button("Attack").onClick.Invoke();
                 Tile(2, 15);
-                Button("Resolve Turn").onClick.Invoke();
+                yield return ResolveTurn();
             }
             Assert.That(Text("Phase").text, Is.EqualTo("PLAYER 1 WINS"));
             Assert.That(Button("Resolve Turn").interactable, Is.False);
@@ -225,7 +298,7 @@ namespace TurnZero.Tests
             Tile(2, 2);
             Tile(5, 20);
             Assert.That(Text("Selected HP").text, Is.EqualTo("HP  5 / 5"));
-            Button("Resolve Turn").onClick.Invoke();
+            yield return ResolveTurn();
             Assert.That(Text("Phase").text, Does.Contain("TURN 02"));
             LogAssert.NoUnexpectedReceived();
         }
@@ -487,6 +560,7 @@ namespace TurnZero.Tests
                 Position = new Cell(2, 5), Health = 3, MaximumHealth = 3 }, SeenOnTurn = 1 };
             var hidden = new PlayerView { Player = 0, Phase = MatchPhase.Planning };
             hidden.LastSeen.Add(observation.Copy());
+            hidden.ExploredCells.Add(observation.Entity.Position);
             observation.Entity.Position = new Cell(7, 9);
             observation.Entity.Health = 1;
             var world = root.GetComponentInChildren<BattleWorldView>();

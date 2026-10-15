@@ -16,6 +16,8 @@ namespace TurnZero
                         var cell = new Cell(entity.Position.X + x, entity.Position.Y + y);
                         if (rules.Contains(cell) && Math.Abs(x) + Math.Abs(y) <= rules.VisionRange) cells.Add(cell);
                     }
+            foreach (var reveal in state.VisionReveals)
+                if (reveal.Player == player && reveal.Turn == state.Turn && rules.Contains(reveal.Position)) cells.Add(reveal.Position);
             return cells;
         }
 
@@ -100,6 +102,7 @@ namespace TurnZero
                     continue;
                 }
                 damage[target.Id] = damage.TryGetValue(target.Id, out int total) ? total + rules.AttackDamage : rules.AttackDamage;
+                state.RevealCell(actor.Owner, target.Position);
                 for (int player = 0; player < 2; player++)
                     if (attackVision[player].Contains(actor.Position) && attackVision[player].Contains(target.Position))
                         result.Messages[player].Add($"{actor.Label} hit {target.Label} for {rules.AttackDamage}.");
@@ -114,6 +117,7 @@ namespace TurnZero
             }
             // An observed death remains known even if the observer also died in this damage batch.
             for (int player = 0; player < 2; player++) Observe(state, player, attackVision[player], result);
+            for (int player = 0; player < 2; player++) Observe(state, player, Vision(state, player, rules), result);
 
             bool oneLost = Lost(state, 0);
             bool twoLost = Lost(state, 1);
@@ -131,6 +135,7 @@ namespace TurnZero
 
         private static void Observe(BattleState state, int player, HashSet<Cell> vision, TurnResult result)
         {
+            result.SeenCells[player].UnionWith(vision);
             foreach (var entity in state.Entities.Where(e => e.Owner != player && vision.Contains(e.Position)))
             {
                 result.Observations[player].RemoveAll(o => o.Entity.Id == entity.Id);

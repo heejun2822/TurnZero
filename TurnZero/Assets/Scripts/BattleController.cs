@@ -26,7 +26,7 @@ namespace TurnZero
         private void Update()
         {
             if (match == null) return;
-            if (match.Tick(Now))
+            if (match.Tick(Now, true))
             {
                 hud.Message = "Turn resolved. Review the log, then plan your next actions.";
                 Refresh();
@@ -82,7 +82,7 @@ namespace TurnZero
         private void ClickCell(Cell cell)
         {
             // Tick before accepting input: a UI click arriving at the deadline belongs to the next turn.
-            if (match.Tick(Now)) { selectedId = 0; Refresh(); return; }
+            if (match.Tick(Now, true)) { selectedId = 0; Refresh(); return; }
             if (match.Phase == MatchPhase.Placement)
             {
                 if (!match.PlaceBase(player, cell, Now, out string error)) hud.Message = error;
@@ -113,21 +113,21 @@ namespace TurnZero
 
         private void Queue(ActionOrder order)
         {
-            if (match.Tick(Now)) { selectedId = 0; Refresh(); return; }
+            if (match.Tick(Now, true)) { selectedId = 0; Refresh(); return; }
             hud.Message = match.QueueOrder(player, view.Turn, order, out string error) ? "Order updated. Unassigned units wait for free." : error;
             Refresh();
         }
 
         private void LockOrders()
         {
-            if (match.Tick(Now)) { selectedId = 0; Refresh(); return; }
+            if (match.Tick(Now, true)) { selectedId = 0; Refresh(); return; }
             if (match.LockOrders(player, view.Turn)) hud.Message = "Orders locked. The shared timer continues; switch to the other player.";
             Refresh();
         }
 
         private void ResolveNow()
         {
-            if (!match.ResolveNow(Now)) return;
+            if (!match.ResolveNow(Now, true)) return;
             hud.Message = "Both players' current orders resolved. Review the observed results.";
             Refresh();
         }
