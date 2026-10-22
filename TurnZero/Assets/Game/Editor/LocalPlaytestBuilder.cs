@@ -76,19 +76,13 @@ namespace TurnZero.Game.Editor
         private LocalBattleWorld BuildWorld()
         {
             var worldObject = new GameObject("World",typeof(LocalBattleWorld)); worldObject.transform.SetParent(root.transform,false);
-            var board = new GameObject("Field / 12 x 20"); board.transform.SetParent(worldObject.transform,false);
+            var board = new GameObject("Field / 12 x 20",typeof(LocalFieldMap)); board.transform.SetParent(worldObject.transform,false);
             var template = new GameObject("Battle tile",typeof(LocalTileView));
-            var floor = Shape("Surface",template.transform,PrimitiveType.Cube,new Vector3(0,-0.09f,0),new Vector3(1.32f,0.18f,1.32f),Color.white,true);
-            var outline = Shape("Range outline",template.transform,PrimitiveType.Cube,new Vector3(0,-0.11f,0),new Vector3(1.42f,0.13f,1.42f),cyan,false); outline.SetActive(false);
+            var floor = Shape("Surface",template.transform,PrimitiveType.Cube,new Vector3(0,-0.08f,0),new Vector3(2,0.16f,2),Color.white,true);
+            var outline = Shape("Range outline",template.transform,PrimitiveType.Cube,new Vector3(0,-0.10f,0),new Vector3(2.14f,0.08f,2.14f),cyan,false); outline.SetActive(false);
             Wire(template.GetComponent<LocalTileView>(),("surface",floor.GetComponent<Renderer>()),("outline",outline.GetComponent<Renderer>()));
             var tilePrefab = PrefabUtility.SaveAsPrefabAsset(template,Root+"Prefabs/World/Tile.prefab"); UnityEngine.Object.DestroyImmediate(template);
-            var tiles = new List<LocalTileView>();
-            for (int y = 0; y < rules.Height; y++) for (int x = 0; x < rules.Width; x++)
-            {
-                var tileObject = (GameObject)PrefabUtility.InstantiatePrefab(tilePrefab,board.transform); tileObject.name = $"Tile {x+1:00},{y+1:00}"; tileObject.transform.localPosition = Position(new GridCell(x,y));
-                var tile = tileObject.GetComponent<LocalTileView>(); Wire(tile,("x",x),("y",y));
-                tile.Render(configuration.Fields[0].TileColor(x,y%rules.HomeHeight),Sight.Visible,null); tiles.Add(tile);
-            }
+            var map = BuildMap(board,tilePrefab);
             foreach (int row in new[] { rules.HomeHeight,rules.HomeHeight+rules.NeutralHeight })
             {
                 Shape("Field boundary",board.transform,PrimitiveType.Cube,new Vector3(0,0.01f,(row-rules.Height*0.5f)*configuration.Fields[0].TileSpacing),new Vector3(rules.Width*configuration.Fields[0].TileSpacing,0.025f,0.045f),amber,false);
@@ -108,7 +102,7 @@ namespace TurnZero.Game.Editor
             var path = new GameObject("Planned path",typeof(LineRenderer)); path.transform.SetParent(worldObject.transform,false);
             var lineRenderer = path.GetComponent<LineRenderer>(); lineRenderer.sharedMaterial = Material(cyan,true); lineRenderer.startWidth = lineRenderer.endWidth = 0.055f; lineRenderer.shadowCastingMode = ShadowCastingMode.Off; lineRenderer.receiveShadows = false; path.SetActive(false);
             var world = worldObject.GetComponent<LocalBattleWorld>();
-            Wire(world,("tiles",tiles.ToArray()),("actors",actors.ToArray()),("ghosts",ghosts.ToArray()),("pathLine",lineRenderer),("dynamicRoot",dynamic.transform),
+            Wire(world,("map",map),("actors",actors.ToArray()),("ghosts",ghosts.ToArray()),("pathLine",lineRenderer),("dynamicRoot",dynamic.transform),
                 ("itemPrefab",MarkerPrefab("Craft material",PrimitiveType.Cube,new Vector3(0.25f,0.25f,0.25f),amber,true)),
                 ("structurePrefab",MarkerPrefab("Structure",PrimitiveType.Cylinder,new Vector3(0.45f,0.65f,0.45f),cyan,true)),
                 ("impactPrefab",MarkerPrefab("Impact",PrimitiveType.Cylinder,new Vector3(0.62f,0.025f,0.62f),new Color(1,0.42f,0.16f),false)),

@@ -8,7 +8,8 @@ namespace TurnZero.Game
 {
     public sealed class LocalBattleWorld : MonoBehaviour
     {
-        [SerializeField] private LocalTileView[] tiles;
+        [SerializeField] private LocalFieldMap map;
+        private LocalTileView[] tiles;
         [SerializeField] private LocalActorView[] actors, ghosts;
         [SerializeField] private LineRenderer pathLine;
         [SerializeField] private GameObject itemPrefab, structurePrefab, impactPrefab, projectilePrefab;
@@ -17,11 +18,14 @@ namespace TurnZero.Game
         private Camera viewCamera;
         private readonly Dictionary<string, GameObject> markers = new Dictionary<string, GameObject>();
         private readonly List<GameObject> effects = new List<GameObject>();
-        public float Spacing => session == null ? 1.4f : session.Configuration.Fields[0].TileSpacing;
-        public Vector3 Position(GridCell cell) => new Vector3((cell.X - (session.Rules.Width - 1) * 0.5f) * Spacing,0,(cell.Y - (session.Rules.Height - 1) * 0.5f) * Spacing);
+        public float Spacing => map.Spacing;
+        public Vector3 Position(GridCell cell) => map.Position(cell);
         public void Bind(BattleSession value, Camera camera)
         {
             session = value; viewCamera = camera;
+            var error = map.LayoutError();
+            if (error != null) throw new System.InvalidOperationException(error);
+            tiles = map.Tiles;
             foreach (var actor in actors.Concat(ghosts)) actor.Bind(camera);
             session.Events.Changed += Refresh; session.Events.CueRequested += Cue;
         }
@@ -39,7 +43,7 @@ namespace TurnZero.Game
             if (plane.Raycast(ray,out float distance))
             {
                 var point = ray.GetPoint(distance);
-                cell = new GridCell(Mathf.RoundToInt(point.x / Spacing + (session.Rules.Width - 1) * 0.5f),Mathf.RoundToInt(point.z / Spacing + (session.Rules.Height - 1) * 0.5f));
+                cell = map.WorldToCell(point);
                 return session.Rules.Contains(cell);
             }
             cell = default; return false;

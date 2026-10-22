@@ -7,7 +7,7 @@ namespace TurnZero.Game
     {
         public string DisplayName = "Stone courtyard";
         public int Width = 12, HomeHeight = 8, NeutralHeight = 4;
-        public float TileSpacing = 1.4f;
+        public float TileSpacing = 2.2f;
         public Color Ground = new Color(0.17f,0.22f,0.26f);
         public Color Alternate = new Color(0.20f,0.26f,0.29f);
         [Tooltip("Optional 12x8 home tile variants, row-major. 0 = ground, 1 = alternate. Cosmetic in the local profile.")]
