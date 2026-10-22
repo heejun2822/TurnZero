@@ -1,13 +1,7 @@
 {
   "name": "TurnZero.Game.Tests",
   "rootNamespace": "TurnZero.Game.Tests",
-  "references": [
-    "TurnZero.Game.Domain"
-  ],
-  "includePlatforms": [
-    "Editor"
-  ],
-  "optionalUnityReferences": [
-    "TestAssemblies"
-  ]
+  "references": ["TurnZero.Game.Domain", "TurnZero.Game.Runtime", "TurnZero.Game.Editor", "Unity.TextMeshPro", "UnityEngine.UI", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
 }
