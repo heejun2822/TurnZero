@@ -10,7 +10,6 @@ namespace TurnZero.Game
         private Vector3 focus, target;
         private float zoom = 0.9f;
         private int player = -1;
-        private Rect viewport;
         public Camera Camera => cameraView;
         public Vector3 FocusPoint => target;
         public float Zoom => zoom;
@@ -28,20 +27,21 @@ namespace TurnZero.Game
         {
             if (session.Player == player) return;
             player = session.Player;
-            focus = target = new Vector3(0,0,(player == 0 ? -1 : 1)*world.Spacing);
+            int row = player == 0 ? session.Rules.HomeHeight - 2 : session.Rules.Height - session.Rules.HomeHeight + 1;
+            target = world.Position(new GridCell(session.Rules.Width/2,row)); target.x = 0;
+            focus = target;
         }
         private void LateUpdate()
         {
             if (session == null) return;
-            bool portrait = Screen.height > Screen.width;
-            viewport = portrait ? new Rect(0.015f,0.45f,0.97f,0.37f) : new Rect(0.205f,0.31f,0.56f,0.59f);
-            cameraView.rect = viewport;
+            // Clear and draw the whole screen so dismissed overlay UI cannot remain outside the viewport.
+            cameraView.rect = new Rect(0,0,1,1);
             focus = Vector3.Lerp(focus,target,1 - Mathf.Exp(-Time.unscaledDeltaTime * 12));
             float pitch = session.Configuration.CameraPitch;
             cameraView.transform.rotation = Quaternion.Euler(pitch,player * 180,0);
             float boardHeight = session.Rules.Height * world.Spacing;
             float boardWidth = session.Rules.Width * world.Spacing;
-            float aspect = (float)Screen.width * viewport.width / Mathf.Max(1,Screen.height * viewport.height);
+            float aspect = (float)Screen.width / Mathf.Max(1,Screen.height);
             float vertical = Mathf.Tan(cameraView.fieldOfView * Mathf.Deg2Rad / 2);
             float fit = Mathf.Max(boardHeight * Mathf.Sin(pitch * Mathf.Deg2Rad) / (2 * vertical),boardWidth / (2 * vertical * aspect)) + boardHeight * Mathf.Cos(pitch * Mathf.Deg2Rad) / 2;
             float distance = fit * zoom * 1.07f;
@@ -51,7 +51,7 @@ namespace TurnZero.Game
         private void Pan(Vector2 pixels)
         {
             if (!ManualEnabled) return;
-            float factor = world.Spacing * session.Rules.Height * zoom / Mathf.Max(100,Screen.height * viewport.height);
+            float factor = world.Spacing * session.Rules.Height * zoom / Mathf.Max(100,Screen.height);
             Vector3 right = cameraView.transform.right;
             Vector3 forward = Vector3.ProjectOnPlane(cameraView.transform.forward,Vector3.up).normalized;
             target -= (right * pixels.x + forward * pixels.y) * factor;

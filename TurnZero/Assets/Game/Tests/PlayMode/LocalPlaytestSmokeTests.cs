@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Rendering;
@@ -54,6 +55,40 @@ namespace TurnZero.Game.Tests
             float deadline = Time.realtimeSinceStartup+5;
             while (session.Match.Phase != BattlePhase.Planning && session.Match.Phase != BattlePhase.Finished && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.That(session.Match.Phase == BattlePhase.Planning || session.Match.Phase == BattlePhase.Finished,Is.True);
+        }
+        [UnityTest] public IEnumerator SetupClosesAndBattleRendersFullScreenUnderOverlayHud()
+        {
+            var setup = root.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Match setup").gameObject;
+            var camera = root.GetComponentInChildren<LocalBattleCamera>().Camera;
+            Assert.That(setup.activeInHierarchy,Is.True);
+            Button("Start deployment").onClick.Invoke(); yield return null;
+            Assert.That(setup.activeInHierarchy,Is.False);
+            Assert.That(camera.rect,Is.EqualTo(new Rect(0,0,1,1)));
+            session.Events.AutoDeploy(); yield return Planning(); yield return null;
+            Assert.That(setup.activeInHierarchy,Is.False);
+            Assert.That(camera.pixelRect,Is.EqualTo(new Rect(0,0,Screen.width,Screen.height)));
+            Assert.That(camera.clearFlags,Is.EqualTo(CameraClearFlags.SolidColor));
+            Assert.That(root.GetComponentInChildren<Canvas>().renderMode,Is.EqualTo(RenderMode.ScreenSpaceOverlay));
+            session.Events.Switch(); yield return null;
+#if UNITY_EDITOR
+            UnityEditor.PlayModeWindow.SetCustomRenderingResolution(900,1600,"TurnZero QA");
+#endif
+            yield return null; yield return null;
+            Assert.That(camera.pixelRect,Is.EqualTo(new Rect(0,0,Screen.width,Screen.height)));
+            Assert.That(setup.GetComponentsInChildren<TMP_Text>(true).All(t => !t.isActiveAndEnabled),Is.True);
+            session.Events.Restart(); Button("Quick deploy").onClick.Invoke(); yield return Planning(); yield return null;
+            var world = root.GetComponentInChildren<LocalBattleWorld>();
+            foreach (var unit in session.View.Units.Where(u => u.Owner == session.Player && u.Alive))
+            {
+                Vector2 point = camera.WorldToScreenPoint(world.Position(unit.Cell)+Vector3.up*0.7f);
+                var hits = new System.Collections.Generic.List<RaycastResult>();
+                EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = point },hits);
+                Assert.That(hits,Is.Empty,"Initial allies should be visible between the portrait HUD panels.");
+            }
+            session.Events.Restart(); yield return null;
+            Assert.That(setup.activeInHierarchy,Is.True);
+            Button("Quick deploy").onClick.Invoke(); yield return Planning(); yield return null;
+            Assert.That(setup.activeInHierarchy,Is.False); LogAssert.NoUnexpectedReceived();
         }
         [UnityTest] public IEnumerator ManualDeploymentCraftingOrdersAndBothReadyWorkThroughTheHud()
         {
