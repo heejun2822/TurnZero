@@ -5,10 +5,11 @@ using NUnit.Framework;
 using TurnZero.Tests;
 
 int failed = 0;
-var fixture = new BattleTests();
-var tests = typeof(BattleTests).GetMethods().Where(m => m.GetCustomAttribute<TestAttribute>() != null).ToArray();
-foreach (var test in tests)
+int total = 0;
+foreach (var fixture in new object[] { new BattleTests(), new TurnZero.Game.Tests.LocalBattleTests() })
+foreach (var test in fixture.GetType().GetMethods().Where(m => m.GetCustomAttribute<TestAttribute>() != null))
 {
+    total++;
     try
     {
         test.Invoke(fixture, null);
@@ -20,5 +21,5 @@ foreach (var test in tests)
         Console.WriteLine($"FAIL {test.Name}: {exception.InnerException}");
     }
 }
-Console.WriteLine($"{tests.Length - failed}/{tests.Length} checks passed.");
+Console.WriteLine($"{total - failed}/{total} checks passed.");
 return failed == 0 ? 0 : 1;
