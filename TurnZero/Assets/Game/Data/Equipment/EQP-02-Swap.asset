@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6057b6accb9d8c46a558dcf99555a0f, type: 3}
+  m_Name: EQP-02-Swap
+  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.EquipmentDefinition
+  Values:
+    Id: EQP-02
+    Name: Swap
+    Effect: 1
+    Action:
+      Name: POSITION SWAP
+      Description: Exchange positions with another living ally. Root prevents the
+        exchange. Global range.
+      Range: 999
+      Area: 1
+      Damage: 0
+      Cost: 5
+      Priority: 4
+      Cooldown: 1
+    Health: 0
+    Duration: 0
+    ExitRange: 0
+  Icon: {fileID: 21300000, guid: 7f274cd1652e4e02b95ed2d108df8b3f, type: 3}
+  Accent: {r: 0, g: 1, b: 1, a: 1}

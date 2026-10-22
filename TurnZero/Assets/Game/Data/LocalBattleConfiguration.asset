@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e283cdd25776fef4aa4820aa1a927f28, type: 3}
+  m_Name: LocalBattleConfiguration
+  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleConfiguration
+  Characters:
+  - {fileID: 11400000, guid: 284255d1c58680a419723d46b745a606, type: 2}
+  - {fileID: 11400000, guid: a86576742f9a929428f78126fadfc395, type: 2}
+  - {fileID: 11400000, guid: 239c67215314bb645a5b20ca7a34cf80, type: 2}
+  - {fileID: 11400000, guid: d60c2e49f8e12554c9879209d97a9009, type: 2}
+  - {fileID: 11400000, guid: dbeb6a1637f941646941af4452a82dca, type: 2}
+  Equipment:
+  - {fileID: 11400000, guid: 28a6e99449e0176459e760329bc9283e, type: 2}
+  - {fileID: 11400000, guid: 852b9a152b8941244a3912763de2136e, type: 2}
+  - {fileID: 11400000, guid: 68bb3c047ccb03e4685adb4dc21d0e98, type: 2}
+  Fields:
+  - {fileID: 11400000, guid: 9a14c485cd8077c42a016d24b11f0e73, type: 2}
+  - {fileID: 11400000, guid: ab22d1b12f4042b47afadc3d949bf22d, type: 2}
+  - {fileID: 11400000, guid: 8c4b62d0e565f584481a21ec00f1e459, type: 2}
+  BaseModel: {fileID: 2341813006007178603, guid: 853febb0ad4835c4f80f5e97b37ee904, type: 3}
+  BaseHealth: 30
+  BaseVision: 3
+  CharacterVision: 2
+  TurnIncome: 10
+  MaximumAP: 25
+  KillReward: 4
+  ReviveCost: 15
+  MinimumReviveCost: 10
+  InitialCraftMaterials: 2
+  TurnStartSeconds: 2
+  PlanningSeconds: 30
+  RandomSeed: 2471
+  MoveSeconds: 0.12
+  ActionSeconds: 0.45
+  CameraPitch: 56
+  MinimumZoom: 0.35
+  MaximumZoom: 1.1
+  ZoomSensitivity: 0.12
+  LocalProfileNotes: "LOCAL PLAYTEST PROFILE v1 \u2014 provisional, not final design
+    decisions.\nManhattan ranges. Area 0/1: one tile; area N: radius N-1. Tile-fixed
+    attacks may target darkness, damage enemies only. All units may overlap and pass.
+    CD1: next turn; CD2: skip one turn.\nBurn: initial area hit plus once per zone
+    per turn on entry/end of movement; lasts creation turn plus two. Stealth lasts
+    through next turn. Root affects next turn. Kill AP is awarded once per enemy
+    death immediately, capped at 25.\nRevive next turn at full HP inside own base
+    vision; first revival cost 15, then -1 per turn to 10. No action after revival
+    that turn.\nCraft during unlocked planning: one material, no AP/action; explicit
+    replacement confirmation. Portal build includes start turn and activates two
+    turns later; one-hop teleport; either endpoint destroyed removes both. Beacons
+    persist.\nStarter roster is all five distinct characters. Equipment deck has
+    five slots and may repeat the three defined items. Undefined upgrades/consumables
+    and account progression are not fabricated.\nReady locks edits; both ready ends
+    planning. Unassigned wait is free. Debug pause/reveal/force resolve are local
+    testing controls. Unresolved combined defeats retain a draw."
