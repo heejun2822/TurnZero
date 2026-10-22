@@ -185,7 +185,7 @@ namespace TurnZero.Editor
             apPanel = Box("AP Panel", safeArea, new Vector2(0.769f, 0), new Vector2(1, 0.174f), Ink);
             Frame(apPanel.gameObject, Edge);
             Label("AP Heading", apPanel, new Vector2(0.08f, 0.57f), new Vector2(0.27f, 0.92f), "AP", 37, Blue, TextAlignmentOptions.Left);
-            apText = Label("AP", apPanel, new Vector2(0.32f, 0.54f), new Vector2(0.94f, 0.96f), "0 / 8", 44, Color.white, TextAlignmentOptions.Left);
+            apText = Label("AP", apPanel, new Vector2(0.32f, 0.54f), new Vector2(0.94f, 0.96f), $"0 / {activeRules.MaximumAP}", 44, Color.white, TextAlignmentOptions.Left);
             reservedText = Label("Reserved AP", apPanel, new Vector2(0.08f, 0.02f), new Vector2(0.93f, 0.19f), "RESERVED 0", 16, Muted, TextAlignmentOptions.Right);
             apPips = new Image[activeRules.MaximumAP];
             for (int i = 0; i < apPips.Length; i++)

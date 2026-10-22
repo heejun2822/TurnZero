@@ -14,9 +14,9 @@ namespace TurnZero
         public int AttackDamage = 1;
         public int AttackRange = 2;
         public int VisionRange = 2;
-        public int InitialAP = 4;
-        public int TurnIncome = 4;
-        public int MaximumAP = 8;
+        public int InitialAP = 0;
+        public int TurnIncome = 10;
+        public int MaximumAP = 25;
         public int MoveCost = 1;
         public int AttackCost = 2;
         public float PlanningSeconds = 30;

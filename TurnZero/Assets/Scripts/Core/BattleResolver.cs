@@ -60,7 +60,6 @@ namespace TurnZero
                     orders.Add(order.Copy());
                 }
                 if (cost > state.AP[player]) throw new ArgumentException("Orders exceed available AP.");
-                state.AP[player] -= cost;
                 Observe(state, player, Vision(state, player, rules), result);
             }
             orders.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
@@ -73,6 +72,8 @@ namespace TurnZero
             foreach (var move in moves)
             {
                 var actor = state.Entities.Find(e => e.Id == move.UnitId);
+                if (actor.Health <= 0) continue;
+                state.AP[actor.Owner] -= rules.Cost(move.Kind);
                 if (occupied.Contains(move.Destination) || destinations[move.Destination] > 1)
                     result.Messages[actor.Owner].Add($"{actor.Label}: move blocked; AP spent.");
                 else accepted.Add(Tuple.Create(actor, actor.Position, move.Destination));
@@ -95,6 +96,8 @@ namespace TurnZero
             foreach (var order in orders.Where(o => o.Kind == ActionKind.Attack))
             {
                 var actor = state.Entities.Find(e => e.Id == order.UnitId);
+                if (actor.Health <= 0) continue;
+                state.AP[actor.Owner] -= rules.Cost(order.Kind);
                 var target = state.Entities.Find(e => e.Id == order.TargetId && e.Health > 0);
                 if (target == null || !attackVision[actor.Owner].Contains(target.Position) || actor.Position.Distance(target.Position) > rules.AttackRange)
                 {
@@ -124,6 +127,20 @@ namespace TurnZero
             if (oneLost || twoLost)
             {
                 state.Outcome = oneLost && twoLost ? BattleOutcome.Draw : oneLost ? BattleOutcome.PlayerTwo : BattleOutcome.PlayerOne;
+                if (oneLost && twoLost)
+                {
+                    var oneBase = state.Entities.Find(e => e.Owner == 0 && e.Kind == EntityKind.Base && e.Health > 0);
+                    var twoBase = state.Entities.Find(e => e.Owner == 1 && e.Kind == EntityKind.Base && e.Health > 0);
+                    if (oneBase != null && twoBase != null)
+                        state.Outcome = oneBase.Health == twoBase.Health ? BattleOutcome.Draw :
+                            oneBase.Health > twoBase.Health ? BattleOutcome.PlayerOne : BattleOutcome.PlayerTwo;
+                    else if (state.Entities.Any(e => e.Kind == EntityKind.Unit && e.Health > 0))
+                    {
+                        if (oneBase != null) state.Outcome = BattleOutcome.PlayerOne;
+                        else if (twoBase != null) state.Outcome = BattleOutcome.PlayerTwo;
+                    }
+                    // ponytail: other combined base destruction/elimination cases retain the legacy draw until Q-02 is decided.
+                }
                 state.Phase = MatchPhase.Finished;
             }
             return result;

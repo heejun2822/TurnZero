@@ -263,7 +263,8 @@ namespace TurnZero.Editor
 
         private void Preview(BattleHudView hud, BattleMapView map)
         {
-            var view = new PlayerView { Player = 0, Turn = 1, Phase = MatchPhase.Planning, AP = rules.InitialAP, SecondsLeft = rules.PlanningSeconds };
+            var view = new PlayerView { Player = 0, Turn = 1, Phase = MatchPhase.Planning,
+                AP = Math.Min(rules.MaximumAP, rules.InitialAP + rules.TurnIncome), SecondsLeft = rules.PlanningSeconds };
             var cells = new[] { new Cell(3,3),new Cell(4,2),new Cell(3,1),new Cell(2,2),new Cell(3,2) };
             foreach (var actor in worldRoot.GetComponentsInChildren<BattleActorView>())
             {

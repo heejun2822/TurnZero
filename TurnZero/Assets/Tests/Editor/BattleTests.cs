@@ -200,9 +200,27 @@ namespace TurnZero.Tests
         }
 
         [Test]
+        public void FirstTurnGrantsIncomeOnceAfterBothBasesArePlaced()
+        {
+            var rules = new BattleRules();
+            Assert.That(rules.InitialAP, Is.Zero);
+            Assert.That(rules.TurnIncome, Is.EqualTo(10));
+            Assert.That(rules.MaximumAP, Is.EqualTo(25));
+            var match = new BattleMatch(rules);
+            for (int player = 0; player < 2; player++) Assert.That(match.View(player, 0).AP, Is.Zero);
+            Assert.That(match.PlaceBase(0, new Cell(2,2), 0, out _), Is.True);
+            Assert.That(match.View(0, 0).AP, Is.Zero);
+            Assert.That(match.PlaceBase(1, new Cell(5,7), 10, out _), Is.True);
+            Assert.That(match.PlaceBase(1, new Cell(5,7), 10, out _), Is.False);
+            Assert.That(match.Tick(10), Is.False);
+            Assert.That(match.Tick(39.999), Is.False);
+            for (int player = 0; player < 2; player++) Assert.That(match.View(player, 10).AP, Is.EqualTo(10));
+        }
+
+        [Test]
         public void ReservationsReplaceCancelAndRejectOverspendingWithoutChangingExistingOrder()
         {
-            var match = Start(new BattleRules { InitialAP = 1 });
+            var match = Start(new BattleRules { TurnIncome = 1 });
             Assert.That(match.QueueOrder(0, 1, ActionOrder.Move(1, new Cell(2, 4)), out _), Is.True);
             Assert.That(match.QueueOrder(0, 1, ActionOrder.Move(1, new Cell(1, 3)), out _), Is.True);
             Assert.That(match.View(0, 10).ReservedAP, Is.EqualTo(1));
@@ -211,6 +229,28 @@ namespace TurnZero.Tests
             Assert.That(match.QueueOrder(0, 1, ActionOrder.Wait(1), out _), Is.True);
             Assert.That(match.View(0, 10).ReservedAP, Is.Zero);
             Assert.That(match.QueueOrder(0, 1, ActionOrder.Move(2, new Cell(4, 2)), out _), Is.True);
+        }
+
+        [Test]
+        public void ReservationReplacementUsesCurrentAPAndKeepsThePreviousOrderOnFailure()
+        {
+            var rules = new BattleRules { TurnIncome = 3, VisionRange = 4, AttackRange = 4 };
+            var match = Start(rules, new Cell(2,3), new Cell(2,6));
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Attack(1,7), out _), Is.True);
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Move(2, new Cell(4,3)), out _), Is.True);
+            Assert.That(match.View(0, 10).ReservedAP, Is.EqualTo(3));
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Attack(2,7), out _), Is.False);
+            Assert.That(match.View(0, 10).Orders.Single(o => o.UnitId == 2).Kind, Is.EqualTo(ActionKind.Move));
+            Assert.That(match.View(0, 10).ReservedAP, Is.EqualTo(3));
+            Assert.That(match.View(0, 10).AP, Is.EqualTo(3));
+            Assert.That(match.View(1, 10).ReservedAP, Is.Zero);
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Wait(1), out _), Is.True);
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Attack(2,7), out _), Is.True);
+            Assert.That(match.View(0, 10).ReservedAP, Is.EqualTo(2));
+            Assert.That(match.View(0, 10).AP, Is.EqualTo(3));
+            match.ResolveNow(11, true);
+            Assert.That(match.View(0, 11).AP, Is.EqualTo(1));
+            Assert.That(match.View(0, 11).ReservedAP, Is.Zero);
         }
 
         [Test]
@@ -234,10 +274,30 @@ namespace TurnZero.Tests
         {
             var match = Start();
             match.ResolveNow(11);
-            Assert.That(match.View(0, 11).AP, Is.EqualTo(8));
+            Assert.That(match.View(0, 11).AP, Is.EqualTo(20));
             match.ResolveNow(12);
-            Assert.That(match.View(0, 12).AP, Is.EqualTo(8));
+            Assert.That(match.View(0, 12).AP, Is.EqualTo(25));
+            match.ResolveNow(13);
+            Assert.That(match.View(0, 13).AP, Is.EqualTo(25));
             Assert.That(match.View(0, 12).ReservedAP, Is.Zero);
+        }
+
+        [Test]
+        public void NextTurnCarriesUnspentAPAndResolutionDoesNotGrantIncome()
+        {
+            var match = Start();
+            Assert.That(match.QueueOrder(0, 1, ActionOrder.Move(1, new Cell(2,4)), out _), Is.True);
+            Assert.That(match.View(0, 10).AP, Is.EqualTo(10));
+            match.ResolveNow(11, true);
+            Assert.That(match.View(0, 11).AP, Is.EqualTo(9));
+            Assert.That(match.View(1, 11).AP, Is.EqualTo(10));
+            Assert.That(match.Tick(11.5), Is.False);
+            Assert.That(match.View(0, 11.5).AP, Is.EqualTo(9));
+            Assert.That(match.Tick(11.75), Is.True);
+            Assert.That(match.View(0, 11.75).AP, Is.EqualTo(19));
+            Assert.That(match.View(1, 11.75).AP, Is.EqualTo(20));
+            Assert.That(match.Tick(11.75), Is.False);
+            Assert.That(match.View(0, 11.75).AP, Is.EqualTo(19));
         }
 
         [Test]
@@ -300,6 +360,50 @@ namespace TurnZero.Tests
             Assert.That(result.State.Entities.Where(e => e.Kind == EntityKind.Unit).All(e => e.Health == 0), Is.True);
             Assert.That(result.State.Outcome, Is.EqualTo(BattleOutcome.Draw));
             Assert.That(result.State.Phase, Is.EqualTo(MatchPhase.Finished));
+            CollectionAssert.AreEqual(new[] { 6, 6 }, result.State.AP);
+        }
+
+        [Test]
+        public void MutualEliminationComparesSurvivingBaseHealthForEitherPlayer()
+        {
+            foreach (int healthierPlayer in new[] { 0, 1 })
+            {
+                var state = Combat();
+                state.Entities.Where(e => e.Kind == EntityKind.Unit).ToList().ForEach(e => e.Health = 1);
+                state.Entities.Single(e => e.Kind == EntityKind.Base && e.Owner == healthierPlayer).Health = 7;
+                state.Entities.Single(e => e.Kind == EntityKind.Base && e.Owner != healthierPlayer).Health = 4;
+                var one = new[] { ActionOrder.Attack(1,5) };
+                var two = new[] { ActionOrder.Attack(5,1) };
+                var result = BattleResolver.Resolve(state, new BattleRules(), one, two);
+                Assert.That(result.State.Outcome, Is.EqualTo(healthierPlayer == 0 ? BattleOutcome.PlayerOne : BattleOutcome.PlayerTwo));
+                Assert.That(result.State.Phase, Is.EqualTo(MatchPhase.Finished));
+                Assert.That(result.State.Entities.Where(e => e.Kind == EntityKind.Unit).All(e => e.Health == 0), Is.True);
+                CollectionAssert.AreEqual(new[] { 6, 6 }, result.State.AP);
+                state.Entities.Reverse();
+                SameState(BattleResolver.Resolve(state, new BattleRules(), one, two).State, result.State);
+            }
+        }
+
+        [Test]
+        public void BaseDestructionTakesPriorityOverOpposingEliminationForEitherPlayer()
+        {
+            foreach (int losingPlayer in new[] { 0, 1 })
+            {
+                var state = Combat();
+                state.Entities.Single(e => e.Id == 101).Position = new Cell(3,6);
+                state.Entities.Single(e => e.Id == 101).Health = 1;
+                state.Entities.Single(e => e.Id == 5).Health = 1;
+                if (losingPlayer == 1) foreach (var entity in state.Entities) entity.Owner = 1 - entity.Owner;
+                var one = new[] { ActionOrder.Attack(1,5) };
+                var two = new[] { ActionOrder.Attack(5,101) };
+                var result = BattleResolver.Resolve(state, new BattleRules(), losingPlayer == 0 ? one : two, losingPlayer == 0 ? two : one);
+                Assert.That(result.State.Entities.Single(e => e.Id == 101).Health, Is.Zero);
+                Assert.That(result.State.Entities.Single(e => e.Id == 5).Health, Is.Zero);
+                Assert.That(result.State.Outcome, Is.EqualTo(losingPlayer == 0 ? BattleOutcome.PlayerTwo : BattleOutcome.PlayerOne));
+                Assert.That(result.State.Phase, Is.EqualTo(MatchPhase.Finished));
+                state.Entities.Reverse();
+                SameState(BattleResolver.Resolve(state, new BattleRules(), losingPlayer == 0 ? one : two, losingPlayer == 0 ? two : one).State, result.State);
+            }
         }
 
         [Test]
@@ -310,6 +414,9 @@ namespace TurnZero.Tests
             var result = BattleResolver.Resolve(state, new BattleRules(), new[] { ActionOrder.Attack(1, 102) }, new[] { ActionOrder.Attack(5, 101) });
             Assert.That(result.State.Outcome, Is.EqualTo(BattleOutcome.Draw));
             Assert.That(result.State.Entities.Where(e => e.Kind == EntityKind.Unit).All(e => e.Health > 0), Is.True);
+            state.Entities.Add(Entity(2, 0, EntityKind.Unit, 0, 0));
+            Assert.That(BattleResolver.Resolve(state, new BattleRules(), new[] { ActionOrder.Attack(1,102) }, new[] { ActionOrder.Attack(5,101) }).State.Outcome,
+                Is.EqualTo(BattleOutcome.Draw), "Different surviving unit counts must not break a simultaneous base destruction draw.");
         }
 
         [Test]
@@ -426,7 +533,7 @@ namespace TurnZero.Tests
                 match.ResolveNow(11 + hit);
             }
             Assert.That(match.Phase, Is.EqualTo(MatchPhase.Finished));
-            Assert.That(match.View(0, 20).AP, Is.EqualTo(6));
+            Assert.That(match.View(0, 20).AP, Is.EqualTo(23));
             Assert.That(match.Tick(1000), Is.False);
             Assert.That(match.ResolveNow(1000), Is.False);
             Assert.That(match.QueueOrder(0, match.Turn, ActionOrder.Wait(1), out _), Is.False);
@@ -449,7 +556,7 @@ namespace TurnZero.Tests
         {
             Assert.Throws<ArgumentException>(() => new BattleMatch(new BattleRules { Height = 9 }));
             Assert.Throws<ArgumentException>(() => new BattleMatch(new BattleRules { PlanningSeconds = float.NaN }));
-            Assert.Throws<ArgumentException>(() => new BattleMatch(new BattleRules { InitialAP = 10 }));
+            Assert.Throws<ArgumentException>(() => new BattleMatch(new BattleRules { InitialAP = 26 }));
         }
     }
 }

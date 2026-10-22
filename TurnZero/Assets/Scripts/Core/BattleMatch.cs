@@ -53,9 +53,7 @@ namespace TurnZero
             if (placementPlayer == 2)
             {
                 state.AP[0] = state.AP[1] = rules.InitialAP;
-                state.Turn = 1;
-                state.Phase = MatchPhase.Planning;
-                deadline = now + rules.PlanningSeconds;
+                BeginNextTurn(now);
             }
             RefreshMemory();
             return true;

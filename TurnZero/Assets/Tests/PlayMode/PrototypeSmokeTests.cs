@@ -314,7 +314,7 @@ namespace TurnZero.Tests
             Assert.That(Button("Item").interactable, Is.False);
             Button("Unit 2").onClick.Invoke();
             Tile(4, 3);
-            Assert.That(Text("AP").text, Is.EqualTo("3 / 8"));
+            Assert.That(Text("AP").text, Is.EqualTo("9 / 25"));
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 1"));
             Assert.That(Text("Order Details").text, Is.EqualTo("MOVE  /  1 AP"));
             Assert.That(GameObject.Find("Command Path").GetComponent<LineRenderer>().positionCount, Is.EqualTo(5));
@@ -322,7 +322,7 @@ namespace TurnZero.Tests
             yield return Preview("reference-hud.png");
             yield return Preview("reference-hud-portrait.png", 900, 1600);
             Button("Wait").onClick.Invoke();
-            Assert.That(Text("AP").text, Is.EqualTo("4 / 8"));
+            Assert.That(Text("AP").text, Is.EqualTo("10 / 25"));
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
             Assert.That(GameObject.Find("Command Path"), Is.Null);
             Tile(4, 3);
@@ -330,7 +330,7 @@ namespace TurnZero.Tests
             Assert.That(Button("Move").interactable, Is.False);
             Assert.That(Button("Lock Orders").transform.Find("Label").GetComponent<TMP_Text>().text, Is.EqualTo("READY / LOCKED"));
             Button("Switch Player").onClick.Invoke();
-            Assert.That(Text("AP").text, Is.EqualTo("4 / 8"));
+            Assert.That(Text("AP").text, Is.EqualTo("10 / 25"));
             Assert.That(Text("Reserved AP").text, Is.EqualTo("RESERVED 0"));
             LogAssert.NoUnexpectedReceived();
         }
