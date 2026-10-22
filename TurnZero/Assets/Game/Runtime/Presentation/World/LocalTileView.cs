@@ -1,0 +1,20 @@
+using UnityEngine;
+
+namespace TurnZero.Game
+{
+    public sealed class LocalTileView : MonoBehaviour
+    {
+        [SerializeField] private int x, y;
+        [SerializeField] private Renderer surface, outline;
+        private MaterialPropertyBlock block;
+        public GridCell Cell => new GridCell(x,y);
+        public void Render(Color ground, Sight sight, Color? highlight)
+        {
+            if (block == null) block = new MaterialPropertyBlock();
+            var color = sight == Sight.Unknown ? new Color(0.024f,0.033f,0.047f) : ground * (sight == Sight.Explored ? 0.32f : 1);
+            color.a = 1; block.SetColor("_BaseColor",color); surface.SetPropertyBlock(block);
+            outline.gameObject.SetActive(highlight.HasValue);
+            if (highlight.HasValue) { block.SetColor("_BaseColor",highlight.Value); outline.SetPropertyBlock(block); }
+        }
+    }
+}
