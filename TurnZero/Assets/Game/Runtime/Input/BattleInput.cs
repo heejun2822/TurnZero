@@ -112,11 +112,14 @@ namespace TurnZero.Game
         }
         private void Append(GridCell cell)
         {
+            var unit = session.Selected; if (unit == null) return;
+            var character = session.Rules.Characters[unit.Slot];
+            int maximum = session.Action == BattleAction.Skill && character.SkillEffect == SkillEffect.StealthMove ? character.Skill.Range : character.Move.Range;
             var previous = path.Count == 0 ? startCell : path[path.Count - 1];
             if (cell == previous) return;
             if (cell == startCell) path.Clear();
             else if (path.Contains(cell)) path.RemoveRange(path.IndexOf(cell)+1,path.Count-path.IndexOf(cell)-1);
-            else if (previous.Distance(cell) == 1) path.Add(cell);
+            else if (previous.Distance(cell) == 1 && path.Count < maximum) path.Add(cell);
             session.Events.PreviewPath(path);
         }
         private bool OverUI(Vector2 point)

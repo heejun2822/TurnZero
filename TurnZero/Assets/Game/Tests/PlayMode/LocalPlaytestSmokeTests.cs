@@ -262,6 +262,59 @@ namespace TurnZero.Game.Tests
             }
             finally { InputSystem.RemoveDevice(mouse); }
         }
+        [UnityTest] public IEnumerator DragPathsStopAtMovementRangeAllowBacktrackingAndUseStealthSkillRange()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            var rig = root.GetComponentInChildren<LocalBattleCamera>(); var world = root.GetComponentInChildren<LocalBattleWorld>();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                session.Events.Select(5,true); session.Events.SetAction(BattleAction.Wait); yield return null; yield return null;
+                Physics.SyncTransforms(); var start = session.Selected.Cell;
+                Vector2 point = rig.Camera.WorldToScreenPoint(world.Position(start)+Vector3.up*0.75f);
+                InputSystem.QueueStateEvent(mouse,new MouseState { position = point }.WithButton(MouseButton.Left)); yield return null;
+                int maximum = session.Rules.Characters[4].Move.Range;
+                for (int step = 1; step <= maximum+1; step++)
+                {
+                    point = rig.Camera.WorldToScreenPoint(world.Position(new GridCell(start.X,start.Y+step))+Vector3.up*0.05f);
+                    InputSystem.QueueStateEvent(mouse,new MouseState { position = point }.WithButton(MouseButton.Left)); yield return null;
+                    Assert.That(session.PathPreview.Count,Is.EqualTo(Mathf.Min(step,maximum)));
+                }
+                point = rig.Camera.WorldToScreenPoint(world.Position(new GridCell(start.X,start.Y+1))+Vector3.up*0.05f);
+                InputSystem.QueueStateEvent(mouse,new MouseState { position = point }.WithButton(MouseButton.Left)); yield return null;
+                Assert.That(session.PathPreview.Count,Is.EqualTo(1));
+                var end = new GridCell(start.X+1,start.Y+1);
+                point = rig.Camera.WorldToScreenPoint(world.Position(end)+Vector3.up*0.05f);
+                InputSystem.QueueStateEvent(mouse,new MouseState { position = point }.WithButton(MouseButton.Left)); yield return null;
+                Assert.That(session.PathPreview.Last(),Is.EqualTo(end));
+                InputSystem.QueueStateEvent(mouse,new MouseState { position = point }); yield return null;
+                var order = session.View.Orders.Single(o => o.UnitId == 5);
+                Assert.That(order.Path.Count,Is.EqualTo(maximum)); Assert.That(order.Target,Is.EqualTo(end));
+                Assert.That(session.PathPreview,Is.Empty);
+            }
+            finally { InputSystem.RemoveDevice(mouse); }
+            var touch = InputSystem.AddDevice<Touchscreen>();
+            try
+            {
+                session.Events.Select(2,true); session.Events.SetAction(BattleAction.Skill); yield return null; yield return null;
+                Physics.SyncTransforms(); var start = session.Selected.Cell;
+                Vector2 point = rig.Camera.WorldToScreenPoint(world.Position(start)+Vector3.up*0.75f);
+                InputSystem.QueueStateEvent(touch,new TouchState { touchId = 1,phase = UnityEngine.InputSystem.TouchPhase.Began,position = point,pressure = 1 }); yield return null;
+                int maximum = session.Rules.Characters[1].Skill.Range;
+                Assert.That(maximum,Is.LessThan(session.Rules.Characters[1].Move.Range));
+                for (int step = 1; step <= maximum+1; step++)
+                {
+                    point = rig.Camera.WorldToScreenPoint(world.Position(new GridCell(start.X,start.Y+step))+Vector3.up*0.05f);
+                    InputSystem.QueueStateEvent(touch,new TouchState { touchId = 1,phase = UnityEngine.InputSystem.TouchPhase.Moved,position = point,pressure = 1 }); yield return null;
+                    Assert.That(session.PathPreview.Count,Is.EqualTo(Mathf.Min(step,maximum)));
+                }
+                InputSystem.QueueStateEvent(touch,new TouchState { touchId = 1,phase = UnityEngine.InputSystem.TouchPhase.Ended,position = point }); yield return null;
+                var order = session.View.Orders.Single(o => o.UnitId == 2);
+                Assert.That(order.Action,Is.EqualTo(BattleAction.Skill)); Assert.That(order.Path.Count,Is.EqualTo(maximum));
+                Assert.That(order.Target,Is.EqualTo(new GridCell(start.X,start.Y+maximum))); LogAssert.NoUnexpectedReceived();
+            }
+            finally { InputSystem.RemoveDevice(touch); }
+        }
         private IEnumerator Capture(string filename)
         {
             string folder = Environment.GetEnvironmentVariable("TURNZERO_LOCAL_PREVIEWS"); if (string.IsNullOrEmpty(folder)) yield break;
