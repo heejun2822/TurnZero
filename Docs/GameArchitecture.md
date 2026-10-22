@@ -10,7 +10,7 @@
 | `Runtime/Data` | CharacterDefinition, EquipmentDefinition, FieldDefinition, BattleConfiguration ScriptableObject |
 | `Runtime/Application` | 씬 구성, 경기 세션·시계·선택 상태·재생 진행, 씬 단위 타입 이벤트 채널, 턴 시작 음향 |
 | `Runtime/Input` | 키보드·마우스·터치, UI와 월드 입력 구분, 카메라 드래그와 수동 경로 드래그 구분 |
-| `Runtime/Presentation/World` | 타일·캐릭터·마지막 관측·아이템·구조물·경로·공격 효과 표시 |
+| `Runtime/Presentation/World` | LocalFieldMap의 Grid·3개 Tilemap 좌표와 배치 검증, 타일·캐릭터·마지막 관측·아이템·구조물·경로·공격 효과 표시 |
 | `Runtime/Presentation/Camera` | 플레이어 방향, 드래그·줌·포커스, 판정 중 자동 추적과 수동 조작 잠금 |
 | `Runtime/Presentation/UI` | HUD·카드·AP·모달·가로/세로 안전 영역 배치 |
 | `Editor` | 없는 기본 데이터·모델·소리를 생성하고 새 씬·세션 프리팹을 저작하는 도구 |
