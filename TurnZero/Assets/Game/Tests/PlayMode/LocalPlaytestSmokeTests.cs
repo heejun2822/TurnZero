@@ -186,7 +186,7 @@ namespace TurnZero.Game.Tests
                 InputSystem.QueueStateEvent(mouse,new MouseState { position = end }.WithButton(MouseButton.Left)); yield return null;
                 InputSystem.QueueStateEvent(mouse,new MouseState { position = end }); yield return null;
                 Assert.That(session.View.Orders.Single().Path.Last(),Is.EqualTo(target));
-                var before = rig.FocusPoint; Vector2 empty = rig.Camera.WorldToScreenPoint(world.Position(new GridCell(0,10)));
+                var before = rig.FocusPoint; Vector2 empty = rig.Camera.WorldToScreenPoint(world.Position(new GridCell(3,9)));
                 InputSystem.QueueStateEvent(mouse,new MouseState { position = empty }.WithButton(MouseButton.Left)); yield return null;
                 InputSystem.QueueStateEvent(mouse,new MouseState { position = empty+new Vector2(40,20) }.WithButton(MouseButton.Left)); yield return null;
                 InputSystem.QueueStateEvent(mouse,new MouseState { position = empty+new Vector2(40,20) }); yield return null;
@@ -297,6 +297,7 @@ namespace TurnZero.Game.Tests
             try
             {
                 session.Events.Select(2,true); session.Events.SetAction(BattleAction.Skill); yield return null; yield return null;
+                session.Events.Zoom(-0.25f); yield return null;
                 Physics.SyncTransforms(); var start = session.Selected.Cell;
                 Vector2 point = rig.Camera.WorldToScreenPoint(world.Position(start)+Vector3.up*0.75f);
                 InputSystem.QueueStateEvent(touch,new TouchState { touchId = 1,phase = UnityEngine.InputSystem.TouchPhase.Began,position = point,pressure = 1 }); yield return null;
@@ -314,6 +315,24 @@ namespace TurnZero.Game.Tests
                 Assert.That(order.Target,Is.EqualTo(new GridCell(start.X,start.Y+maximum))); LogAssert.NoUnexpectedReceived();
             }
             finally { InputSystem.RemoveDevice(touch); }
+        }
+        [UnityTest] public IEnumerator CloseInitialZoomAndTenfoldSensitivityApplyWithinLimitsAndResetForRematch()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning(); yield return null;
+            var rig = root.GetComponentInChildren<LocalBattleCamera>(); var world = root.GetComponentInChildren<LocalBattleWorld>();
+            Assert.That(rig.Zoom,Is.EqualTo(0.45f).Within(0.0001f));
+            foreach (var cell in session.View.Units.Where(u => u.Owner == session.Player && u.Alive).Select(u => u.Cell).Append(session.View.OwnBase.Cell))
+            {
+                var point = rig.Camera.WorldToViewportPoint(world.Position(cell)+Vector3.up*0.7f);
+                Assert.That(point.z,Is.GreaterThan(0)); Assert.That(point.x,Is.InRange(0f,1f)); Assert.That(point.y,Is.InRange(0f,1f));
+            }
+            session.Events.Zoom(0.1f);
+            Assert.That(rig.Zoom,Is.EqualTo(0.45f*Mathf.Exp(-0.12f)).Within(0.0001f));
+            session.Events.Zoom(100); Assert.That(rig.Zoom,Is.EqualTo(configuration.MinimumZoom));
+            session.Events.Zoom(-100); Assert.That(rig.Zoom,Is.EqualTo(configuration.MaximumZoom));
+            session.Events.Restart(); Assert.That(rig.Zoom,Is.EqualTo(configuration.InitialZoom));
+            configuration.InitialZoom = 0.6f; session.Initialize(configuration);
+            Assert.That(rig.Zoom,Is.EqualTo(0.6f)); LogAssert.NoUnexpectedReceived();
         }
         private IEnumerator Capture(string filename)
         {

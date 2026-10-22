@@ -44,7 +44,8 @@ MonoBehaviour:
   CameraPitch: 56
   MinimumZoom: 0.35
   MaximumZoom: 1.1
-  ZoomSensitivity: 0.12
+  InitialZoom: 0.45
+  ZoomSensitivity: 1.2
   LocalProfileNotes: "LOCAL PLAYTEST PROFILE v1 \u2014 provisional, not final design
     decisions.\nManhattan ranges. Area 0/1: one tile; area N: radius N-1. Tile-fixed
     attacks may target darkness, damage enemies only. All units may overlap and pass.

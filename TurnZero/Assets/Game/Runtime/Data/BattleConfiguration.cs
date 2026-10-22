@@ -19,7 +19,7 @@ namespace TurnZero.Game
         public int RandomSeed = 2471;
         [Header("Presentation and camera")]
         public float MoveSeconds = 0.12f, ActionSeconds = 0.45f;
-        public float CameraPitch = 56, MinimumZoom = 0.35f, MaximumZoom = 1.1f, ZoomSensitivity = 0.12f;
+        public float CameraPitch = 56, MinimumZoom = 0.35f, MaximumZoom = 1.1f, InitialZoom = 0.45f, ZoomSensitivity = 1.2f;
         [TextArea(6,16)] public string LocalProfileNotes;
 
         public GameRules CreateRules()
@@ -36,7 +36,7 @@ namespace TurnZero.Game
             foreach (var preset in Fields)
                 if (preset == null || preset.Width != rules.Width || preset.HomeHeight != rules.HomeHeight || preset.NeutralHeight != rules.NeutralHeight || preset.TileSpacing <= 0)
                     throw new InvalidOperationException("Field presets must share valid board dimensions and tile spacing.");
-            if (MoveSeconds < 0 || ActionSeconds < 0 || MinimumZoom <= 0 || MaximumZoom < MinimumZoom || CameraPitch < 20 || CameraPitch > 85)
+            if (MoveSeconds < 0 || ActionSeconds < 0 || MinimumZoom <= 0 || MaximumZoom < MinimumZoom || InitialZoom < MinimumZoom || InitialZoom > MaximumZoom || ZoomSensitivity <= 0 || CameraPitch < 20 || CameraPitch > 85)
                 throw new InvalidOperationException("Invalid battle presentation settings.");
             return rules;
         }

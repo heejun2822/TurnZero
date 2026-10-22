@@ -8,7 +8,7 @@ namespace TurnZero.Game
         private BattleSession session;
         private LocalBattleWorld world;
         private Vector3 focus, target;
-        private float zoom = 0.9f;
+        private float zoom;
         private int player = -1;
         public Camera Camera => cameraView;
         public Vector3 FocusPoint => target;
@@ -16,7 +16,7 @@ namespace TurnZero.Game
         public bool ManualEnabled => session != null && session.CanUseCamera && !session.ShowHelp;
         public void Bind(BattleSession value, LocalBattleWorld board)
         {
-            session = value; world = board;
+            session = value; world = board; zoom = session.Configuration.InitialZoom;
             session.Events.PanRequested += Pan;
             session.Events.ZoomRequested += ChangeZoom;
             session.Events.FocusRequested += Focus;
@@ -25,7 +25,9 @@ namespace TurnZero.Game
         }
         private void Refresh()
         {
-            if (session.Player == player) return;
+            bool setup = session.Match.Phase == BattlePhase.Setup;
+            if (setup) zoom = session.Configuration.InitialZoom;
+            if (session.Player == player && !setup) return;
             player = session.Player;
             int row = player == 0 ? session.Rules.HomeHeight - 2 : session.Rules.Height - session.Rules.HomeHeight + 1;
             target = world.Position(new GridCell(session.Rules.Width/2,row)); target.x = 0;

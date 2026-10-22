@@ -50,6 +50,8 @@
 
 숫자와 에셋 참조를 수정한 뒤 Play를 새로 시작하거나 REMATCH로 다시 초기화한다. 경기마다 SO 데이터를 일반 C# 데이터로 복사하므로 AP·HP·상태가 원본 에셋에 저장되지 않는다. 모델·초상화는 캐릭터 에셋 참조로 교체한다.
 
+경기 설정의 **Initial Zoom**은 시작 카메라 거리 비율이며 작을수록 가까워진다. 기본값은 0.45로 이전 거리의 절반이며, 재시작할 때 복원된다. **Zoom Sensitivity**는 1.2로 이전 0.12의 10배다. 휠과 핀치에 같은 민감도를 사용하며 Minimum/Maximum Zoom 범위 안에서 동작한다.
+
 필드 프리셋은 같은 크기를 사용한다. 맵 크기나 간격, 생성되는 HUD 배치를 바꾸면 **Build scene and missing defaults**로 씬을 다시 만든다. 이 도구는 기존 SO 수치를 유지하고 없는 기본 에셋만 만든다. 씬과 세션 프리팹은 재생성하므로 직접 편집한 레이아웃은 먼저 보관한다.
 
 필드는 `Local Battle > World > Field / 12 x 20 > Field Grid` 아래의 **Allied Field / Neutral Field / Enemy Field** Tilemap으로 구성한다. Grid 간격은 2.2, 바닥 크기는 2×2이며 XZY 좌표를 사용한다. `LocalFieldMap` Inspector의 **Paint … Field**를 누르면 전용 Tile Palette와 GameObject Brush가 선택된다. 기존 바닥을 지우고 새 바닥 프리팹을 칠하며 Z=0과 셀당 바닥 하나를 유지한다. 아군 Y=0~7, 중립 Y=8~11, 적군 Y=12~19다. 좌표는 Tilemap에서 읽으므로 프리팹을 다른 셀에 칠해도 입력과 시야가 해당 셀에 맞는다. 배치를 편집한 뒤에는 씬 또는 세션 프리팹을 저장하며, 생성 도구를 다시 실행하면 배치가 초기화된다.
