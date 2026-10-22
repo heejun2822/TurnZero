@@ -101,8 +101,8 @@ namespace TurnZero.Game.Editor
             var portrait = Image("Portrait",rect,0.04f,0.24f,0.31f,0.92f,configuration.Characters[slot].Portrait,Color.white); portrait.preserveAspect = true;
             var name = Text("Character name",rect,0.35f,0.73f,0.96f,0.96f,configuration.Characters[slot].Values.Name.ToUpperInvariant(),enemy ? 12 : 14,Color.white);
             var hp = Text("Health",rect,0.35f,0.51f,0.96f,0.74f,"14 / 14",12,cyan);
-            Box("Health track",rect,0.35f,0.43f,0.94f,0.47f,edge,false);
-            var hpFill = Image("Health fill",rect,0.35f,0.43f,0.94f,0.47f,AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd"),cyan); hpFill.type = UnityEngine.UI.Image.Type.Filled; hpFill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            var hpTrack = Box("Health track",rect,0.35f,0.43f,0.94f,0.47f,edge,false);
+            var hpFill = Image("Health fill",hpTrack,0,0,1,1,AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd"),cyan); hpFill.type = UnityEngine.UI.Image.Type.Sliced;
             var status = Text("Status",rect,0.35f,0.24f,0.96f,0.42f,"READY",9,muted);
             var equipment = Text("Equipment",rect,0.04f,0.12f,0.96f,0.25f,"NO EQUIPMENT",9,muted);
             var order = Text("Order",rect,0.04f,0.01f,0.96f,0.14f,enemy ? "" : "WAIT / 0 AP",10,amber);

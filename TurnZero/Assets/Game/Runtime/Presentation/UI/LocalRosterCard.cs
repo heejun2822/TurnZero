@@ -32,7 +32,9 @@ namespace TurnZero.Game
             background.color = session.SelectedId == id ? new Color(0.12f,0.26f,0.29f) : new Color(0.055f,0.077f,0.10f);
             nameText.text = $"{(enemy ? "" : (slot+1)+"  ")}{definition.Values.Name.ToUpperInvariant()}";
             healthText.text = known == null ? "? / ?" : $"{known.Health} / {definition.Values.Health}" + (unit == null ? " *" : "");
-            healthFill.fillAmount = known == null ? 0 : (float)known.Health / definition.Values.Health;
+            float healthRatio = known == null ? 0 : Mathf.Clamp01((float)known.Health / definition.Values.Health);
+            healthFill.rectTransform.anchorMax = new Vector2(healthRatio,1);
+            healthFill.enabled = healthRatio > 0;
             healthFill.color = known != null && known.Health <= 0 ? Color.gray : LocalBattleWorld.Team(owner);
             statusText.text = known == null ? "UNOBSERVED" : known.Health <= 0 ? enemy ? "DEFEATED" : "DEFEATED / REVIVE" : unit == null ? $"LAST SEEN {view.Turn-observation.Turn}T AGO" : !unit.Placed ? "DEPLOYING" : unit.Rooted(view.Turn) ? "ROOT" : unit.HiddenThrough >= view.Turn && unit.HiddenThrough > 0 ? "STEALTH" : "READY";
             equipmentText.text = known == null || known.Equipment < 0 ? "NO EQUIPMENT" : session.Rules.Equipment[known.Equipment].Name.ToUpperInvariant();

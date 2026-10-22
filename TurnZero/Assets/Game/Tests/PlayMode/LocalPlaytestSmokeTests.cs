@@ -56,6 +56,26 @@ namespace TurnZero.Game.Tests
             while (session.Match.Phase != BattlePhase.Planning && session.Match.Phase != BattlePhase.Finished && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.That(session.Match.Phase == BattlePhase.Planning || session.Match.Phase == BattlePhase.Finished,Is.True);
         }
+        [UnityTest] public IEnumerator SlicedHealthBarsResizeForFullPartialEmptyAndUnknownHealth()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            var card = GameObject.Find("Own card 1").GetComponent<LocalRosterCard>();
+            var track = card.transform.Find("Health track").GetComponent<RectTransform>();
+            var fill = track.GetComponentsInChildren<Image>(true).Single(i => i.name == "Health fill");
+            var view = session.View; var unit = view.Units.Single(u => u.Id == 1);
+            int maximum = session.Rules.Characters[0].Health;
+            Assert.That(fill.type,Is.EqualTo(Image.Type.Sliced));
+            foreach (int health in new[] { maximum,maximum/2,1,0 })
+            {
+                unit.Health = health; card.Render(view); Canvas.ForceUpdateCanvases();
+                Assert.That(fill.rectTransform.rect.width / track.rect.width,Is.EqualTo((float)health/maximum).Within(0.001f));
+                Assert.That(fill.enabled,Is.EqualTo(health > 0));
+            }
+            var enemy = GameObject.Find("Enemy card 1").GetComponent<LocalRosterCard>(); enemy.Render(view);
+            var unknown = enemy.GetComponentsInChildren<Image>(true).Single(i => i.name == "Health fill");
+            Assert.That(unknown.type,Is.EqualTo(Image.Type.Sliced)); Assert.That(unknown.enabled,Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
         [UnityTest] public IEnumerator SetupClosesAndBattleRendersFullScreenUnderOverlayHud()
         {
             var setup = root.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Match setup").gameObject;
