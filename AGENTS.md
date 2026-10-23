@@ -11,6 +11,11 @@
 
 - 구조적 코드 수정(모듈, 클래스, 책임 또는 호출 관계 변경) 시 프로젝트 로컬 `karpathy-guidelines`와 `ponytail` 스킬을 함께 적용한다.
 
+## Unity 프로젝트 탐색
+
+- 코드·에셋 조사는 `TurnZero/Assets/ProjectFiles`부터 시작한다. `TurnZero/Assets/Resources`, `TurnZero/Packages`, `TurnZero/ProjectSettings`는 작업에 필요할 때만 확인하고, 외부 에셋인 `TurnZero/Assets/External`은 해당 에셋 작업에만 확인한다.
+- Unity 생성 폴더인 `TurnZero/Library`, `Temp`, `obj`, `Logs`, `UserSettings`, `Build`, `Builds`, `MemoryCaptures`, `Recordings`, `ExportedObj`, `ServerData`, `UIElementsSchema`와 IDE 캐시 `.vs`, `.idea`, `.gradle`은 검색·열람하지 않는다. 저장소 전체를 검색할 때도 이 경로를 제외한다. 사용자가 해당 폴더의 문제를 직접 요청한 경우에만 확인한다.
+
 ## Graphify
 
 - 코드베이스를 조사하거나 수정하기 전 저장소 루트에 `graphify-out/graph.json`이 없으면 `graphify .`으로 생성한다. `graphify query "<변경 대상에 관한 질문>"`로 관련 구조와 호출 관계를 조회한 뒤 실제 코드를 확인한다.
