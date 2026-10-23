@@ -11,10 +11,10 @@ namespace TurnZero.Editor
 {
     public static class BattleTilemapAssets
     {
-        public const string Folder = "Assets/Tiles/Prototype/";
+        public const string Folder = "Assets/ProjectFiles/Prototype/Tiles/Prototype/";
         public const string PalettePath = Folder + "TurnZero 3D.prefab";
         public const string BrushPath = Folder + "GameObject Brush.asset";
-        private const string MapPath = "Assets/Prefabs/Map/FixedBattleMap.prefab";
+        private const string MapPath = "Assets/ProjectFiles/Prototype/Prefabs/Map/FixedBattleMap.prefab";
         private static readonly string[] Names = { "StoneLight", "StoneDark", "Grass", "TreeTile", "RuinedWallTile" };
 
         [MenuItem("TurnZero/Open 3D Tile Palette")]
@@ -37,7 +37,7 @@ namespace TurnZero.Editor
             var root = PrefabUtility.LoadPrefabContents(MapPath);
             try { BuildMap(root.GetComponent<BattleMapView>()); PrefabUtility.SaveAsPrefabAsset(root, MapPath); }
             finally { PrefabUtility.UnloadPrefabContents(root); }
-            var session = PrefabUtility.LoadPrefabContents("Assets/Prefabs/BattleSession.prefab");
+            var session = PrefabUtility.LoadPrefabContents("Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab");
             try
             {
                 var map = session.GetComponentInChildren<BattleMapView>();
@@ -56,11 +56,11 @@ namespace TurnZero.Editor
                     PrefabUtility.RecordPrefabInstancePropertyModifications(actor.transform);
                 }
                 session.GetComponentInChildren<BattleCameraRig>().Reframe();
-                PrefabUtility.SaveAsPrefabAsset(session, "Assets/Prefabs/BattleSession.prefab");
+                PrefabUtility.SaveAsPrefabAsset(session, "Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab");
             }
             finally { PrefabUtility.UnloadPrefabContents(session); }
             AssetDatabase.SaveAssets();
-            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Battle.unity");
+            var scene = EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
             var field = Object.FindFirstObjectByType<BattleMapView>();
             if (field.LayoutError() != null) throw new InvalidOperationException(field.LayoutError());
             Object.FindFirstObjectByType<BattleCameraRig>().Reframe();

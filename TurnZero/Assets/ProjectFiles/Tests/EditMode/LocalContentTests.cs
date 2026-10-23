@@ -13,7 +13,7 @@ namespace TurnZero.Game.Tests
 {
     public sealed class LocalContentTests
     {
-        private const string ConfigPath = "Assets/Game/Data/LocalBattleConfiguration.asset";
+        private const string ConfigPath = "Assets/ProjectFiles/Data/LocalBattleConfiguration.asset";
         [Test] public void AuthoredContentMatchesDevelopmentPlanAndCopiesRulesWithoutMutatingAssets()
         {
             var config = AssetDatabase.LoadAssetAtPath<BattleConfiguration>(ConfigPath); Assert.That(config,Is.Not.Null);
@@ -35,7 +35,7 @@ namespace TurnZero.Game.Tests
             var previous = EditorSceneManager.GetSceneManagerSetup();
             try
             {
-                var scene = EditorSceneManager.OpenScene("Assets/Game/Scenes/LocalBattle.unity");
+                var scene = EditorSceneManager.OpenScene("Assets/ProjectFiles/Scenes/LocalBattle.unity");
                 var root = scene.GetRootGameObjects().Single(g => g.name == "Local Battle");
                 Assert.That(root.GetComponent<BattleBootstrap>(),Is.Not.Null);
                 Assert.That(root.GetComponent<BattleSession>(),Is.Not.Null);
@@ -59,7 +59,7 @@ namespace TurnZero.Game.Tests
                 }
                 Assert.That(root.GetComponentsInChildren<Text>(true),Is.Empty);
                 Assert.That(root.GetComponentsInChildren<TMP_Text>(true).All(t => t.font != null),Is.True);
-                Assert.That(EditorBuildSettings.scenes.First(s => s.enabled).path,Is.EqualTo("Assets/Game/Scenes/LocalBattle.unity"));
+                Assert.That(EditorBuildSettings.scenes.First(s => s.enabled).path,Is.EqualTo("Assets/ProjectFiles/Scenes/LocalBattle.unity"));
             }
             finally
             {
@@ -69,14 +69,14 @@ namespace TurnZero.Game.Tests
         }
         [Test] public void NativeGameObjectBrushEditsRetainCellCoordinatesAndPrefabReferences()
         {
-            const string path = "Assets/Game/Tests/EditMode/LocalFieldRoundTrip.prefab";
-            var root = PrefabUtility.LoadPrefabContents("Assets/Game/Prefabs/LocalBattleSession.prefab");
+            const string path = "Assets/ProjectFiles/Tests/EditMode/LocalFieldRoundTrip.prefab";
+            var root = PrefabUtility.LoadPrefabContents("Assets/ProjectFiles/Prefabs/LocalBattleSession.prefab");
             var brush = ScriptableObject.CreateInstance<GameObjectBrush>();
             try
             {
                 var map = root.GetComponentInChildren<LocalFieldMap>(); var layer = map.AlliedField;
                 var cell = new Vector3Int(0,1,0); var gridCell = new GridCell(0,1);
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Game/Prefabs/World/Tile.prefab");
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ProjectFiles/Prefabs/World/Tile.prefab");
                 brush.SetGameObject(Vector3Int.zero,prefab);
                 brush.Erase(layer,layer.gameObject,cell); Assert.That(map.LayoutError(),Is.Not.Null);
                 brush.Paint(layer,layer.gameObject,cell); brush.Paint(layer,layer.gameObject,cell);
@@ -90,7 +90,7 @@ namespace TurnZero.Game.Tests
                 {
                     var copy = reloaded.GetComponentInChildren<LocalFieldMap>(); Assert.That(copy.LayoutError(),Is.Null);
                     var tile = copy.Tiles.Single(t => t.Cell == gridCell);
-                    Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(tile.gameObject),Is.EqualTo("Assets/Game/Prefabs/World/Tile.prefab"));
+                    Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(tile.gameObject),Is.EqualTo("Assets/ProjectFiles/Prefabs/World/Tile.prefab"));
                 }
                 finally { PrefabUtility.UnloadPrefabContents(reloaded); }
                 Assert.That(AssetDatabase.LoadAssetAtPath<GameObjectBrush>(LocalFieldMapAuthoring.BrushPath),Is.Not.Null);
@@ -105,7 +105,7 @@ namespace TurnZero.Game.Tests
         {
             var previousBrush = GridPaintingState.gridBrush; var previousPalette = GridPaintingState.palette;
             var previousTarget = GridPaintingState.scenePaintTarget; var previousSelection = Selection.activeGameObject;
-            var root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Game/Prefabs/LocalBattleSession.prefab"));
+            var root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ProjectFiles/Prefabs/LocalBattleSession.prefab"));
             try
             {
                 var layer = root.GetComponentInChildren<LocalFieldMap>().NeutralField;

@@ -5,13 +5,13 @@
 ## 실행
 
 1. Unity 6000.3.5f2에서 `TurnZero` 프로젝트를 연다.
-2. `TurnZero > Local Playtest > Open game` 또는 `Assets/Game/Scenes/LocalBattle.unity`를 연다. 이 씬이 빌드의 첫 씬이다.
+2. `TurnZero > Local Playtest > Open game` 또는 `Assets/ProjectFiles/Scenes/LocalBattle.unity`를 연다. 이 씬이 빌드의 첫 씬이다.
 3. Play를 누른다. 양측 필드와 장비 덱 5칸을 고른다. 장비 칸을 누르면 정의된 세 종류를 순환한다. 캐릭터는 현재 정의된 5종 스타터 편성을 사용한다.
 4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명 → P2 기지 → P2 캐릭터 5명을 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 놓는다. 겹쳐 배치할 수도 있다. **QUICK DEPLOY**는 배치를 건너뛰는 테스트 도구다.
 5. 첫 턴은 2초 안내 후 30초 준비로 넘어간다. 행동을 예약하고 **TAB / VIEW P2**로 상대 팀도 조작한다. 양측 준비 완료 또는 시간 만료에 행동을 재생한다.
 6. 기지 파괴나 캐릭터 전멸로 종료하면 **SET UP A REMATCH**로 다시 시작한다.
 
-기존 `Assets/Scenes/Battle.unity`와 `Assets/Scripts`는 이전 프로토타입 및 회귀 테스트용이다. 새 인게임 개발의 진입점은 `Assets/Game`다.
+이전 씬 `Assets/ProjectFiles/Prototype/Scenes/Battle.unity`와 관련 코드·테스트는 `Assets/ProjectFiles/Prototype`에 보존한다. 현재 인게임은 `Assets/ProjectFiles/Scenes/LocalBattle.unity`와 `Assets/ProjectFiles/Scripts`를 사용한다.
 
 ## 조작
 
@@ -42,11 +42,11 @@
 
 | 위치 | 편집 대상 |
 |---|---|
-| `Assets/Game/Data/LocalBattleConfiguration.asset` | 편성·장비·필드 에셋 참조, 기지 HP·시야, AP·부활·재료, 시간, 재생 속도, 카메라 설정, 난수 시드, 임시 프로필 설명 |
-| `Assets/Game/Data/Characters` | 캐릭터 HP, 이동·공격·스킬의 비용·거리·범위·우선순위·쿨다운, 스킬 효과, 초상화·모델 |
-| `Assets/Game/Data/Equipment` | 장비 효과·행동 수치, 구조물 HP, 포털 설치 턴·출구 거리, 아이콘 |
-| `Assets/Game/Data/Fields` | 필드 프리셋 3개, 타일 색·변형, 크기·간격 |
-| `Assets/Game/Prefabs/LocalBattleSession.prefab` | 씬 연결, 월드·HUD 배치 |
+| `Assets/ProjectFiles/Data/LocalBattleConfiguration.asset` | 편성·장비·필드 에셋 참조, 기지 HP·시야, AP·부활·재료, 시간, 재생 속도, 카메라 설정, 난수 시드, 임시 프로필 설명 |
+| `Assets/ProjectFiles/Data/Characters` | 캐릭터 HP, 이동·공격·스킬의 비용·거리·범위·우선순위·쿨다운, 스킬 효과, 초상화·모델 |
+| `Assets/ProjectFiles/Data/Equipment` | 장비 효과·행동 수치, 구조물 HP, 포털 설치 턴·출구 거리, 아이콘 |
+| `Assets/ProjectFiles/Data/Fields` | 필드 프리셋 3개, 타일 색·변형, 크기·간격 |
+| `Assets/ProjectFiles/Prefabs/LocalBattleSession.prefab` | 씬 연결, 월드·HUD 배치 |
 
 숫자와 에셋 참조를 수정한 뒤 Play를 새로 시작하거나 REMATCH로 다시 초기화한다. 경기마다 SO 데이터를 일반 C# 데이터로 복사하므로 AP·HP·상태가 원본 에셋에 저장되지 않는다. 모델·초상화는 캐릭터 에셋 참조로 교체한다.
 

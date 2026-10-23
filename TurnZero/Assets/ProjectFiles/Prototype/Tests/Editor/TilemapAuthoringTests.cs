@@ -18,7 +18,7 @@ namespace TurnZero.Tests
         [SetUp]
         public void SetUp()
         {
-            root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/FixedBattleMap.prefab"));
+            root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ProjectFiles/Prototype/Prefabs/Map/FixedBattleMap.prefab"));
             map = root.GetComponent<BattleMapView>();
             brush = ScriptableObject.CreateInstance<GameObjectBrush>();
         }
@@ -83,7 +83,7 @@ namespace TurnZero.Tests
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleTilemapAssets.Folder + name + ".prefab");
                 Assert.That(prefab.transform.Find("Surface").localScale, Is.EqualTo(new Vector3(2, 0.16f, 2)), name);
             }
-            Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/BattleTile.prefab")
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ProjectFiles/Prototype/Prefabs/Map/BattleTile.prefab")
                 .transform.Find("Surface").localScale, Is.EqualTo(new Vector3(2, 0.16f, 2)));
         }
 
@@ -174,7 +174,7 @@ namespace TurnZero.Tests
         [Test]
         public void EditedBrushPrefabsSurvivePrefabSaveAndReload()
         {
-            const string path = "Assets/Tests/Editor/TilemapRoundTrip.prefab";
+            const string path = "Assets/ProjectFiles/Prototype/Tests/Editor/TilemapRoundTrip.prefab";
             try
             {
                 Pick("Grass");

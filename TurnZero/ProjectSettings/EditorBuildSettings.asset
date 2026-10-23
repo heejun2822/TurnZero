@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Game/Scenes/LocalBattle.unity
+    path: Assets/ProjectFiles/Scenes/LocalBattle.unity
     guid: 3189689c723842a44a3188b845ea85c2
   - enabled: 1
-    path: Assets/Scenes/Battle.unity
+    path: Assets/ProjectFiles/Prototype/Scenes/Battle.unity
     guid: b93cf5575c39430fa070df8bb8db12a3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

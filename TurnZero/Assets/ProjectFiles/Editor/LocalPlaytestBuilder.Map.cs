@@ -70,8 +70,8 @@ namespace TurnZero.Game.Editor
 
     public static class LocalFieldMapAuthoring
     {
-        public const string PalettePath = "Assets/Game/Prefabs/World/FieldPalette.prefab";
-        public const string BrushPath = "Assets/Game/Data/GameObjectBrush.asset";
+        public const string PalettePath = "Assets/ProjectFiles/Prefabs/World/FieldPalette.prefab";
+        public const string BrushPath = "Assets/ProjectFiles/Data/GameObjectBrush.asset";
         public static void OpenPalette(Tilemap target)
         {
             EditorApplication.ExecuteMenuItem("Window/2D/Tile Palette");

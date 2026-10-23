@@ -8,7 +8,7 @@
 | 기준 원문 | Requirements.md, 299행 기준 |
 | 원문 SHA-256 | `D95B0E793BB09421643617D70629574581632208F988961BEDB7800B5E1B08A6` |
 | 문서 상태 | 로컬 인게임 플레이테스트 단계. 열린 질문은 임시 프로필과 구분하며 전체 게임 개발 완료를 뜻하지 않음 |
-| 구현 상태의 근거 | 새 `Assets/Game`의 배치·턴·이동·스킬·부활·장비·관측·UI·입력을 연결했다. 코어 57/57, HP 바·드래그 입력 후속 검증 Unity EditMode 69/69, PlayMode 22/22 통과. 범위와 증거는 7.1 및 9.3에서 관리 |
+| 구현 상태의 근거 | 새 `Assets`의 배치·턴·이동·스킬·부활·장비·관측·UI·입력을 연결했다. 코어 57/57, HP 바·드래그 입력 후속 검증 Unity EditMode 69/69, PlayMode 22/22 통과. 범위와 증거는 7.1 및 9.3에서 관리 |
 | 기본 개발 상태 | 확인한 요구사항만 상태를 변경한다. `진행`은 일부 구현·검증이며, 남은 범위는 9.2에서 추적 |
 
 ## 목차
@@ -54,7 +54,7 @@
 
 - [Requirements.md](Requirements.md): 사용자가 작성한 원문. 이번 정리에서 변경하지 않았다.
 - [Development.md](Development.md): 기존 프로토타입의 임시 규칙·구현·검증 기록. 이 문서의 새로운 규칙이 이미 구현됐다는 근거로 사용하지 않는다.
-- [ProjectPlan.md](ProjectPlan.md): 게임 소개와 목표 등 상위 기획 초안. 원문 요구사항에 없는 내용을 이 문서의 확정 규칙으로 추가하지 않았다.
+- `ProjectPlan.md`: 게임 소개와 목표 등 상위 기획 초안. 현재 저장소에는 포함되지 않았다. 원문 요구사항에 없는 내용을 이 문서의 확정 규칙으로 추가하지 않았다.
 - [Plan.md](Plan.md): 이전 기획. Requirements.md와 다른 경우 새 요구사항을 개발 검토 대상으로 삼는다.
 
 이번 원문을 반영한 개발용 규칙·수치·진행 상태는 이 문서에서 관리한다. 이후 원문에 변경 요청을 적으면 해당 요구사항 ID와 결정 기록에 반영하고 기준 원문을 갱신한다. 서로 다른 내용을 두 문서에서 동시에 정식 기준으로 유지하지 않는다.
@@ -189,9 +189,9 @@
 
 같은 진영 내부의 재생 순서, 연출 중 HP·사망 모델의 표시 시점, 관측할 수 없는 공격의 표현은 미정이다. 같은 우선순위의 이동·설치·다른 효과까지 이번 공격 연출 선택으로 확정하지 않는다.
 
-**현재 코드 확인과 개발 영향:** [BattleResolver.cs](TurnZero/Assets/Scripts/Core/BattleResolver.cs)의 `Resolve`는 기본 공격별 피해를 모은 후 HP를 반영한다. [BattleTests.cs](TurnZero/Assets/Tests/Editor/BattleTests.cs)의 `MutualEliminationIsADrawAndBothAttacksLand`에도 양쪽 공격이 모두 적용되는 검증 정의가 있다. 해당 테스트는 양측 기지 HP가 같아 DEC-004에서도 무승부인 사례에 해당한다. 기지 HP가 서로 다른 상호 전멸은 추가 검증이 필요하다. 코드를 읽어 확인했으며 테스트를 실행하지 않았다.
+**현재 코드 확인과 개발 영향:** [BattleResolver.cs](../TurnZero/Assets/ProjectFiles/Prototype/Scripts/Core/BattleResolver.cs)의 `Resolve`는 기본 공격별 피해를 모은 후 HP를 반영한다. [BattleTests.cs](../TurnZero/Assets/ProjectFiles/Prototype/Tests/Editor/BattleTests.cs)의 `MutualEliminationIsADrawAndBothAttacksLand`에도 양쪽 공격이 모두 적용되는 검증 정의가 있다. 해당 테스트는 양측 기지 HP가 같아 DEC-004에서도 무승부인 사례에 해당한다. 기지 HP가 서로 다른 상호 전멸은 추가 검증이 필요하다. 코드를 읽어 확인했으며 테스트를 실행하지 않았다.
 
-현재 [BattleMatch.cs](TurnZero/Assets/Scripts/Core/BattleMatch.cs)의 `ResolveTurn`은 턴 결과를 계산한 뒤 짧은 판정 표시 상태를 거친다. 원문에서 원하는 경로별 이동·투사체·자동 카메라를 재생하는 흐름은 추가 구성이 필요하다. 개발 시에는 기본 공격의 피해 수집 구조를 활용하고, 우선순위별 판정 결과와 그 결과를 보여주는 연출을 분리하는 방향으로 검토한다. 연출 도중 모델이 먼저 사라져 같은 단계의 예약 공격을 보여주지 못하는 문제도 확인한다.
+현재 [BattleMatch.cs](../TurnZero/Assets/ProjectFiles/Prototype/Scripts/Core/BattleMatch.cs)의 `ResolveTurn`은 턴 결과를 계산한 뒤 짧은 판정 표시 상태를 거친다. 원문에서 원하는 경로별 이동·투사체·자동 카메라를 재생하는 흐름은 추가 구성이 필요하다. 개발 시에는 기본 공격의 피해 수집 구조를 활용하고, 우선순위별 판정 결과와 그 결과를 보여주는 연출을 분리하는 방향으로 검토한다. 연출 도중 모델이 먼저 사라져 같은 단계의 예약 공격을 보여주지 못하는 문제도 확인한다.
 
 ### 4.6. 공격과 스킬 및 상태
 
@@ -619,7 +619,7 @@
 | 2026-10-22 | 현재 보유 AP 이내의 예약 한도와 수정·취소 예산 반영 | R-TURN-03, R-AP-05, R-UI-03 | 기획 일부 결정 | DEC-008. R-AP-05 추가, TC-08 갱신. 코드 변경·실행 검증 없음 | Q-03의 정상 실행한 공격이 아무도 맞히지 못한 경우의 비용 질문 |
 | 2026-10-22 | 정상 실행한 무적중 공격의 AP 소비 반영, 문답 일시 중지 및 개발 착수 방침 기록 | R-AP-03, R-COMBAT-01, Q-03 | 기획 일부 결정 / 문답 중지 | DEC-009. TC-44 추가. 사용자 요청으로 확정 범위부터 개발하고 미정 규칙은 후속 결정. 코드 변경·실행 검증 없음 | 개발 진행 기록을 갱신하며 사용자 재개 요청 시 Q-03의 처치 보상 지급 시점부터 문답 재개 |
 | 2026-10-22 | 확정 범위 1차 구현: AP 지급·예약·실행 차감, 상호 전멸 HP 비교·교차 패배, 프리팹 AP 설정 및 미리보기 갱신 | R-TURN-01·03, R-AP-01·03·05, R-COMBAT-07, R-REV-01, R-UI-03 | 일부 구현 / 회귀 검증 | `b1333d3` 기반 작업 트리. 기존 28/28 통과 후 새 규칙의 실패를 재현하고 변경 후 코어 33/33·EditMode 41/41·PlayMode 13/13 통과. 결과는 7.1 참조 | DEC-002 공격 순차 연출과 필요한 공개 정보 경계 검토. 미정 질문은 재개 요청 전까지 유지 |
-| 2026-10-22 | 혼자 인게임을 검증하는 로컬 플레이 단계: 새 데이터·디렉토리·씬 단위 이벤트 연결, 12×20·5종 수동 배치, 스킬·부활·장비, 새 HUD·PC/터치 입력·카메라·순차 재생 | SYS-PRE·MAP·TURN·AP·MOVE·COMBAT·VIS·REV·ITEM·EQUIP·UI의 정의된 로컬 범위 | 로컬 플레이 검증 / 정식 기획 결정은 계속 열림 | `local-playtest-v1`. 코어 57/57·EditMode 67/67·PlayMode 19/19, 가로/세로 렌더 검토. 새 진입점 `Assets/Game/Scenes/LocalBattle.unity` | 실제 플레이로 PT-01~14 평가 후 Q 항목 재개 시 정식 결정. 온라인·필드 편집 UI·미정 아이템·계정 성장 후속 |
+| 2026-10-22 | 혼자 인게임을 검증하는 로컬 플레이 단계: 새 데이터·디렉토리·씬 단위 이벤트 연결, 12×20·5종 수동 배치, 스킬·부활·장비, 새 HUD·PC/터치 입력·카메라·순차 재생 | SYS-PRE·MAP·TURN·AP·MOVE·COMBAT·VIS·REV·ITEM·EQUIP·UI의 정의된 로컬 범위 | 로컬 플레이 검증 / 정식 기획 결정은 계속 열림 | `local-playtest-v1`. 코어 57/57·EditMode 67/67·PlayMode 19/19, 가로/세로 렌더 검토. 새 진입점 `Assets/ProjectFiles/Scenes/LocalBattle.unity` | 실제 플레이로 PT-01~14 평가 후 Q 항목 재개 시 정식 결정. 온라인·필드 편집 UI·미정 아이템·계정 성장 후속 |
 
 **1차 구현 당시의 경계:** 아래는 초기 AP·승패 작업 시점의 기록이다. 현재 로컬 인게임 범위는 9.3을 따른다.
 
@@ -642,9 +642,9 @@
 | SYS-UI | 새 양측 카드·선택 상세·행동 수치·상태·장비·인벤토리·25칸 AP·준비·결과·도움말, PC/터치, 드래그·줌·더블 입력 포커스, 가로/세로 배치 | 자동 입력·렌더 검증. 물리 PC 감도·모바일 실기기·최소 터치 크기는 후속 |
 | 데이터·구조 | `Runtime/Domain`, `Data`, `Application`, `Input`, `Presentation` 및 Editor/Tests 분리, 캐릭터·장비·필드·경기 SO, 씬 소유 `BattleEvents`로 조합 | 새 코어는 Unity·기존 프로토타입을 참조하지 않음. SO를 복사해 경기 상태와 격리 |
 
-**임시 규칙의 위치:** [Docs/LocalPlaytest.md](Docs/LocalPlaytest.md)의 PT-01~14와 경기 설정 에셋 `Local Profile Notes`를 사용한다. 범위·중첩·쿨다운·부활·제작·포털·공개 정보 등의 세부 동작을 시험 가능하게 했으며, Q-01~23의 열림/부분결정을 이번 구현만으로 결정으로 바꾸지 않는다. `검증` 상태는 이 로컬 프로필에서 실행한 부분이며 요구사항 전체의 최종 승인을 뜻하지 않는다.
+**임시 규칙의 위치:** [LocalPlaytest.md](LocalPlaytest.md)의 PT-01~14와 경기 설정 에셋 `Local Profile Notes`를 사용한다. 범위·중첩·쿨다운·부활·제작·포털·공개 정보 등의 세부 동작을 시험 가능하게 했으며, Q-01~23의 열림/부분결정을 이번 구현만으로 결정으로 바꾸지 않는다. `검증` 상태는 이 로컬 프로필에서 실행한 부분이며 요구사항 전체의 최종 승인을 뜻하지 않는다.
 
-표시명 Vanguard·Shade·Pyre·Binder·Deadeye와 재사용 모델·초상화는 테스트용이다. 원문 콘텐츠 추적은 CHR-01~05, MOV/ATK/SKL/EQP ID를 유지한다. 새 인게임 구조는 [Docs/GameArchitecture.md](Docs/GameArchitecture.md), 실행·조작·데이터 편집은 [Docs/LocalPlaytest.md](Docs/LocalPlaytest.md)를 따른다. 기존 프로토타입은 회귀용으로 유지한다.
+표시명 Vanguard·Shade·Pyre·Binder·Deadeye와 재사용 모델·초상화는 테스트용이다. 원문 콘텐츠 추적은 CHR-01~05, MOV/ATK/SKL/EQP ID를 유지한다. 새 인게임 구조는 [GameArchitecture.md](GameArchitecture.md), 실행·조작·데이터 편집은 [LocalPlaytest.md](LocalPlaytest.md)를 따른다. 기존 프로토타입은 회귀용으로 유지한다.
 
 이 단계에서는 계정 재화·뽑기·진화·온라인·완성 아트·지원 기기 성능·밸런스 완료를 주장하지 않는다. 실제 플레이 피드백과 열린 질문의 후속 결정으로 임시 프로필을 교체하고 해당 TC를 다시 실행한다.
 

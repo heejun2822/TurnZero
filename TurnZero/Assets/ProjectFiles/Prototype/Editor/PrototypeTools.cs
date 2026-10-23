@@ -13,7 +13,7 @@ namespace TurnZero.Editor
         public static void OpenPrototype()
         {
             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                EditorSceneManager.OpenScene("Assets/Scenes/Battle.unity");
+                EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
         }
 
         [MenuItem("TurnZero/Verify Debug Recording")]

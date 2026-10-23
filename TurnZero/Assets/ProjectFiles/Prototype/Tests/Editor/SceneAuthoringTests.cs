@@ -50,9 +50,9 @@ namespace TurnZero.Tests
             var previous = EditorSceneManager.GetSceneManagerSetup();
             try
             {
-                var scene = EditorSceneManager.OpenScene("Assets/Scenes/Battle.unity");
+                var scene = EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
                 var root = scene.GetRootGameObjects().Single(g => g.name == "Battle Session");
-                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root), Is.EqualTo("Assets/Prefabs/BattleSession.prefab"));
+                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root), Is.EqualTo("Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab"));
                 Assert.That(root.GetComponentsInChildren<BattleTileView>(true).Length, Is.EqualTo(384));
                 Assert.That(root.GetComponentsInChildren<BattleActorView>(true).Length, Is.EqualTo(10));
                 Assert.That(root.GetComponentsInChildren<BattleActorView>().Length, Is.EqualTo(10));
@@ -73,7 +73,7 @@ namespace TurnZero.Tests
                 Assert.That(map.GetComponentsInChildren<MeshRenderer>().All(r => r.GetComponentInParent<BattleTileView>() != null), Is.True, "Only field tiles and their decorations remain.");
                 Assert.That(map.NeutralField.transform.Cast<Transform>().Count(t => t.name == "TreeTile"), Is.EqualTo(4));
                 Assert.That(map.NeutralField.transform.Cast<Transform>().Count(t => t.name == "RuinedWallTile"), Is.EqualTo(4));
-                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(map.gameObject), Is.EqualTo("Assets/Prefabs/Map/FixedBattleMap.prefab"));
+                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(map.gameObject), Is.EqualTo("Assets/ProjectFiles/Prototype/Prefabs/Map/FixedBattleMap.prefab"));
                 var cells = root.GetComponentsInChildren<BattleTileView>().Select(t => t.Cell).ToArray();
                 Assert.That(cells.Distinct().Count(), Is.EqualTo(384));
                 Assert.That(cells.All(c => c.X >= 0 && c.X < map.Width && c.Y >= 0 && c.Y < map.Height), Is.True);

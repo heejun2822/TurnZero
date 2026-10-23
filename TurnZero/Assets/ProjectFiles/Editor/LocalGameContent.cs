@@ -9,7 +9,7 @@ namespace TurnZero.Game.Editor
 {
     internal static class LocalGameContent
     {
-        internal const string Root = "Assets/Game/";
+        internal const string Root = "Assets/ProjectFiles/";
         internal static BattleConfiguration Create()
         {
             foreach (string folder in new[] { "Data/Characters", "Data/Equipment", "Data/Fields", "Art/Models", "Art/Materials", "Art/Audio", "Prefabs/UI", "Prefabs/World", "Scenes" }) Directory.CreateDirectory(Root+folder);
@@ -31,7 +31,7 @@ namespace TurnZero.Game.Editor
                         Move = Action("MOVE","Follow an orthogonal path. Allies and enemies may share tiles.",moves[slot],0,0,slot == 4 ? 3 : 2,2,1),
                         Attack = Action("BASIC ATTACK","Attack the chosen tile. A miss still spends AP. Enemy targets only.",ranges[slot],slot == 2 ? 2 : 1,damage[slot],slot == 4 ? 3 : 2,3,1),
                         Skill = Action(skills[slot],descriptions[slot],skillRange[slot],skillArea[slot],skillDamage[slot],skillCost[slot],slot == 1 ? 1 : 3,slot >= 3 ? 2 : 1) };
-                    asset.Portrait = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Art/Prototype/{portraits[slot]}CardPortrait.asset");
+                    asset.Portrait = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/ProjectFiles/Art/Prototype/{portraits[slot]}CardPortrait.asset");
                     asset.Model = Model(names[slot],models[slot]);
                     asset.Accent = new[] { new Color(0.2f,0.79f,0.74f),new Color(0.55f,0.72f,0.38f),new Color(0.97f,0.55f,0.24f),new Color(0.52f,0.64f,0.91f),new Color(0.78f,0.57f,0.87f) }[slot];
                 });
@@ -76,7 +76,7 @@ namespace TurnZero.Game.Editor
         {
             string path = Root+$"Art/Models/{name}.prefab";
             var saved = AssetDatabase.LoadAssetAtPath<GameObject>(path); if (saved != null) return saved;
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Characters/{original}.prefab");
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/ProjectFiles/Prototype/Prefabs/Characters/{original}.prefab");
             var clone = (GameObject)PrefabUtility.InstantiatePrefab(source);
             PrefabUtility.UnpackPrefabInstance(clone,PrefabUnpackMode.Completely,InteractionMode.AutomatedAction);
             clone.name = name;

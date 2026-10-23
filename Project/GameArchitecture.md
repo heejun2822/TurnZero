@@ -1,21 +1,23 @@
 # 인게임 구조
 
-새 인게임의 코드는 `Assets/Game`에 모은다. 기존 `Assets/Scripts`, `Assets/Editor`, `Assets/Tests`는 이전 프로토타입과 그 회귀 검증이다. 공통 초상화와 임시 모델을 재사용하되, 새 전투 코어는 이전 프로토타입 어셈블리에 의존하지 않는다.
+현재 인게임 코드는 `Assets/ProjectFiles/Scripts`, 제작 도구는 `Assets/ProjectFiles/Editor`, 테스트는 `Assets/ProjectFiles/Tests`에 둔다. 이전 프로토타입과 회귀 검증 코드는 `Assets/ProjectFiles/Prototype`에 모았다. 공통 초상화와 임시 모델을 재사용하되, 현재 전투 코어는 이전 프로토타입 어셈블리에 의존하지 않는다.
 
 ## 디렉토리와 책임
 
 | 디렉토리 | 책임 |
 |---|---|
-| `Runtime/Domain` | Unity 참조가 없는 상태·명령 검증·거리·경로·관측·전투 시뮬레이션·턴 상태 전이 |
-| `Runtime/Data` | CharacterDefinition, EquipmentDefinition, FieldDefinition, BattleConfiguration ScriptableObject |
-| `Runtime/Application` | 씬 구성, 경기 세션·시계·선택 상태·재생 진행, 씬 단위 타입 이벤트 채널, 턴 시작 음향 |
-| `Runtime/Input` | 키보드·마우스·터치, UI와 월드 입력 구분, 카메라 드래그와 수동 경로 드래그 구분 |
-| `Runtime/Presentation/World` | LocalFieldMap의 Grid·3개 Tilemap 좌표와 배치 검증, 타일·캐릭터·마지막 관측·아이템·구조물·경로·공격 효과 표시 |
-| `Runtime/Presentation/Camera` | 플레이어 방향, 드래그·줌·포커스, 판정 중 자동 추적과 수동 조작 잠금 |
-| `Runtime/Presentation/UI` | HUD·카드·AP·모달·가로/세로 안전 영역 배치 |
-| `Editor` | 없는 기본 데이터·모델·소리를 생성하고 새 씬·세션 프리팹을 저작하는 도구 |
-| `Data`, `Art`, `Prefabs`, `Scenes` | 편집할 SO와 에셋·프리팹·진입 씬 |
-| `Tests/EditMode`, `Tests/PlayMode` | 규칙·데이터·저작 상태·실제 플레이와 입력 회귀 |
+| `Assets/ProjectFiles/Scripts/Domain` | Unity 참조가 없는 상태·명령 검증·거리·경로·관측·전투 시뮬레이션·턴 상태 전이 |
+| `Assets/ProjectFiles/Scripts/Data` | CharacterDefinition, EquipmentDefinition, FieldDefinition, BattleConfiguration ScriptableObject |
+| `Assets/ProjectFiles/Scripts/Application` | 씬 구성, 경기 세션·시계·선택 상태·재생 진행, 씬 단위 타입 이벤트 채널, 턴 시작 음향 |
+| `Assets/ProjectFiles/Scripts/Input` | 키보드·마우스·터치, UI와 월드 입력 구분, 카메라 드래그와 수동 경로 드래그 구분 |
+| `Assets/ProjectFiles/Scripts/Presentation/World` | LocalFieldMap의 Grid·3개 Tilemap 좌표와 배치 검증, 타일·캐릭터·마지막 관측·아이템·구조물·경로·공격 효과 표시 |
+| `Assets/ProjectFiles/Scripts/Presentation/Camera` | 플레이어 방향, 드래그·줌·포커스, 판정 중 자동 추적과 수동 조작 잠금 |
+| `Assets/ProjectFiles/Scripts/Presentation/UI` | HUD·카드·AP·모달·가로/세로 안전 영역 배치 |
+| `Assets/ProjectFiles/Editor` | 없는 기본 데이터·모델·소리를 생성하고 새 씬·세션 프리팹을 저작하는 도구 |
+| `Assets/ProjectFiles/Data`, `Assets/ProjectFiles/Art`, `Assets/ProjectFiles/Prefabs`, `Assets/ProjectFiles/Scenes` | 편집할 SO와 에셋·프리팹·진입 씬 |
+| `Assets/ProjectFiles/Tests/EditMode`, `Assets/ProjectFiles/Tests/PlayMode` | 규칙·데이터·저작 상태·실제 플레이와 입력 회귀 |
+| `Assets/External` | 가져온 TextMesh Pro 리소스와 Unity 템플릿 에셋 |
+| `Assets/Resources` | `Resources.Load`로 불러오는 프로토타입 UI 이미지 |
 
 ## 연결
 
@@ -57,4 +59,4 @@ flowchart LR
 - 원문에 정의되지 않은 아이템 종류를 임의로 채우지 않았다. 후속 아이템 콘텐츠는 별도 데이터 정의와 인벤토리 동작을 추가한다.
 - 온라인에서는 입력/뷰의 형태를 유지하면서 로컬 세션의 판정 권위를 서버 서비스로 교체한다. 현재 전체 상태 스냅샷을 클라이언트 공개 API로 승격하지 않는다.
 - 저장·계정 성장·필드 편집 UI는 경기 판정이나 HUD에 섞지 않고 별도 기능으로 붙인다.
-- 로컬 임시 해석과 시험 범위는 [LocalPlaytest.md](LocalPlaytest.md), 요구사항 상태는 루트 [DevelopmentPlan.md](../DevelopmentPlan.md)에서 관리한다.
+- 로컬 임시 해석과 시험 범위는 [LocalPlaytest.md](LocalPlaytest.md), 요구사항 상태는 [DevelopmentPlan.md](DevelopmentPlan.md)에서 관리한다.

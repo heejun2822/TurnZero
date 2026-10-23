@@ -27,7 +27,7 @@ namespace TurnZero.Editor
 
         public static void BuildBatch()
         {
-            EditorSceneManager.OpenScene("Assets/Scenes/Battle.unity");
+            EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
             new BattlePrefabBuilder().Build();
             AssetDatabase.SaveAssets();
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
@@ -42,8 +42,8 @@ namespace TurnZero.Editor
         private GameObject session, worldRoot, mapRoot;
         private Material surface;
         private Mesh facetedMesh;
-        private const string Prefabs = "Assets/Prefabs/";
-        private const string Art = "Assets/Art/Prototype/";
+        private const string Prefabs = "Assets/ProjectFiles/Prototype/Prefabs/";
+        private const string Art = "Assets/ProjectFiles/Art/Prototype/";
         private static readonly string[] ModelNames = { "Guardian", "Scout", "Ranger", "Support", "Base" };
 
         internal void Build()
@@ -53,8 +53,8 @@ namespace TurnZero.Editor
             Directory.CreateDirectory(Prefabs + "UI");
             Directory.CreateDirectory(Art);
             AssetDatabase.Refresh();
-            surface = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/PrototypeSurface.mat");
-            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
+            surface = AssetDatabase.LoadAssetAtPath<Material>("Assets/ProjectFiles/Prototype/Materials/PrototypeSurface.mat");
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/External/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
             facetedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(Art + "FacetedMesh.asset");
             if (facetedMesh == null) { facetedMesh = FacetedMesh(); AssetDatabase.CreateAsset(facetedMesh, Art + "FacetedMesh.asset"); }
             BakePortraits();

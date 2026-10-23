@@ -15,7 +15,7 @@ namespace TurnZero.Game.Editor
 {
     public static class LocalPlaytestAuthoring
     {
-        public const string ScenePath = "Assets/Game/Scenes/LocalBattle.unity";
+        public const string ScenePath = "Assets/ProjectFiles/Scenes/LocalBattle.unity";
         [MenuItem("TurnZero/Local Playtest/Open game")]
         public static void Open()
         {
@@ -46,7 +46,7 @@ namespace TurnZero.Game.Editor
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             configuration = LocalGameContent.Create(); rules = configuration.CreateRules();
-            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
+            font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/External/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
             RenderSettings.ambientMode = AmbientMode.Flat; RenderSettings.ambientLight = new Color(0.6f,0.67f,0.75f);
             root = new GameObject("Local Battle"); session = root.AddComponent<BattleSession>();
             var world = BuildWorld();

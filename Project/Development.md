@@ -20,7 +20,7 @@
 
 ## 검증용 수치표
 
-`Assets/Scenes/Battle.unity`의 `Battle Session` 오브젝트에 있는 `BattleController` 컴포넌트에서 Rules를 조정한다. 플레이 중에는 경기 생성 시 복사한 규칙을 사용한다. 수정 후 새 경기로 시작한다. 맵 크기는 배치된 `BattleMapView`를 기준으로 한다.
+`Assets/ProjectFiles/Prototype/Scenes/Battle.unity`의 `Battle Session` 오브젝트에 있는 `BattleController` 컴포넌트에서 Rules를 조정한다. 플레이 중에는 경기 생성 시 복사한 규칙을 사용한다. 수정 후 새 경기로 시작한다. 맵 크기는 배치된 `BattleMapView`를 기준으로 한다.
 
 | 항목 | 임시값 |
 |---|---|
