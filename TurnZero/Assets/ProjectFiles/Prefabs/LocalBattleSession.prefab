@@ -4143,6 +4143,7 @@ GameObject:
   - component: {fileID: 3752056717985524884}
   - component: {fileID: 4509749707450746327}
   - component: {fileID: 2409867154237544542}
+  - component: {fileID: 291204083067187479}
   m_Layer: 5
   m_Name: Match header
   m_TagString: Untagged
@@ -9724,36 +9725,11 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleWorld
   map: {fileID: 7360811884937335013}
-  actors:
-  - {fileID: 507887189527205728}
-  - {fileID: 5308355200466939155}
-  - {fileID: 3387682737871885946}
-  - {fileID: 7168565759066588927}
-  - {fileID: 2936615144281521946}
-  - {fileID: 3214317230903783273}
-  - {fileID: 1102304734796490640}
-  - {fileID: 4677000617743712928}
-  - {fileID: 759358571976346866}
-  - {fileID: 7553581486859147995}
-  - {fileID: 852430154244236405}
-  - {fileID: 8720073288056493990}
-  ghosts:
-  - {fileID: 6311285470276263566}
-  - {fileID: 4091115148544562337}
-  - {fileID: 455456037904324760}
-  - {fileID: 8073873936210294279}
-  - {fileID: 6796852581831591655}
-  - {fileID: 3172253271630760352}
-  - {fileID: 8297655679623705610}
-  - {fileID: 9017617519977124419}
-  - {fileID: 2448304885234004632}
-  - {fileID: 4843393527175996946}
-  pathLine: {fileID: 3636844231035093389}
-  itemPrefab: {fileID: 2481779873471977379, guid: 6011264c687af7949883999a7326c74c, type: 3}
-  structurePrefab: {fileID: 5347539022634976212, guid: d2077bcb0df665f43916fa06ccfbe4b7, type: 3}
-  impactPrefab: {fileID: 6444916071522345478, guid: b3053448643adc64b8768e279db64a75, type: 3}
-  projectilePrefab: {fileID: 3671530110770657004, guid: 53065bee5530b55428097b28e337aa48, type: 3}
-  dynamicRoot: {fileID: 2368283922983887269}
+  highlights: {fileID: 7547934326735970616}
+  actors: {fileID: 3603122778191763963}
+  markers: {fileID: 8986978777389839609}
+  path: {fileID: 8000756511217637279}
+  effects: {fileID: 1829739970933769151}
 --- !u!1 &2470265045196471567
 GameObject:
   m_ObjectHideFlags: 0
@@ -10508,7 +10484,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 3023971073205042095}
+  - {fileID: 5112145199048320162}
   m_Father: {fileID: 8462803519130977719}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2546694245569521010
@@ -11850,6 +11828,7 @@ GameObject:
   - component: {fileID: 6945828580561882637}
   - component: {fileID: 687066744404188848}
   - component: {fileID: 1243257994698178892}
+  - component: {fileID: 8239187064803394732}
   m_Layer: 5
   m_Name: Replace equipment
   m_TagString: Untagged
@@ -12005,6 +11984,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9041101880059730931}
+  - component: {fileID: 3603122778191763963}
   m_Layer: 0
   m_Name: Characters and bases
   m_TagString: Untagged
@@ -12318,6 +12298,7 @@ GameObject:
   - component: {fileID: 5510399967251422391}
   - component: {fileID: 5270154252851406530}
   - component: {fileID: 5960019334022786308}
+  - component: {fileID: 8919006417129203128}
   m_Layer: 5
   m_Name: Controls guide
   m_TagString: Untagged
@@ -13153,6 +13134,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6107106748268980486}
+  - component: {fileID: 9060900977396741339}
   m_Layer: 5
   m_Name: Equipment crafting
   m_TagString: Untagged
@@ -13782,6 +13764,7 @@ GameObject:
   - component: {fileID: 5405539751119577531}
   - component: {fileID: 5829445294421496791}
   - component: {fileID: 7085065097811145059}
+  - component: {fileID: 8909835257740077710}
   m_Layer: 5
   m_Name: Turn banner
   m_TagString: Untagged
@@ -14590,100 +14573,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdf87c055b0228a44b12187722205b94, type: 3}
   m_Name:
   m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleHud
-  phaseText: {fileID: 8276287086114121447}
-  timerText: {fileID: 1299501528224198106}
-  baseText: {fileID: 9149814152158694384}
-  perspectiveText: {fileID: 5901102880596421085}
-  messageText: {fileID: 3766658058366719511}
-  logText: {fileID: 2135775797668844122}
-  selectedName: {fileID: 7102149372053658156}
-  selectedHealth: {fileID: 6887928273726489293}
-  selectedStatus: {fileID: 551281175823893320}
-  actionInfo: {fileID: 5507501196391490358}
-  reservedInfo: {fileID: 931490972294282725}
-  craftInfo: {fileID: 1802963026999810433}
-  phaseBannerText: {fileID: 5193524463278675122}
-  resultText: {fileID: 3020138738711984389}
-  selectedPortrait: {fileID: 7815804179334481326}
-  actionButtons:
-  - {fileID: 4438918795944471194}
-  - {fileID: 1192060105137459229}
-  - {fileID: 3847716981906088568}
-  - {fileID: 2622944901416395532}
-  - {fileID: 3963475491900542399}
-  craftButtons:
-  - {fileID: 2676091757939459436}
-  - {fileID: 6652708830469481454}
-  - {fileID: 3331513898363714884}
-  fieldButtons:
-  - {fileID: 2535659498807279674}
-  - {fileID: 4883843389866888598}
-  - {fileID: 2647420320380626928}
-  - {fileID: 8796778878069513199}
-  - {fileID: 1755715135414448606}
-  - {fileID: 582877167088323316}
-  deckButtons:
-  - {fileID: 8961303306139604996}
-  - {fileID: 1951192272116626414}
-  - {fileID: 8489957525783054766}
-  - {fileID: 7291621811644665626}
-  - {fileID: 5076264080943424940}
-  - {fileID: 7614442267533826345}
-  - {fileID: 2054000235194085511}
-  - {fileID: 7933702793200420478}
-  - {fileID: 3305237607675167448}
-  - {fileID: 2502810183003458324}
-  actionLabels:
-  - {fileID: 123765487895499599}
-  - {fileID: 3587455185642639981}
-  - {fileID: 4239656055192337873}
-  - {fileID: 5986200946936236196}
-  - {fileID: 5203320367934809905}
-  craftLabels:
-  - {fileID: 908722254003051602}
-  - {fileID: 4651175537754965961}
-  - {fileID: 3807644335836262642}
-  fieldLabels:
-  - {fileID: 4142557029710877892}
-  - {fileID: 5542450626741201897}
-  - {fileID: 3571548134011278587}
-  - {fileID: 3875492802616648761}
-  - {fileID: 5756558634620127414}
-  - {fileID: 3836401844034664364}
-  deckLabels:
-  - {fileID: 2320590605146873896}
-  - {fileID: 2434477685478965019}
-  - {fileID: 1371573266171395813}
-  - {fileID: 5094348838301383551}
-  - {fileID: 8819950934286796817}
-  - {fileID: 1532400268034604634}
-  - {fileID: 5551072686596946460}
-  - {fileID: 7641854952537718278}
-  - {fileID: 8199030092117881903}
-  - {fileID: 5885082003863502171}
-  readyButton: {fileID: 6672313943275570706}
-  switchButton: {fileID: 6267447758803515673}
-  resolveButton: {fileID: 4596887450667952578}
-  restartButton: {fileID: 6332982032679599215}
-  pauseButton: {fileID: 8665603637102784291}
-  revealButton: {fileID: 4286247142299717789}
-  helpButton: {fileID: 3293976518676540049}
-  startButton: {fileID: 5113365662970324650}
-  autoDeployButton: {fileID: 1633534953497945816}
-  rematchButton: {fileID: 6730138935869129970}
-  closeHelpButton: {fileID: 4309961519973634843}
-  confirmButton: {fileID: 2050407162467041615}
-  cancelConfirmButton: {fileID: 6694825125481343402}
-  readyLabel: {fileID: 4386263265964486468}
-  switchLabel: {fileID: 6320206076747646429}
-  pauseLabel: {fileID: 5550946827332922985}
-  revealLabel: {fileID: 7587771001823753213}
-  resolveLabel: {fileID: 2479711083868402567}
-  setupPanel: {fileID: 5511690158344211997}
-  helpPanel: {fileID: 3015520841156693140}
-  resultPanel: {fileID: 5778303645791088624}
-  phaseBanner: {fileID: 3332196566177054202}
-  confirmPanel: {fileID: 2852508907303522843}
+  header: {fileID: 291204083067187479}
+  timer: {fileID: 3807215767414338107}
+  messages: {fileID: 201738086108490166}
+  selection: {fileID: 8620426620119448572}
+  actions: {fileID: 1427730171575830509}
+  details: {fileID: 3997266961170431383}
+  equipment: {fileID: 9060900977396741339}
+  confirmation: {fileID: 8239187064803394732}
+  toolbar: {fileID: 9399393679459905}
+  ready: {fileID: 6383690629030816014}
+  setup: {fileID: 1103154697152499036}
+  help: {fileID: 8919006417129203128}
+  result: {fileID: 3231713499679284324}
+  banner: {fileID: 8909835257740077710}
   cards:
   - {fileID: 4124570359648135086}
   - {fileID: 815140833057325611}
@@ -15337,6 +15240,7 @@ GameObject:
   - component: {fileID: 2003704089535858054}
   - component: {fileID: 5831419770021728782}
   - component: {fileID: 1713118083590894809}
+  - component: {fileID: 3997266961170431383}
   m_Layer: 5
   m_Name: Action detail
   m_TagString: Untagged
@@ -16299,6 +16203,7 @@ GameObject:
   - component: {fileID: 6431405673134088805}
   - component: {fileID: 773043664636999932}
   - component: {fileID: 6672313943275570706}
+  - component: {fileID: 6383690629030816014}
   m_Layer: 5
   m_Name: Ready
   m_TagString: Untagged
@@ -17416,6 +17321,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4127555025028951540}
+  - component: {fileID: 1427730171575830509}
   m_Layer: 5
   m_Name: Action buttons
   m_TagString: Untagged
@@ -22527,6 +22433,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6543871908621007761}
+  - component: {fileID: 8620426620119448572}
   m_Layer: 5
   m_Name: Selection header
   m_TagString: Untagged
@@ -24963,6 +24870,7 @@ GameObject:
   - component: {fileID: 6956810350922589632}
   - component: {fileID: 8069652989626691111}
   - component: {fileID: 2276700304621547147}
+  - component: {fileID: 1103154697152499036}
   m_Layer: 5
   m_Name: Match setup
   m_TagString: Untagged
@@ -26259,6 +26167,7 @@ GameObject:
   - component: {fileID: 8656399945321060913}
   - component: {fileID: 3112886395117542487}
   - component: {fileID: 782404729978415244}
+  - component: {fileID: 3231713499679284324}
   m_Layer: 5
   m_Name: Match result
   m_TagString: Untagged
@@ -27438,6 +27347,7 @@ GameObject:
   - component: {fileID: 8693136801207739185}
   - component: {fileID: 8612171017638083491}
   - component: {fileID: 1299501528224198106}
+  - component: {fileID: 3807215767414338107}
   m_Layer: 5
   m_Name: Timer
   m_TagString: Untagged
@@ -30349,6 +30259,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9037152300153583579}
+  - component: {fileID: 201738086108490166}
   m_Layer: 5
   m_Name: Message and log
   m_TagString: Untagged
@@ -34719,6 +34630,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5703007121414133601}
   - component: {fileID: 7360811884937335013}
+  - component: {fileID: 7547934326735970616}
   m_Layer: 0
   m_Name: Field / 12 x 20
   m_TagString: Untagged
@@ -36433,6 +36345,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3666727529831165618}
   - component: {fileID: 3636844231035093389}
+  - component: {fileID: 8000756511217637279}
   m_Layer: 0
   m_Name: Planned path
   m_TagString: Untagged
@@ -39823,6 +39736,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8849958671684782616}
+  - component: {fileID: 9399393679459905}
   m_Layer: 5
   m_Name: Local test toolbar
   m_TagString: Untagged
@@ -58303,3 +58217,423 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1051022700442613562, guid: 70aef594f0e74704f9de5882f6d63d7a, type: 3}
   m_PrefabInstance: {fileID: 9182236791133421798}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &694989916604199752
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3023971073205042095}
+  - component: {fileID: 8986978777389839609}
+  m_Layer: 0
+  m_Name: Field markers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3023971073205042095
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 694989916604199752}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2368283922983887269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8986978777389839609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 694989916604199752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f1b48a05f484e93a12dde3515cb8f76, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalWorldMarkersView
+  map: {fileID: 7360811884937335013}
+  itemPrefab: {fileID: 2481779873471977379, guid: 6011264c687af7949883999a7326c74c, type: 3}
+  structurePrefab: {fileID: 5347539022634976212, guid: d2077bcb0df665f43916fa06ccfbe4b7, type: 3}
+  impactPrefab: {fileID: 6444916071522345478, guid: b3053448643adc64b8768e279db64a75, type: 3}
+--- !u!114 &291204083067187479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005404658355870878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 455265bcd8b04e4ca98891682bcf713f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalMatchHeaderView
+  phaseText: {fileID: 8276287086114121447}
+  baseText: {fileID: 9149814152158694384}
+  perspectiveText: {fileID: 5901102880596421085}
+--- !u!114 &8239187064803394732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2852508907303522843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f6556eef738491c9554bf61df8e8c84, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalEquipmentConfirmationView
+  confirmButton: {fileID: 2050407162467041615}
+  cancelConfirmButton: {fileID: 6694825125481343402}
+--- !u!114 &3603122778191763963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2936777510199915048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23f6f0de8c5943a283d1aa75d17af6f8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorsView
+  map: {fileID: 7360811884937335013}
+  actors:
+  - {fileID: 507887189527205728}
+  - {fileID: 5308355200466939155}
+  - {fileID: 3387682737871885946}
+  - {fileID: 7168565759066588927}
+  - {fileID: 2936615144281521946}
+  - {fileID: 3214317230903783273}
+  - {fileID: 1102304734796490640}
+  - {fileID: 4677000617743712928}
+  - {fileID: 759358571976346866}
+  - {fileID: 7553581486859147995}
+  - {fileID: 852430154244236405}
+  - {fileID: 8720073288056493990}
+  ghosts:
+  - {fileID: 6311285470276263566}
+  - {fileID: 4091115148544562337}
+  - {fileID: 455456037904324760}
+  - {fileID: 8073873936210294279}
+  - {fileID: 6796852581831591655}
+  - {fileID: 3172253271630760352}
+  - {fileID: 8297655679623705610}
+  - {fileID: 9017617519977124419}
+  - {fileID: 2448304885234004632}
+  - {fileID: 4843393527175996946}
+--- !u!114 &8919006417129203128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3015520841156693140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 629c88e62a6141df9782de499a71a252, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleHelpView
+  closeHelpButton: {fileID: 4309961519973634843}
+--- !u!114 &9060900977396741339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3127120429673604177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26523c53cdc545fe94edae29e788d413, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalEquipmentView
+  craftButtons:
+  - {fileID: 2676091757939459436}
+  - {fileID: 6652708830469481454}
+  - {fileID: 3331513898363714884}
+  craftLabels:
+  - {fileID: 908722254003051602}
+  - {fileID: 4651175537754965961}
+  - {fileID: 3807644335836262642}
+  craftInfo: {fileID: 1802963026999810433}
+  confirmation: {fileID: 8239187064803394732}
+--- !u!1 &3261235662819985034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5112145199048320162}
+  - component: {fileID: 1829739970933769151}
+  m_Layer: 0
+  m_Name: Battle effects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5112145199048320162
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3261235662819985034}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2368283922983887269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1829739970933769151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3261235662819985034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de0bb4850b554711bfc1eb9eb37b6594, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleEffectsView
+  map: {fileID: 7360811884937335013}
+  impactPrefab: {fileID: 6444916071522345478, guid: b3053448643adc64b8768e279db64a75, type: 3}
+  projectilePrefab: {fileID: 3671530110770657004, guid: 53065bee5530b55428097b28e337aa48, type: 3}
+--- !u!114 &8909835257740077710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3332196566177054202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b0293a1aa8b4b278fad6b164a0793a4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalTurnBannerView
+  phaseBannerText: {fileID: 5193524463278675122}
+--- !u!114 &3997266961170431383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3658942910490686820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0efee834e46246319612a23b098f4555, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActionDetailsView
+  actionInfo: {fileID: 5507501196391490358}
+--- !u!114 &6383690629030816014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3854967724371670609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e8147ed2bc45f78a1d574372ba413a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalReadyButtonView
+  readyButton: {fileID: 6672313943275570706}
+  readyLabel: {fileID: 4386263265964486468}
+--- !u!114 &1427730171575830509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4061098530827395343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe82aae6b45428ca10ff0f96eda39ca, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActionButtonsView
+  actionButtons:
+  - {fileID: 4438918795944471194}
+  - {fileID: 1192060105137459229}
+  - {fileID: 3847716981906088568}
+  - {fileID: 2622944901416395532}
+  - {fileID: 3963475491900542399}
+  actionLabels:
+  - {fileID: 123765487895499599}
+  - {fileID: 3587455185642639981}
+  - {fileID: 4239656055192337873}
+  - {fileID: 5986200946936236196}
+  - {fileID: 5203320367934809905}
+--- !u!114 &8620426620119448572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5016602818358587523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30ae8b82ef694c88b77f4cd7166126aa, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalSelectionView
+  selectedName: {fileID: 7102149372053658156}
+  selectedHealth: {fileID: 6887928273726489293}
+  selectedStatus: {fileID: 551281175823893320}
+  selectedPortrait: {fileID: 7815804179334481326}
+  reservedInfo: {fileID: 931490972294282725}
+--- !u!114 &1103154697152499036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5511690158344211997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92b4378c4dc3429581345c61fcd0b354, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleSetupView
+  fieldButtons:
+  - {fileID: 2535659498807279674}
+  - {fileID: 4883843389866888598}
+  - {fileID: 2647420320380626928}
+  - {fileID: 8796778878069513199}
+  - {fileID: 1755715135414448606}
+  - {fileID: 582877167088323316}
+  fieldLabels:
+  - {fileID: 4142557029710877892}
+  - {fileID: 5542450626741201897}
+  - {fileID: 3571548134011278587}
+  - {fileID: 3875492802616648761}
+  - {fileID: 5756558634620127414}
+  - {fileID: 3836401844034664364}
+  deckButtons:
+  - {fileID: 8961303306139604996}
+  - {fileID: 1951192272116626414}
+  - {fileID: 8489957525783054766}
+  - {fileID: 7291621811644665626}
+  - {fileID: 5076264080943424940}
+  - {fileID: 7614442267533826345}
+  - {fileID: 2054000235194085511}
+  - {fileID: 7933702793200420478}
+  - {fileID: 3305237607675167448}
+  - {fileID: 2502810183003458324}
+  deckLabels:
+  - {fileID: 2320590605146873896}
+  - {fileID: 2434477685478965019}
+  - {fileID: 1371573266171395813}
+  - {fileID: 5094348838301383551}
+  - {fileID: 8819950934286796817}
+  - {fileID: 1532400268034604634}
+  - {fileID: 5551072686596946460}
+  - {fileID: 7641854952537718278}
+  - {fileID: 8199030092117881903}
+  - {fileID: 5885082003863502171}
+  startButton: {fileID: 5113365662970324650}
+  autoDeployButton: {fileID: 1633534953497945816}
+  rosterTexts:
+  - {fileID: 318600576966845407}
+  - {fileID: 8662619364176602223}
+--- !u!114 &3231713499679284324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5778303645791088624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdbbb5bc0fb94dd6b3664bfd160fb7da, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleResultView
+  resultText: {fileID: 3020138738711984389}
+  rematchButton: {fileID: 6730138935869129970}
+--- !u!114 &3807215767414338107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5984717855204941279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63e79e7e511e4712b62b1b7f41dff366, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalTurnTimerView
+  timerText: {fileID: 1299501528224198106}
+--- !u!114 &201738086108490166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6761062679071043441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4c8c8aee83a423ea41f1ff6f89e57d2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleMessageView
+  messageText: {fileID: 3766658058366719511}
+  logText: {fileID: 2135775797668844122}
+--- !u!114 &7547934326735970616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7758939344933563654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1544b897a100400aa75f600b247cd89c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalTileHighlightsView
+  map: {fileID: 7360811884937335013}
+--- !u!114 &8000756511217637279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8134531974680022994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cf7ba6fc7ae4fe398479984eabb2581, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalPathView
+  map: {fileID: 7360811884937335013}
+  pathLine: {fileID: 3636844231035093389}
+--- !u!114 &9399393679459905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9056814061705237518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a5d8a09571747a2a9074c607bbff237, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleToolbarView
+  switchButton: {fileID: 6267447758803515673}
+  switchLabel: {fileID: 6320206076747646429}
+  resolveButton: {fileID: 4596887450667952578}
+  resolveLabel: {fileID: 2479711083868402567}
+  restartButton: {fileID: 6332982032679599215}
+  pauseButton: {fileID: 8665603637102784291}
+  pauseLabel: {fileID: 5550946827332922985}
+  revealButton: {fileID: 4286247142299717789}
+  revealLabel: {fileID: 7587771001823753213}
+  helpButton: {fileID: 3293976518676540049}

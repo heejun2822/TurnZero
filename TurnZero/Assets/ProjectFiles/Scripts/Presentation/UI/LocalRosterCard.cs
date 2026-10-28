@@ -36,6 +36,7 @@ namespace TurnZero
 
         public void Bind(BattleSession value)
         {
+            button.onClick.RemoveListener(Click);
             session = value;
             button.onClick.AddListener(Click);
         }

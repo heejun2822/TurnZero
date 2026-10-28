@@ -227,7 +227,7 @@ namespace TurnZero.Editor
 
             LocalBattleWorld world = worldObject.GetComponent<LocalBattleWorld>();
 
-            Wire(
+            WireWorldViews(
                 world,
                 ("map", map),
                 ("actors", actors.ToArray()),
@@ -245,6 +245,79 @@ namespace TurnZero.Editor
                 ("projectilePrefab", MarkerPrefab("Projectile", PrimitiveType.Sphere, Vector3.one * 0.12f, amber, false)));
 
             return world;
+        }
+
+        internal static void WireWorldViews(LocalBattleWorld world, params (string, object)[] references)
+        {
+            Dictionary<string, object> fields = references.ToDictionary(pair => pair.Item1, pair => pair.Item2);
+            LocalFieldMap map = (LocalFieldMap)fields["map"];
+            Array actorReferences = (Array)fields["actors"];
+            LocalActorView first = (LocalActorView)actorReferences.GetValue(0);
+            LineRenderer line = (LineRenderer)fields["pathLine"];
+            Transform dynamicRoot = (Transform)fields["dynamicRoot"];
+
+            T Attach<T>(GameObject owner, params (string, object)[] values) where T : Component
+            {
+                T component = owner.GetComponent<T>();
+
+                if (component == null)
+                {
+                    component = owner.AddComponent<T>();
+                }
+
+                Wire(component, values);
+
+                return component;
+            }
+
+            GameObject Child(string name)
+            {
+                Transform child = dynamicRoot.Find(name);
+
+                if (child != null)
+                {
+                    return child.gameObject;
+                }
+
+                GameObject owner = new GameObject(name);
+
+                owner.transform.SetParent(dynamicRoot, false);
+
+                return owner;
+            }
+
+            LocalTileHighlightsView highlights = Attach<LocalTileHighlightsView>(
+                map.gameObject,
+                ("map", map));
+            LocalActorsView actors = Attach<LocalActorsView>(
+                first.transform.parent.gameObject,
+                ("map", map),
+                ("actors", fields["actors"]),
+                ("ghosts", fields["ghosts"]));
+            LocalWorldMarkersView markers = Attach<LocalWorldMarkersView>(
+                Child("Field markers"),
+                ("map", map),
+                ("itemPrefab", fields["itemPrefab"]),
+                ("structurePrefab", fields["structurePrefab"]),
+                ("impactPrefab", fields["impactPrefab"]));
+            LocalPathView path = Attach<LocalPathView>(
+                line.gameObject,
+                ("map", map),
+                ("pathLine", line));
+            LocalBattleEffectsView effects = Attach<LocalBattleEffectsView>(
+                Child("Battle effects"),
+                ("map", map),
+                ("impactPrefab", fields["impactPrefab"]),
+                ("projectilePrefab", fields["projectilePrefab"]));
+
+            Wire(
+                world,
+                ("map", map),
+                ("highlights", highlights),
+                ("actors", actors),
+                ("markers", markers),
+                ("path", path),
+                ("effects", effects));
         }
 
         private LocalActorView Actor(Transform parent, int id, GameObject modelPrefab, bool ghost)

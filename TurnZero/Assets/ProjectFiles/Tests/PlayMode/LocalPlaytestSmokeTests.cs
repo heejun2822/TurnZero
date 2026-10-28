@@ -1139,5 +1139,113 @@ namespace TurnZero.Tests
             Assert.That(moves, Is.Zero);
             LogAssert.NoUnexpectedReceived();
         }
+
+        [UnityTest]
+        public IEnumerator ViewSnapshotsAreSharedUntilMatchOrPerspectiveChanges()
+        {
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+
+            BattleView initial = session.View;
+            double remaining = session.SecondsLeft;
+
+            yield return null;
+            yield return null;
+
+            Assert.That(session.View, Is.SameAs(initial));
+            Assert.That(session.SecondsLeft, Is.LessThan(remaining));
+
+            session.Events.Select(2);
+            session.Events.Hover(new GridCell(5, 5));
+
+            Assert.That(session.View, Is.SameAs(initial));
+
+            BattleUnit unit = initial.Units.First(u => u.Id == 1);
+            GridCell target = session.Match.Reachable(unit.Id).First(cell => cell != unit.Cell);
+            BattleOrder order = new BattleOrder
+            {
+                UnitId = unit.Id,
+                Action = BattleAction.Move,
+                Target = target,
+                Path = session.Match.Path(unit.Id, target)
+            };
+
+            Assert.That(session.Match.Queue(0, initial.Turn, order, out string error), Is.True, error);
+            BattleView queued = session.View;
+
+            Assert.That(queued, Is.Not.SameAs(initial));
+            Assert.That(queued.Orders.Single().UnitId, Is.EqualTo(unit.Id));
+            Assert.That(session.Match.Craft(0, unit.Id, 0, false, out error), Is.True, error);
+
+            BattleView crafted = session.View;
+
+            Assert.That(crafted, Is.Not.SameAs(queued));
+            Assert.That(crafted.Materials, Is.EqualTo(initial.Materials - 1));
+            Assert.That(crafted.Units.First(candidate => candidate.Id == unit.Id).Equipment, Is.Zero);
+
+            session.Events.Ready();
+
+            Assert.That(session.View, Is.Not.SameAs(crafted));
+            Assert.That(session.View.Ready, Is.True);
+
+            session.Events.Switch();
+
+            BattleView opponent = session.View;
+
+            Assert.That(opponent.Player, Is.EqualTo(1));
+
+            session.Events.Reveal();
+
+            Assert.That(session.View, Is.Not.SameAs(opponent));
+
+            session.Events.Restart();
+
+            Assert.That(session.View.Phase, Is.EqualTo(BattlePhase.Setup));
+            Assert.That(session.View.Player, Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator RebindingHudKeepsSingleReadyAndCraftHandlers()
+        {
+            LocalBattleHud hud = root.GetComponentInChildren<LocalBattleHud>();
+
+            hud.Bind(session);
+            hud.Bind(session);
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+
+            Button("Ready").onClick.Invoke();
+
+            Assert.That(session.View.Ready, Is.True);
+
+            Button("Ready").onClick.Invoke();
+
+            Assert.That(session.View.Ready, Is.False);
+
+            LocalEquipmentConfirmationView confirmation = root.GetComponentInChildren<LocalEquipmentConfirmationView>(true);
+
+            Button("Craft 0").onClick.Invoke();
+
+            Assert.That(session.View.Materials, Is.EqualTo(1));
+            Assert.That(session.Selected.Equipment, Is.Zero);
+            Assert.That(confirmation.gameObject.activeSelf, Is.False);
+
+            Button("Craft 1").onClick.Invoke();
+
+            Assert.That(confirmation.gameObject.activeSelf, Is.True);
+
+            Button("Keep equipment").onClick.Invoke();
+
+            Assert.That(confirmation.gameObject.activeSelf, Is.False);
+            Assert.That(session.View.Materials, Is.EqualTo(1));
+
+            Button("Craft 1").onClick.Invoke();
+            Button("Confirm replacement").onClick.Invoke();
+
+            Assert.That(session.View.Materials, Is.Zero);
+            Assert.That(session.Selected.Equipment, Is.EqualTo(1));
+            Assert.That(confirmation.gameObject.activeSelf, Is.False);
+        }
+
     }
 }

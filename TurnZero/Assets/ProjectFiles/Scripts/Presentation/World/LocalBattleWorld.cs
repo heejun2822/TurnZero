@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 
 namespace TurnZero
@@ -10,27 +6,17 @@ namespace TurnZero
     {
         [SerializeField]
         private LocalFieldMap map;
-        private LocalTileView[] tiles;
         [SerializeField]
-        private LocalActorView[] actors;
+        private LocalTileHighlightsView highlights;
         [SerializeField]
-        private LocalActorView[] ghosts;
+        private LocalActorsView actors;
         [SerializeField]
-        private LineRenderer pathLine;
+        private LocalWorldMarkersView markers;
         [SerializeField]
-        private GameObject itemPrefab;
+        private LocalPathView path;
         [SerializeField]
-        private GameObject structurePrefab;
-        [SerializeField]
-        private GameObject impactPrefab;
-        [SerializeField]
-        private GameObject projectilePrefab;
-        [SerializeField]
-        private Transform dynamicRoot;
+        private LocalBattleEffectsView effects;
         private BattleSession session;
-        private Camera viewCamera;
-        private readonly Dictionary<string, GameObject> markers = new Dictionary<string, GameObject>();
-        private readonly List<GameObject> effects = new List<GameObject>();
 
         public float Spacing => map.Spacing;
 
@@ -41,8 +27,11 @@ namespace TurnZero
 
         public void Bind(BattleSession value, Camera camera)
         {
-            session = value;
-            viewCamera = camera;
+            if (session != null)
+            {
+                session.Events.Changed -= Refresh;
+                session.Events.CueRequested -= Cue;
+            }
 
             string error = map.LayoutError();
 
@@ -51,13 +40,12 @@ namespace TurnZero
                 throw new System.InvalidOperationException(error);
             }
 
-            tiles = map.Tiles;
-
-            foreach (LocalActorView actor in actors.Concat(ghosts))
-            {
-                actor.Bind(camera);
-            }
-
+            session = value;
+            highlights.Bind(value);
+            actors.Bind(value, camera);
+            markers.Bind(value, camera);
+            path.Bind(value);
+            effects.Bind(value);
             session.Events.Changed += Refresh;
             session.Events.CueRequested += Cue;
         }
@@ -126,454 +114,27 @@ namespace TurnZero
 
         private void Refresh()
         {
-            if (session == null)
-            {
-                return;
-            }
-
             BattleView view = session.View;
-            GameRules rules = session.Rules;
+
+            highlights.Render(view);
+            actors.Render(view);
+            markers.Render(view);
+            path.Render(view);
 
             if (view.Phase == BattlePhase.Setup)
             {
-                foreach (LocalActorView actor in actors.Concat(ghosts))
-                {
-                    actor.EnsureModel(actor.EntityId >= GameDefinitions.FirstBaseId
-                        ? session.Configuration.BaseModel
-                        : session.Configuration.Characters[(actor.EntityId - 1) % GameDefinitions.CharactersPerTeam].Model);
-                }
-            }
-
-            BattleUnit selected = view.Units.Find(u => u.Id == session.SelectedId);
-            bool planning = view.Phase == BattlePhase.Planning && !view.Ready && selected != null && selected.Owner == view.Player;
-            ActionSpec spec = selected == null
-                ? null
-                : session.Action == BattleAction.Move
-                ? rules.Characters[selected.Slot].Move
-                : session.Action == BattleAction.Attack
-                ? rules.Characters[selected.Slot].Attack
-                : session.Action == BattleAction.Skill
-                ? rules.Characters[selected.Slot].Skill
-                : session.Action == BattleAction.Equipment && selected.Equipment >= 0
-                ? rules.Equipment[selected.Equipment].Action
-                : null;
-            bool moving = selected != null &&
-                (session.Action == BattleAction.Move ||
-                session.Action == BattleAction.Skill &&
-                rules.Characters[selected.Slot].SkillEffect == SkillEffect.StealthMove);
-            HashSet<GridCell> reachable = planning && session.Armed && moving
-                ? session.Match.Reachable(selected.Id, session.Action == BattleAction.Skill)
-                : null;
-
-            foreach (LocalTileView tile in tiles)
-            {
-                GridCell cell = tile.Cell;
-                Color? highlight = null;
-
-                bool deploy = rules.Home(view.Player, cell) &&
-                    (!view.OwnBase.Placed || cell != view.OwnBase.Cell) &&
-                    (view.Phase == BattlePhase.BasePlacement ||
-                    view.Phase == BattlePhase.UnitPlacement &&
-                    view.OwnBase.Cell.Distance(cell) <= rules.BaseVision);
-
-                if (deploy)
-                {
-                    highlight = new Color(0.08f, 0.48f, 0.45f);
-                }
-
-                if (planning && session.Armed)
-                {
-                    bool range = spec != null && selected.Cell.Distance(cell) <= spec.Range;
-
-                    if (moving)
-                    {
-                        range = reachable.Contains(cell);
-                    }
-
-                    if (session.Action == BattleAction.Revive)
-                    {
-                        range = rules.Home(view.Player, cell) &&
-                            view.OwnBase.Cell.Distance(cell) <= rules.BaseVision &&
-                            cell != view.OwnBase.Cell;
-                    }
-
-                    if (session.PortalEntrance.HasValue)
-                    {
-                        range = session.PortalEntrance.Value.Distance(cell) <= rules.Equipment[selected.Equipment].ExitRange &&
-                            view.Explored.Contains(cell);
-                    }
-
-                    if (session.Action == BattleAction.Equipment &&
-                        selected.Equipment >= 0 &&
-                        rules.Equipment[selected.Equipment].Effect == EquipmentEffect.Swap)
-                    {
-                        range = view.Units.Any(u => u.Owner == view.Player && u.Alive && u.Id != selected.Id && u.Cell == cell);
-                    }
-                    else if (session.Action == BattleAction.Equipment &&
-                        (cell == view.OwnBase.Cell || view.EnemyBase != null && cell == view.EnemyBase.Cell))
-                    {
-                        range = false;
-                    }
-
-                    if (range)
-                    {
-                        highlight = session.Action == BattleAction.Move || session.Action == BattleAction.Revive
-                            ? new Color(0.06f, 0.45f, 0.45f)
-                            : new Color(0.54f, 0.31f, 0.12f);
-                    }
-
-                    int previewRadius = spec == null ? 0 : spec.Area;
-
-                    if (session.Action == BattleAction.Equipment &&
-                        selected.Equipment >= 0 &&
-                        rules.Equipment[selected.Equipment].Effect == EquipmentEffect.Beacon)
-                    {
-                        previewRadius = spec.Area;
-                    }
-
-                    if (session.HoverCell.HasValue &&
-                        spec != null &&
-                        session.Action != BattleAction.Move &&
-                        cell.Distance(session.HoverCell.Value) <= previewRadius &&
-                        selected.Cell.Distance(session.HoverCell.Value) <= spec.Range)
-                    {
-                        highlight = new Color(0.95f, 0.47f, 0.19f);
-                    }
-                }
-
-                if (view.Orders.Any(o => o.Target == cell))
-                {
-                    highlight = new Color(0.12f, 0.65f, 0.73f);
-                }
-
-                if (session.PathPreview.Contains(cell))
-                {
-                    highlight = new Color(0.15f, 0.9f, 0.8f);
-                }
-
-                if (selected != null && selected.Alive && selected.Cell == cell)
-                {
-                    highlight = new Color(0.3f, 0.95f, 0.84f);
-                }
-
-                int owner = cell.Y < rules.HomeHeight ? 0 : cell.Y >= rules.HomeHeight + rules.NeutralHeight ? 1 : -1;
-                FieldDefinition field = session.Configuration.Fields[session.Fields[owner < 0 ? 0 : owner]];
-                Color ground = owner < 0
-                    ? new Color(0.28f, 0.25f, 0.20f)
-                    : field.TileColor(cell.X, owner == 1 ? rules.Height - 1 - cell.Y : cell.Y);
-
-                tile.Render(ground, view.Sight(cell), highlight);
-            }
-
-            foreach (LocalActorView actor in actors)
-            {
-                if (actor.EntityId >= GameDefinitions.FirstBaseId)
-                {
-                    int owner = actor.EntityId - GameDefinitions.FirstBaseId;
-                    BattleBase home = owner == view.Player ? view.OwnBase : view.EnemyBase;
-
-                    bool visible = home != null && home.Placed && home.Health > 0;
-
-                    actor.Render(
-                        visible,
-                        home?.Cell ?? default,
-                        visible ? Position(home.Cell) : Vector3.zero,
-                        home == null ? "" : $"P{owner + 1} BASE\n{home.Health} / {rules.BaseHealth}",
-                        Team(owner),
-                        false,
-                        owner != view.Player && !view.EnemyBaseVisible);
-                    continue;
-                }
-
-                BattleUnit unit = view.Units.Find(u => u.Id == actor.EntityId && u.Alive);
-                Vector3 offset = Vector3.zero;
-
-                int stackCount = 1;
-                bool showLabel = true;
-
-                if (unit != null)
-                {
-                    List<BattleUnit> stack = view.Units.Where(u => u.Alive && u.Cell == unit.Cell).OrderBy(u => u.Id).ToList();
-                    int index = stack.FindIndex(u => u.Id == unit.Id);
-
-                    stackCount = stack.Count;
-
-                    if (stackCount > 1)
-                    {
-                        offset = new Vector3(Mathf.Cos(index * Mathf.PI * 2 / stackCount), 0, Mathf.Sin(index * Mathf.PI * 2 / stackCount)) * Spacing * 0.31f;
-                        showLabel = unit.Id == session.SelectedId || !stack.Any(u => u.Id == session.SelectedId) && index == 0;
-                    }
-                }
-
-                string text = unit == null
-                    ? ""
-                    : $"{unit.Slot + 1}  {unit.Health}/{rules.Characters[unit.Slot].Health}" + (unit.Rooted(view.Turn)
-                    ? " ROOT"
-                    : BattleStatusEffects.Has(unit, StatusEffectKind.Stealth, view.Turn) ? " HIDDEN" : "");
-
-                if (stackCount > 1)
-                {
-                    text += $"\nSTACK {stackCount}";
-                }
-
-                actor.Render(
-                    unit != null,
-                    unit?.Cell ?? default,
-                    unit == null ? Vector3.zero : Position(unit.Cell) + offset,
-                    text,
-                    Team(unit?.Owner ?? 0),
-                    unit?.Id == session.SelectedId,
-                    false,
-                    showLabel,
-                    stackCount > 1 ? 0.62f : 1);
-            }
-
-            foreach (LocalActorView ghost in ghosts)
-            {
-                UnitObservation seen = view.LastSeen.Find(o => o.Unit.Id == ghost.EntityId);
-
-                ghost.Render(
-                    seen != null,
-                    seen?.Unit.Cell ?? default,
-                    seen == null ? Vector3.zero : Position(seen.Unit.Cell),
-                    seen == null
-                    ? ""
-                    : $"{rules.Characters[seen.Unit.Slot].Name}\n{view.Turn - seen.Turn} T AGO / {seen.Unit.Health} HP",
-                    Color.gray,
-                    false,
-                    true);
-            }
-
-            foreach (GameObject marker in markers.Values)
-            {
-                marker.SetActive(false);
-            }
-
-            foreach (GroundItem item in view.Items)
-            {
-                Marker($"item/{item.Id}", itemPrefab, item.Cell, $"CRAFT", new Color(0.96f, 0.72f, 0.25f));
-            }
-
-            foreach (BattleStructure structure in view.Structures)
-            {
-                Marker(
-                    $"structure/{structure.Id}",
-                    structurePrefab,
-                    structure.Cell,
-                    structure.Kind == StructureKind.Beacon
-                    ? $"VISION\n{structure.Health} HP"
-                    : $"{(structure.Kind == StructureKind.PortalEntrance ? "IN" : "OUT")}\n{(structure.Completed ? "READY" : $"{structure.ReadyTurn - view.Turn} T")} / {structure.Health} HP",
-                    Team(structure.Owner));
-            }
-
-            foreach (FireZone fire in view.Fires)
-            {
-                foreach (GridCell cell in BattleVisibility.Area(rules, fire.Cell, fire.Area)
-                    .Where(c => fire.Owner == view.Player || view.Visible.Contains(c)))
-                {
-                    Marker($"fire/{fire.Id}/{cell}", impactPrefab, cell, "", new Color(0.72f, 0.19f, 0.05f));
-                }
-            }
-
-            RenderPath(view, selected);
-
-            if (view.Phase == BattlePhase.Setup)
-            {
-                StopAllCoroutines();
-
-                foreach (GameObject marker in markers.Values)
-                {
-                    Destroy(marker);
-                }
-
-                markers.Clear();
-
-                foreach (GameObject effect in effects)
-                {
-                    if (effect != null)
-                    {
-                        Destroy(effect);
-                    }
-                }
-
                 effects.Clear();
-            }
-        }
-
-        private void RenderPath(BattleView view, BattleUnit selected)
-        {
-            List<GridCell> points = new List<GridCell>();
-
-            if (selected != null && selected.Alive && selected.Owner == view.Player)
-            {
-                points.Add(selected.Cell);
-                BattleOrder order = view.Orders.Find(o => o.UnitId == selected.Id);
-
-                if (session.PathPreview.Count > 0)
-                {
-                    points.AddRange(session.PathPreview);
-                }
-                else if (session.Armed &&
-                    session.HoverCell.HasValue &&
-                    (session.Action == BattleAction.Move ||
-                    session.Action == BattleAction.Skill &&
-                    session.Rules.Characters[selected.Slot].SkillEffect == SkillEffect.StealthMove))
-                {
-                    points.AddRange(session.Match.Path(selected.Id, session.HoverCell.Value, session.Action == BattleAction.Skill));
-                }
-                else if (order != null)
-                {
-                    if (order.Path.Count > 0)
-                    {
-                        points.AddRange(order.Path);
-                    }
-                    else
-                    {
-                        points.Add(order.Target);
-                    }
-                }
-            }
-
-            pathLine.gameObject.SetActive(points.Count > 1);
-
-            if (points.Count > 1)
-            {
-                pathLine.positionCount = points.Count;
-                pathLine.SetPositions(points.Select(c => Position(c) + Vector3.up * 0.18f).ToArray());
-            }
-        }
-
-        private void Marker(string key, GameObject prefab, GridCell cell, string text, Color color)
-        {
-            if (!markers.TryGetValue(key, out GameObject marker))
-            {
-                marker = Instantiate(prefab, dynamicRoot);
-                marker.name = key;
-                markers.Add(key, marker);
-            }
-
-            marker.SetActive(true);
-            marker.transform.position = Position(cell) + Vector3.up * 0.07f;
-
-            TMP_Text label = marker.GetComponentInChildren<TMP_Text>(true);
-
-            if (label != null)
-            {
-                label.text = text;
-                label.transform.rotation = viewCamera.transform.rotation;
-            }
-
-            MaterialPropertyBlock block = new MaterialPropertyBlock();
-
-            block.SetColor("_BaseColor", color);
-
-            foreach (MeshRenderer renderer in marker.GetComponentsInChildren<MeshRenderer>())
-            {
-                renderer.SetPropertyBlock(block);
             }
         }
 
         private void Cue(BattleCue cue)
         {
-            if (cue.Kind == CueKind.Reward)
+            if (cue.Kind == CueKind.Reward || actors.Play(cue))
             {
                 return;
             }
 
-            if (cue.Kind == CueKind.Swap)
-            {
-                foreach (KeyValuePair<int, GridCell> position in cue.Positions)
-                {
-                    LocalActorView swapped = actors.FirstOrDefault(a => a.EntityId == position.Key);
-
-                    if (swapped != null && swapped.gameObject.activeSelf)
-                    {
-                        swapped.MoveTo(Position(position.Value), session.Configuration.ActionSeconds);
-                    }
-                }
-
-                return;
-            }
-
-            if (cue.Kind == CueKind.Move || cue.Kind == CueKind.Portal)
-            {
-                LocalActorView actor = actors.FirstOrDefault(a => a.EntityId == cue.ActorId);
-
-                if (actor != null && actor.gameObject.activeSelf)
-                {
-                    actor.MoveTo(Position(cue.Target), session.Configuration.MoveSeconds);
-                }
-
-                return;
-            }
-
-            StartCoroutine(Effect(cue));
-        }
-
-        private IEnumerator Effect(BattleCue cue)
-        {
-            GameObject projectile = null;
-
-            if (cue.SourceVisible && cue.Source != cue.Target)
-            {
-                projectile = Instantiate(projectilePrefab, dynamicRoot);
-                effects.Add(projectile);
-
-                float elapsed = 0;
-                float duration = Mathf.Max(0.05f, session.Configuration.ActionSeconds * 0.5f);
-
-                while (elapsed < duration)
-                {
-                    elapsed += Time.unscaledDeltaTime;
-                    projectile.transform.position = Vector3.Lerp(Position(cue.Source) + Vector3.up, Position(cue.Target) + Vector3.up * 0.2f, elapsed / duration);
-                    yield return null;
-                }
-
-                effects.Remove(projectile);
-                Destroy(projectile);
-            }
-
-            List<GameObject> area = new List<GameObject>();
-            BattleView view = session.View;
-
-            foreach (GridCell cell in (cue.VisibleCells ?? BattleVisibility.Area(session.Rules, cue.Target, cue.Area).ToList()))
-            {
-                GameObject effect = Instantiate(impactPrefab, dynamicRoot);
-
-                effect.transform.position = Position(cell) + Vector3.up * 0.12f;
-                effects.Add(effect);
-                area.Add(effect);
-            }
-
-            yield return new WaitForSecondsRealtime(Mathf.Max(0.05f, session.Configuration.ActionSeconds * 0.5f));
-
-            foreach (GameObject effect in area)
-            {
-                effects.Remove(effect);
-
-                if (effect != null)
-                {
-                    Destroy(effect);
-                }
-            }
-        }
-
-        private void LateUpdate()
-        {
-            if (viewCamera == null)
-            {
-                return;
-            }
-
-            foreach (GameObject marker in markers.Values.Where(m => m.activeSelf))
-            {
-                TMP_Text label = marker.GetComponentInChildren<TMP_Text>();
-
-                if (label != null)
-                {
-                    label.transform.rotation = viewCamera.transform.rotation;
-                }
-            }
+            effects.Play(cue);
         }
 
         public static Color Team(int player)

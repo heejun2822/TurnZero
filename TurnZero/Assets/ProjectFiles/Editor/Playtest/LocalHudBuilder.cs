@@ -354,7 +354,7 @@ namespace TurnZero.Editor
 
             LocalBattleHud hud = canvasObject.GetComponent<LocalBattleHud>();
 
-            LocalPlaytestBuilder.Wire(
+            WireViews(
                 hud,
                 ("phaseText", phase),
                 ("timerText", timer),
@@ -424,6 +424,143 @@ namespace TurnZero.Editor
                 ("desktopIntelLabels", new[] { intelHeading.gameObject, intelRule.gameObject, intelFooter.gameObject }));
 
             return hud;
+        }
+
+        internal static void WireViews(LocalBattleHud hud, params (string, object)[] references)
+        {
+            Dictionary<string, object> fields = references.ToDictionary(pair => pair.Item1, pair => pair.Item2);
+
+            GameObject Host(string key, bool parent = false)
+            {
+                object value = fields[key];
+
+                if (value is Array array)
+                {
+                    value = array.GetValue(0);
+                }
+
+                GameObject owner = value is Component component ? component.gameObject : (GameObject)value;
+
+                return parent ? owner.transform.parent.gameObject : owner;
+            }
+
+            T Attach<T>(GameObject owner, params (string, object)[] values) where T : Component
+            {
+                T component = owner.GetComponent<T>();
+
+                if (component == null)
+                {
+                    component = owner.AddComponent<T>();
+                }
+
+                LocalPlaytestBuilder.Wire(component, values);
+
+                return component;
+            }
+
+            LocalMatchHeaderView header = Attach<LocalMatchHeaderView>(
+                Host("phaseText", true),
+                ("phaseText", fields["phaseText"]),
+                ("baseText", fields["baseText"]),
+                ("perspectiveText", fields["perspectiveText"]));
+
+            LocalTurnTimerView timer = Attach<LocalTurnTimerView>(
+                Host("timerText"),
+                ("timerText", fields["timerText"]));
+
+            LocalBattleMessageView messages = Attach<LocalBattleMessageView>(
+                Host("messageText", true),
+                ("messageText", fields["messageText"]),
+                ("logText", fields["logText"]));
+
+            LocalSelectionView selection = Attach<LocalSelectionView>(
+                Host("selectedName", true),
+                ("selectedName", fields["selectedName"]),
+                ("selectedHealth", fields["selectedHealth"]),
+                ("selectedStatus", fields["selectedStatus"]),
+                ("selectedPortrait", fields["selectedPortrait"]),
+                ("reservedInfo", fields["reservedInfo"]));
+
+            LocalActionButtonsView actions = Attach<LocalActionButtonsView>(
+                Host("actionButtons", true),
+                ("actionButtons", fields["actionButtons"]),
+                ("actionLabels", fields["actionLabels"]));
+
+            LocalActionDetailsView details = Attach<LocalActionDetailsView>(
+                Host("actionInfo", true),
+                ("actionInfo", fields["actionInfo"]));
+
+            LocalEquipmentConfirmationView confirmation = Attach<LocalEquipmentConfirmationView>(
+                Host("confirmPanel"),
+                ("confirmButton", fields["confirmButton"]),
+                ("cancelConfirmButton", fields["cancelConfirmButton"]));
+
+            LocalEquipmentView equipment = Attach<LocalEquipmentView>(
+                Host("craftInfo", true),
+                ("craftButtons", fields["craftButtons"]),
+                ("craftLabels", fields["craftLabels"]),
+                ("craftInfo", fields["craftInfo"]),
+                ("confirmation", confirmation));
+
+            LocalBattleToolbarView toolbar = Attach<LocalBattleToolbarView>(
+                Host("switchButton", true),
+                ("switchButton", fields["switchButton"]),
+                ("switchLabel", fields["switchLabel"]),
+                ("resolveButton", fields["resolveButton"]),
+                ("resolveLabel", fields["resolveLabel"]),
+                ("restartButton", fields["restartButton"]),
+                ("pauseButton", fields["pauseButton"]),
+                ("pauseLabel", fields["pauseLabel"]),
+                ("revealButton", fields["revealButton"]),
+                ("revealLabel", fields["revealLabel"]),
+                ("helpButton", fields["helpButton"]));
+
+            LocalReadyButtonView ready = Attach<LocalReadyButtonView>(
+                Host("readyButton"),
+                ("readyButton", fields["readyButton"]),
+                ("readyLabel", fields["readyLabel"]));
+
+            LocalBattleSetupView setup = Attach<LocalBattleSetupView>(
+                Host("setupPanel"),
+                ("fieldButtons", fields["fieldButtons"]),
+                ("fieldLabels", fields["fieldLabels"]),
+                ("deckButtons", fields["deckButtons"]),
+                ("deckLabels", fields["deckLabels"]),
+                ("startButton", fields["startButton"]),
+                ("autoDeployButton", fields["autoDeployButton"]),
+                ("rosterTexts", Host("setupPanel").GetComponentsInChildren<TMP_Text>(true).Where(text => text.name == "Roster list").ToArray()));
+
+            LocalBattleHelpView help = Attach<LocalBattleHelpView>(
+                Host("helpPanel"),
+                ("closeHelpButton", fields["closeHelpButton"]));
+
+            LocalBattleResultView result = Attach<LocalBattleResultView>(
+                Host("resultPanel"),
+                ("resultText", fields["resultText"]),
+                ("rematchButton", fields["rematchButton"]));
+
+            LocalTurnBannerView banner = Attach<LocalTurnBannerView>(
+                Host("phaseBanner"),
+                ("phaseBannerText", fields["phaseBannerText"]));
+
+            LocalPlaytestBuilder.Wire(
+                hud,
+                ("header", header),
+                ("timer", timer),
+                ("messages", messages),
+                ("selection", selection),
+                ("actions", actions),
+                ("details", details),
+                ("confirmation", confirmation),
+                ("equipment", equipment),
+                ("toolbar", toolbar),
+                ("ready", ready),
+                ("setup", setup),
+                ("help", help),
+                ("result", result),
+                ("banner", banner),
+                ("cards", fields["cards"]),
+                ("apPanel", fields["apPanel"]));
         }
 
         private LocalRosterCard Card(Transform parent, int slot, bool enemy)

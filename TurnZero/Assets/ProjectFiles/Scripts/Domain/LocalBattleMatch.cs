@@ -13,6 +13,8 @@ namespace TurnZero
         public BattlePhase Phase => state.Phase;
         public int PlacementPlayer => state.PlacementPlayer;
         public int Turn => state.Turn;
+        public int Revision { get; private set; }
+        public double Deadline => state.Deadline;
         public bool BothReady => state.Ready.All(r => r);
 
         public LocalBattleMatch(GameRules rules)
@@ -71,6 +73,7 @@ namespace TurnZero
             if (state.Phase == BattlePhase.Setup)
             {
                 state.Phase = BattlePhase.BasePlacement;
+                Revision++;
             }
         }
 
@@ -134,6 +137,7 @@ namespace TurnZero
 
             BattleVisibility.Observe(state, Rules);
 
+            Revision++;
             return true;
         }
 
@@ -188,6 +192,7 @@ namespace TurnZero
                 state.Orders.Add(order.Copy());
             }
 
+            Revision++;
             return true;
         }
 
@@ -219,6 +224,7 @@ namespace TurnZero
 
             state.Ready[player] = !state.Ready[player];
 
+            Revision++;
             return true;
         }
 
@@ -238,6 +244,7 @@ namespace TurnZero
 
             state.EquipmentDecks[player] = (int[])deck.Clone();
 
+            Revision++;
             return true;
         }
 
@@ -293,6 +300,7 @@ namespace TurnZero
             unit.Equipment = equipment;
             unit.ReadyOn[(int)BattleAction.Equipment] = 0;
 
+            Revision++;
             return true;
         }
 
@@ -306,6 +314,7 @@ namespace TurnZero
             state.Phase = BattlePhase.Planning;
             state.Deadline = now + Rules.PlanningSeconds;
 
+            Revision++;
             return true;
         }
 
@@ -326,6 +335,7 @@ namespace TurnZero
             state = timeline.Final.Copy();
             state.Phase = BattlePhase.Resolving;
 
+            Revision++;
             return timeline;
         }
 
@@ -352,11 +362,13 @@ namespace TurnZero
             {
                 state.Phase = BattlePhase.Finished;
 
+                Revision++;
                 return true;
             }
 
             StartTurn(now);
 
+            Revision++;
             return true;
         }
 

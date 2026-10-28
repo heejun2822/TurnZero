@@ -17,11 +17,27 @@ namespace TurnZero
         {
             get
             {
-                return display == null
-                    ? Match.View(Player, clock, RevealAll)
-                    : BattleVisibility.View(display, Rules, Player, clock, RevealAll);
+                if (cachedView == null ||
+                    viewMatchRevision != Match.Revision ||
+                    viewPlaybackRevision != replay.Revision ||
+                    cachedView.Player != Player ||
+                    viewRevealAll != RevealAll)
+                {
+                    cachedView = display == null
+                        ? Match.View(Player, clock, RevealAll)
+                        : BattleVisibility.View(display, Rules, Player, clock, RevealAll);
+                    viewMatchRevision = Match.Revision;
+                    viewPlaybackRevision = replay.Revision;
+                    viewRevealAll = RevealAll;
+                }
+
+                cachedView.SecondsLeft = SecondsLeft;
+
+                return cachedView;
             }
         }
+
+        public double SecondsLeft => Math.Max(0, (display == null ? Match.Deadline : display.Deadline) - clock);
 
         public int Player { get; private set; }
         public int SelectedId { get; private set; }
@@ -40,6 +56,10 @@ namespace TurnZero
         public List<GridCell> PathPreview { get; private set; } = new List<GridCell>();
 
         private BattlePlayback replay;
+        private BattleView cachedView;
+        private int viewMatchRevision;
+        private int viewPlaybackRevision;
+        private bool viewRevealAll;
 
         private MatchState display => replay?.Display;
 
@@ -139,6 +159,7 @@ namespace TurnZero
             playback = null;
 
             Match = new LocalBattleMatch(Configuration.CreateRules());
+            cachedView = null;
             Player = 0;
             SelectedId = 0;
             Action = BattleAction.Move;

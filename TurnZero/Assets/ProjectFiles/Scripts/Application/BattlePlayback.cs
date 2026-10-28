@@ -11,6 +11,7 @@ namespace TurnZero
         private readonly BattleEvents events;
 
         public MatchState Display { get; private set; }
+        public int Revision { get; private set; }
         public bool FastForward { get; set; }
 
         public BattlePlayback(BattleConfiguration configuration, BattleEvents events)
@@ -23,6 +24,7 @@ namespace TurnZero
         {
             Display = null;
             FastForward = false;
+            Revision++;
         }
 
         public IEnumerator Play(BattleTimeline timeline, GameRules rules, int player, bool revealAll, Action<string> announce)
@@ -30,7 +32,7 @@ namespace TurnZero
             foreach (ResolutionStep step in timeline.Steps)
             {
                 Display = step.ReplayStart();
-                events.Refresh();
+                Refresh();
 
                 BattleCue[] cues = step.VisibleCues(rules, player, revealAll).ToArray();
 
@@ -58,7 +60,7 @@ namespace TurnZero
                         if (cue.Kind == CueKind.Reward)
                         {
                             step.ApplyCue(Display, cue, rules);
-                            events.Refresh();
+                            Refresh();
                         }
                         else
                         {
@@ -71,7 +73,7 @@ namespace TurnZero
                         if (cue.Kind != CueKind.Reward)
                         {
                             step.ApplyCue(Display, cue, rules);
-                            events.Refresh();
+                            Refresh();
                         }
                     }
                 }
@@ -79,10 +81,17 @@ namespace TurnZero
                 Display = step.After.Copy();
                 Display.Phase = BattlePhase.Resolving;
                 Display.Winner = BattleWinner.None;
-                events.Refresh();
+                Refresh();
             }
 
             Display = null;
+            Revision++;
+        }
+
+        private void Refresh()
+        {
+            Revision++;
+            events.Refresh();
         }
 
         private IEnumerator Delay(float seconds)
