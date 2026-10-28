@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalBattleMatch
     {
@@ -15,11 +15,11 @@ namespace TurnZero.Game
         public LocalBattleMatch(GameRules rules)
         {
             rules.Validate(); Rules = rules.Copy(); state = new MatchState();
-            for (int player = 0; player < 2; player++)
+            for (int player = 0; player < GameDefinitions.PlayerCount; player++)
             {
                 state.Materials[player] = Rules.InitialMaterials;
-                state.EquipmentDecks[player] = Enumerable.Range(0,Math.Min(5,Rules.Equipment.Length)).ToArray();
-                for (int slot = 0; slot < 5; slot++) state.Units.Add(new BattleUnit { Id = player * 5 + slot + 1, Owner = player, Slot = slot, Health = Rules.Characters[slot].Health });
+                state.EquipmentDecks[player] = Enumerable.Range(0,Math.Min(GameDefinitions.EquipmentDeckSlots,Rules.Equipment.Length)).ToArray();
+                for (int slot = 0; slot < GameDefinitions.CharactersPerTeam; slot++) state.Units.Add(new BattleUnit { Id = player * GameDefinitions.CharactersPerTeam + slot + 1, Owner = player, Slot = slot, Health = Rules.Characters[slot].Health });
                 for (int y = 0; y < Rules.Height; y++)
                     for (int x = 0; x < Rules.Width; x++)
                         if (Rules.Home(player, new GridCell(x,y)) || y >= Rules.HomeHeight && y < Rules.HomeHeight + Rules.NeutralHeight)
@@ -28,7 +28,7 @@ namespace TurnZero.Game
         }
         public BattleView View(int player, double now, bool revealAll = false)
         {
-            if (player < 0 || player > 1) throw new ArgumentOutOfRangeException(nameof(player));
+            if (player < 0 || player >= GameDefinitions.PlayerCount) throw new ArgumentOutOfRangeException(nameof(player));
             return BattleVisibility.View(state, Rules, player, now, revealAll);
         }
         // Full state is only for local diagnostics, recordings and deterministic tests.
@@ -53,7 +53,7 @@ namespace TurnZero.Game
                 {
                     var unit = state.Units.Find(u => u.Owner == player && u.Slot == state.PlacementSlot);
                     unit.Cell = cell; unit.Placed = true; state.PlacementSlot++;
-                    if (state.PlacementSlot == 5)
+                    if (state.PlacementSlot == GameDefinitions.CharactersPerTeam)
                     {
                         if (player == 0) { state.PlacementPlayer = 1; state.Phase = BattlePhase.BasePlacement; state.PlacementSlot = 0; }
                         else StartTurn(now);
@@ -95,12 +95,12 @@ namespace TurnZero.Game
         }
         public bool Ready(int player, double? now = null)
         {
-            if (player < 0 || player > 1 || state.Phase != BattlePhase.Planning || BothReady || now.HasValue && now.Value >= state.Deadline) return false;
+            if (player < 0 || player >= GameDefinitions.PlayerCount || state.Phase != BattlePhase.Planning || BothReady || now.HasValue && now.Value >= state.Deadline) return false;
             state.Ready[player] = !state.Ready[player]; return true;
         }
         public bool SetEquipmentDeck(int player, int[] deck)
         {
-            if (state.Phase != BattlePhase.Setup || player < 0 || player > 1 || deck == null || deck.Length < 1 || deck.Length > 5 ||
+            if (state.Phase != BattlePhase.Setup || player < 0 || player >= GameDefinitions.PlayerCount || deck == null || deck.Length < 1 || deck.Length > GameDefinitions.EquipmentDeckSlots ||
                 deck.Distinct().Count() != deck.Length || deck.Any(i => i < 0 || i >= Rules.Equipment.Length)) return false;
             state.EquipmentDecks[player] = (int[])deck.Clone(); return true;
         }
@@ -115,7 +115,7 @@ namespace TurnZero.Game
         {
             error = null;
             var unit = state.Units.Find(u => u.Owner == player && u.Id == unitId && u.Alive);
-            if (player < 0 || player > 1 || state.Phase != BattlePhase.Planning || state.Ready[player] || unit == null || now.HasValue && now.Value >= state.Deadline) error = "Craft for a living ally during planning.";
+            if (player < 0 || player >= GameDefinitions.PlayerCount || state.Phase != BattlePhase.Planning || state.Ready[player] || unit == null || now.HasValue && now.Value >= state.Deadline) error = "Craft for a living ally during planning.";
             else if (equipment < 0 || equipment >= Rules.Equipment.Length || !state.EquipmentDecks[player].Contains(equipment) || state.Materials[player] < 1) error = "No crafting material or invalid equipment.";
             else if (unit.Equipment >= 0 && !replace) error = "Replacing equipment destroys the current item. Confirm replacement.";
             if (error != null) return false;
@@ -150,7 +150,7 @@ namespace TurnZero.Game
         {
             state.Turn++; state.Phase = BattlePhase.TurnStart; state.Deadline = now + Rules.TurnStartSeconds;
             state.Fires.RemoveAll(f => f.ThroughTurn < state.Turn);
-            for (int player = 0; player < 2; player++) { state.AP[player] = Math.Min(Rules.MaximumAP, state.AP[player] + Rules.TurnIncome); }
+            for (int player = 0; player < GameDefinitions.PlayerCount; player++) { state.AP[player] = Math.Min(Rules.MaximumAP, state.AP[player] + Rules.TurnIncome); }
             BattleItems.Spawn(state,Rules); BattleVisibility.Observe(state, Rules);
         }
     }

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalApPanel : MonoBehaviour
     {

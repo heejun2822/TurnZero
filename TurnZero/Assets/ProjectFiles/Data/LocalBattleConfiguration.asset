@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e283cdd25776fef4aa4820aa1a927f28, type: 3}
   m_Name: LocalBattleConfiguration
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleConfiguration
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.BattleConfiguration
   Characters:
   - {fileID: 11400000, guid: 284255d1c58680a419723d46b745a606, type: 2}
   - {fileID: 11400000, guid: a86576742f9a929428f78126fadfc395, type: 2}

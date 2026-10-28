@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalRosterCard : MonoBehaviour
     {
@@ -18,12 +18,12 @@ namespace TurnZero.Game
         private void Click()
         {
             bool twice = Time.unscaledTimeAsDouble - lastClick <= 0.32; lastClick = Time.unscaledTimeAsDouble;
-            session.Events.Select((enemy ? 1-session.Player : session.Player) * 5 + slot + 1,twice);
+            session.Events.Select((enemy ? 1-session.Player : session.Player) * GameDefinitions.CharactersPerTeam + slot + 1,twice);
         }
         private void OnDestroy() { button.onClick.RemoveListener(Click); }
         public void Render(BattleView view)
         {
-            int owner = enemy ? 1-view.Player : view.Player, id = owner * 5 + slot + 1;
+            int owner = enemy ? 1-view.Player : view.Player, id = owner * GameDefinitions.CharactersPerTeam + slot + 1;
             var definition = session.Configuration.Characters[slot];
             var unit = view.Units.FirstOrDefault(u => u.Id == id);
             var observation = view.KnownEnemies.FirstOrDefault(o => o.Unit.Id == id);

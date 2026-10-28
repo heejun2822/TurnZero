@@ -1,7 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 
-namespace TurnZero.Game.Tests
+namespace TurnZero.Tests
 {
     public sealed class SpecificationTests
     {
@@ -64,7 +64,7 @@ namespace TurnZero.Game.Tests
         {
             var rules = LocalBattleTests.Rules(); var state = LocalBattleTests.Arena(rules); state.Turn = 2; state.AP[0] = 25;
             var unit = state.Units.Single(u => u.Id == 1); unit.Health = 0; unit.DiedTurn = 1;
-            BattleStatusEffects.Apply(unit,BattleStatusEffects.Root,1,6);
+            BattleStatusEffects.Apply(unit,GameDefinitions.Root,1,6);
             state.Units.Single(u => u.Id == 6).Cell = new GridCell(0,2);
             state.Orders.Add(new BattleOrder { UnitId = 1, Action = BattleAction.Revive, Target = new GridCell(0,1) });
             state.Orders.Add(new BattleOrder { UnitId = 6, Action = BattleAction.Attack, Target = new GridCell(0,1) });
@@ -133,9 +133,9 @@ namespace TurnZero.Game.Tests
 
         [Test] public void RootRefreshKeepsTheActiveTurnAndTheNextPendingTurn()
         {
-            var unit = new BattleUnit(); BattleStatusEffects.Apply(unit,BattleStatusEffects.Root,4,1);
-            BattleStatusEffects.Apply(unit,BattleStatusEffects.Root,5,2);
-            BattleStatusEffects.Apply(unit,BattleStatusEffects.Stealth,5,3);
+            var unit = new BattleUnit(); BattleStatusEffects.Apply(unit,GameDefinitions.Root,4,1);
+            BattleStatusEffects.Apply(unit,GameDefinitions.Root,5,2);
+            BattleStatusEffects.Apply(unit,GameDefinitions.Stealth,5,3);
             Assert.That(unit.Rooted(5),Is.True); Assert.That(unit.Rooted(6),Is.True); Assert.That(unit.Rooted(7),Is.False);
             Assert.That(BattleStatusEffects.Has(unit,StatusEffectKind.Stealth,5),Is.True);
             Assert.That(unit.Effects.Count(e => e.Kind == StatusEffectKind.Root),Is.EqualTo(2));
@@ -144,7 +144,7 @@ namespace TurnZero.Game.Tests
         [Test] public void BeaconDetectsStealthOnlyWhileItsVisionIsOperational()
         {
             var rules = LocalBattleTests.Rules(); var state = LocalBattleTests.Arena(rules); var enemy = state.Units.Single(u => u.Id == 6);
-            BattleStatusEffects.Apply(enemy,BattleStatusEffects.Stealth,1,6);
+            BattleStatusEffects.Apply(enemy,GameDefinitions.Stealth,1,6);
             state.Structures.Add(new BattleStructure { Id = 900, Owner = 0, Kind = StructureKind.Beacon, Cell = new GridCell(2,8), Vision = 4, Health = 3 });
             Assert.That(BattleVisibility.CanSee(enemy,state,0,BattleVisibility.Vision(state,rules,0)),Is.True);
             state.Structures[0].Health = 0;
@@ -310,7 +310,7 @@ namespace TurnZero.Game.Tests
             var state = LocalBattleTests.Arena(rules);
             foreach (var unit in state.Units.Where(u => u.Owner == 0 && u.Id != 1)) unit.Cell = new GridCell(0,0);
             var enemy = state.Units.Single(u => u.Id == 6); enemy.Cell = new GridCell(6,8);
-            BattleStatusEffects.Apply(enemy,BattleStatusEffects.Stealth,1,6);
+            BattleStatusEffects.Apply(enemy,GameDefinitions.Stealth,1,6);
             state.Units.Single(u => u.Id == 1).Equipment = 2;
             state.Orders.Add(new BattleOrder { UnitId = 1, Action = BattleAction.Equipment, Target = new GridCell(3,8) });
             var timeline = BattleSimulation.Resolve(state,rules);
@@ -325,7 +325,7 @@ namespace TurnZero.Game.Tests
         {
             var rules = LocalBattleTests.Rules(); var state = LocalBattleTests.Arena(rules);
             var enemy = state.Units.Single(u => u.Id == 6);
-            BattleStatusEffects.Apply(enemy,BattleStatusEffects.Stealth,1,6);
+            BattleStatusEffects.Apply(enemy,GameDefinitions.Stealth,1,6);
             state.Orders.Add(new BattleOrder { UnitId = 1, Action = BattleAction.Attack, Target = enemy.Cell });
             var timeline = BattleSimulation.Resolve(state,rules);
             var step = timeline.Steps.Single(s => s.Cues.Any(c => c.Kind == CueKind.Attack));

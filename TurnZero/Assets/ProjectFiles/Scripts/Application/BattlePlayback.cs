@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class BattlePlayback
     {

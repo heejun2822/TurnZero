@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalTileView : MonoBehaviour
     {

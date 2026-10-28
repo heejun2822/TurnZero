@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalBattleCamera : MonoBehaviour
     {

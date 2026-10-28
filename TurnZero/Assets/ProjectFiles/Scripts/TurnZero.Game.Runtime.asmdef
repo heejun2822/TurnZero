@@ -1,5 +1,0 @@
-{
-  "name": "TurnZero.Game.Runtime",
-  "rootNamespace": "TurnZero.Game",
-  "references": ["TurnZero.Game.Domain", "Unity.InputSystem", "UnityEngine.UI", "Unity.TextMeshPro", "Unity.RenderPipelines.Universal.Runtime"]
-}

@@ -3,7 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalActorView : MonoBehaviour
     {

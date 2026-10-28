@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using TMPro;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class BattleInput : MonoBehaviour
     {
@@ -63,7 +63,7 @@ namespace TurnZero.Game
             for (int i = 0; i < digits.Length; i++) if (keyboard[digits[i]].wasPressedThisFrame)
             {
                 bool twice = lastKey == i && Time.unscaledTimeAsDouble - lastKeyTime <= 0.32;
-                session.Events.Select(session.Player * 5 + i + 1,twice); lastKey = i; lastKeyTime = Time.unscaledTimeAsDouble;
+                session.Events.Select(session.Player * GameDefinitions.CharactersPerTeam + i + 1,twice); lastKey = i; lastKeyTime = Time.unscaledTimeAsDouble;
             }
             var actions = new[] { Key.Q,Key.W,Key.E,Key.R,Key.T };
             for (int i = 0; i < actions.Length; i++) if (keyboard[actions[i]].wasPressedThisFrame) session.Events.SetAction((BattleAction)i);

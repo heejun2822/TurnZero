@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalBattleHud : MonoBehaviour
     {
@@ -26,7 +26,7 @@ namespace TurnZero.Game
             for (int i = 0; i < actionButtons.Length; i++) { int index = i; actionButtons[i].onClick.AddListener(() => session.Events.SetAction((BattleAction)index)); }
             for (int i = 0; i < craftButtons.Length; i++) { int index = i; craftButtons[i].onClick.AddListener(() => Craft(index)); }
             for (int i = 0; i < fieldButtons.Length; i++) { int index = i; fieldButtons[i].onClick.AddListener(() => session.Events.Field(index/3,index%3)); }
-            for (int i = 0; i < deckButtons.Length; i++) { int index = i; deckButtons[i].onClick.AddListener(() => session.Events.Deck(index/5,index%5)); }
+            for (int i = 0; i < deckButtons.Length; i++) { int index = i; deckButtons[i].onClick.AddListener(() => session.Events.Deck(index/GameDefinitions.EquipmentDeckSlots,index%GameDefinitions.EquipmentDeckSlots)); }
             readyButton.onClick.AddListener(session.Events.Ready); switchButton.onClick.AddListener(session.Events.Switch);
             resolveButton.onClick.AddListener(session.Events.Resolve); restartButton.onClick.AddListener(session.Events.Restart);
             pauseButton.onClick.AddListener(session.Events.Pause); revealButton.onClick.AddListener(session.Events.Reveal); helpButton.onClick.AddListener(session.Events.Help);
@@ -70,7 +70,7 @@ namespace TurnZero.Game
                 int field = i%3; fieldButtons[i].interactable = field < session.Configuration.Fields.Length;
                 fieldLabels[i].text = (session.Fields[i/3] == field ? "> " : "") + (field < session.Configuration.Fields.Length ? session.Configuration.Fields[field].DisplayName.ToUpperInvariant() : "EMPTY");
             }
-            for (int i = 0; i < deckButtons.Length; i++) { int type = session.EquipmentDecks[i/5][i%5]; deckLabels[i].text = $"{i%5+1}\n" + (type < 0 ? "EMPTY" : rules.Equipment[type].Name.ToUpperInvariant()); }
+            for (int i = 0; i < deckButtons.Length; i++) { int type = session.EquipmentDecks[i/GameDefinitions.EquipmentDeckSlots][i%GameDefinitions.EquipmentDeckSlots]; deckLabels[i].text = $"{i%GameDefinitions.EquipmentDeckSlots+1}\n" + (type < 0 ? "EMPTY" : rules.Equipment[type].Name.ToUpperInvariant()); }
             foreach (var text in setupRosters) text.text = "STARTER ROSTER / FIVE DISTINCT CHARACTERS\n" + string.Join(" / ",rules.Characters.Select(c => $"{c.Name.ToUpperInvariant()} {c.Health}HP"));
             var unit = session.Selected;
             var definition = unit == null ? null : session.Configuration.Characters[unit.Slot];

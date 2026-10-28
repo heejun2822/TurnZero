@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     [CreateAssetMenu(menuName = "TurnZero/Battle configuration")]
     public sealed class BattleConfiguration : ScriptableObject

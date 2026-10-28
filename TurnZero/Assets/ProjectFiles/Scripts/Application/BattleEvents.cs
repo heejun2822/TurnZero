@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     // Owned by one scene session. No static listeners survive restart or scene reload.
     public sealed class BattleEvents

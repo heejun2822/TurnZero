@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     [CreateAssetMenu(menuName = "TurnZero/Character")]
     public sealed class CharacterDefinition : ScriptableObject

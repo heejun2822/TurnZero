@@ -4,7 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class LocalBattleWorld : MonoBehaviour
     {
@@ -53,7 +53,7 @@ namespace TurnZero.Game
             id = 0;
             if (!Physics.Raycast(camera.ScreenPointToRay(screen),out var hit,300)) return false;
             var actor = hit.collider.GetComponentInParent<LocalActorView>();
-            if (actor == null || actor.EntityId >= 101) return false;
+            if (actor == null || actor.EntityId >= GameDefinitions.FirstBaseId) return false;
             id = actor.EntityId; return true;
         }
         private void Refresh()
@@ -61,7 +61,7 @@ namespace TurnZero.Game
             if (session == null) return;
             var view = session.View; var rules = session.Rules;
             if (view.Phase == BattlePhase.Setup)
-                foreach (var actor in actors.Concat(ghosts)) actor.EnsureModel(actor.EntityId >= 101 ? session.Configuration.BaseModel : session.Configuration.Characters[(actor.EntityId-1)%5].Model);
+                foreach (var actor in actors.Concat(ghosts)) actor.EnsureModel(actor.EntityId >= GameDefinitions.FirstBaseId ? session.Configuration.BaseModel : session.Configuration.Characters[(actor.EntityId-1)%GameDefinitions.CharactersPerTeam].Model);
             var selected = view.Units.Find(u => u.Id == session.SelectedId);
             bool planning = view.Phase == BattlePhase.Planning && !view.Ready && selected != null && selected.Owner == view.Player;
             var spec = selected == null ? null : session.Action == BattleAction.Move ? rules.Characters[selected.Slot].Move : session.Action == BattleAction.Attack ? rules.Characters[selected.Slot].Attack :
@@ -99,9 +99,9 @@ namespace TurnZero.Game
             }
             foreach (var actor in actors)
             {
-                if (actor.EntityId >= 101)
+                if (actor.EntityId >= GameDefinitions.FirstBaseId)
                 {
-                    int owner = actor.EntityId - 101; var home = owner == view.Player ? view.OwnBase : view.EnemyBase;
+                    int owner = actor.EntityId - GameDefinitions.FirstBaseId; var home = owner == view.Player ? view.OwnBase : view.EnemyBase;
                     bool visible = home != null && home.Placed && home.Health > 0;
                     actor.Render(visible,home?.Cell ?? default,visible ? Position(home.Cell) : Vector3.zero,home == null ? "" : $"P{owner+1} BASE\n{home.Health} / {rules.BaseHealth}",Team(owner),false,owner != view.Player && !view.EnemyBaseVisible);
                     continue;

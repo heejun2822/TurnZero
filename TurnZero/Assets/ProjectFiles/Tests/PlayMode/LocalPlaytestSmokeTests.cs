@@ -15,7 +15,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace TurnZero.Game.Tests
+namespace TurnZero.Tests
 {
     public sealed class LocalPlaytestSmokeTests
     {

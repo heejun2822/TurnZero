@@ -1,0 +1,6 @@
+{
+  "name": "TurnZero.EditorTools",
+  "rootNamespace": "TurnZero.Editor",
+  "references": ["TurnZero.Domain", "TurnZero.Runtime", "Unity.InputSystem", "UnityEngine.UI", "Unity.TextMeshPro", "Unity.RenderPipelines.Universal.Runtime", "Unity.2D.Tilemap.Editor", "Unity.2D.Tilemap.Extras.Editor"],
+  "includePlatforms": ["Editor"]
+}

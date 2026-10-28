@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
-namespace TurnZero.Game.Tests
+namespace TurnZero.Tests
 {
     [InitializeOnLoad]
     public sealed class LocalTestRun : ICallbacks

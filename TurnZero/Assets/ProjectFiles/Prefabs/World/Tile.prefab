@@ -247,6 +247,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f05a33b229d90ca43b974b7138947396, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalTileView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalTileView
   surface: {fileID: 5296449373298281863}
   outline: {fileID: 2328791017600536999}

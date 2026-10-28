@@ -1,7 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 using TMPro;
-using TurnZero.Game.Editor;
+using TurnZero.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Tilemaps;
@@ -9,14 +9,13 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
-namespace TurnZero.Game.Tests
+namespace TurnZero.Tests
 {
     public sealed class LocalContentTests
     {
-        private const string ConfigPath = "Assets/ProjectFiles/Data/LocalBattleConfiguration.asset";
         [Test] public void AuthoredContentMatchesDevelopmentPlanAndCopiesRulesWithoutMutatingAssets()
         {
-            var config = AssetDatabase.LoadAssetAtPath<BattleConfiguration>(ConfigPath); Assert.That(config,Is.Not.Null);
+            var config = AssetDatabase.LoadAssetAtPath<BattleConfiguration>(GameDefinitions.BattleConfigurationPath); Assert.That(config,Is.Not.Null);
             var rules = config.CreateRules();
             Assert.That(rules.Width,Is.EqualTo(12)); Assert.That(rules.Height,Is.EqualTo(20));
             CollectionAssert.AreEqual(new[] { 14,7,10,9,6 },rules.Characters.Select(c => c.Health));
@@ -51,7 +50,7 @@ namespace TurnZero.Game.Tests
                 Assert.That(root.GetComponentsInChildren<Image>(true).Count(i => i.name.StartsWith("AP slot ")),Is.EqualTo(25));
                 Assert.That(root.GetComponentsInChildren<LocalActorView>(true).Length,Is.EqualTo(22));
                 foreach (var child in root.GetComponentsInChildren<Transform>(true)) Assert.That(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(child.gameObject),Is.Zero,child.name);
-                foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true).Where(c => c.GetType().Namespace == "TurnZero.Game"))
+                foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true).Where(c => c.GetType().Namespace == "TurnZero"))
                 {
                     var serialized = new SerializedObject(component); var iterator = serialized.GetIterator();
                     while (iterator.NextVisible(true)) if (iterator.propertyType == SerializedPropertyType.ObjectReference)
@@ -93,8 +92,8 @@ namespace TurnZero.Game.Tests
                     Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(tile.gameObject),Is.EqualTo("Assets/ProjectFiles/Prefabs/World/Tile.prefab"));
                 }
                 finally { PrefabUtility.UnloadPrefabContents(reloaded); }
-                Assert.That(AssetDatabase.LoadAssetAtPath<GameObjectBrush>(LocalFieldMapAuthoring.BrushPath),Is.Not.Null);
-                Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(LocalFieldMapAuthoring.PalettePath).GetComponentInChildren<LocalTileView>(),Is.Not.Null);
+                Assert.That(AssetDatabase.LoadAssetAtPath<GameObjectBrush>(GameDefinitions.FieldBrushPath),Is.Not.Null);
+                Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(GameDefinitions.FieldPalettePath).GetComponentInChildren<LocalTileView>(),Is.Not.Null);
             }
             finally
             {
@@ -112,8 +111,8 @@ namespace TurnZero.Game.Tests
                 LocalFieldMapAuthoring.OpenPalette(layer);
                 Assert.That(GridPaintingState.gridBrush.GetType(),Is.EqualTo(typeof(GameObjectBrush)));
                 Assert.That(GridPaintingState.scenePaintTarget,Is.EqualTo(layer.gameObject));
-                Assert.That(GridPaintingState.palette,Is.EqualTo(AssetDatabase.LoadAssetAtPath<GameObject>(LocalFieldMapAuthoring.PalettePath)));
-                Assert.That(AssetDatabase.LoadAssetAtPath<GridPalette>(LocalFieldMapAuthoring.PalettePath).cellSizing,Is.EqualTo(GridPalette.CellSizing.Manual));
+                Assert.That(GridPaintingState.palette,Is.EqualTo(AssetDatabase.LoadAssetAtPath<GameObject>(GameDefinitions.FieldPalettePath)));
+                Assert.That(AssetDatabase.LoadAssetAtPath<GridPalette>(GameDefinitions.FieldPalettePath).cellSizing,Is.EqualTo(GridPalette.CellSizing.Manual));
             }
             finally
             {

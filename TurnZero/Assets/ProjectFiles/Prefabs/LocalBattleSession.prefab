@@ -93,7 +93,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fc2cd925a4d15d46a21ed08cb5de145, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalApPanel
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalApPanel
   availableText: {fileID: 7369563056828541836}
   reservedText: {fileID: 6231756772060442370}
   maximumText: {fileID: 5414998029557196817}
@@ -431,7 +431,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 4
   label: {fileID: 5918750024133435680}
   selection: {fileID: 3895418767954079679}
@@ -2365,7 +2365,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d70dd4041dd833a4f897769a40bf7c5f, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalBattleCamera
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleCamera
   cameraView: {fileID: 4167266438764845870}
 --- !u!1 &735589524457374087
 GameObject:
@@ -3505,7 +3505,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 3
   enemy: 0
   button: {fileID: 1241802122390228968}
@@ -4543,7 +4543,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01120f194b5ac894ca40c4d7264044bb, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleInput
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.BattleInput
 --- !u!114 &7775448740336260602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5243,7 +5243,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 1
   label: {fileID: 3912769422331286438}
   selection: {fileID: 3132755484650515726}
@@ -5311,7 +5311,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 7
   label: {fileID: 334377046722835085}
   selection: {fileID: 6471549040216054711}
@@ -5500,7 +5500,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 7
   label: {fileID: 7422228718290372481}
   selection: {fileID: 1243906111899823517}
@@ -7128,7 +7128,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 1
   enemy: 0
   button: {fileID: 5981954414785831827}
@@ -9516,7 +9516,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 9
   label: {fileID: 980551091988509775}
   selection: {fileID: 8906172790743977512}
@@ -9722,7 +9722,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84a91f45889823e43b4caf1888fe2275, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalBattleWorld
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleWorld
   map: {fileID: 7360811884937335013}
   actors:
   - {fileID: 507887189527205728}
@@ -10919,7 +10919,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 3
   label: {fileID: 6223412141862723093}
   selection: {fileID: 2754784452614716073}
@@ -11124,7 +11124,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 4
   label: {fileID: 2242791901223151108}
   selection: {fileID: 4406199636665718808}
@@ -14014,7 +14014,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 102
   label: {fileID: 5289486486261020232}
   selection: {fileID: 167722301319328838}
@@ -14589,7 +14589,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bdf87c055b0228a44b12187722205b94, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalBattleHud
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalBattleHud
   phaseText: {fileID: 8276287086114121447}
   timerText: {fileID: 1299501528224198106}
   baseText: {fileID: 9149814152158694384}
@@ -14707,7 +14707,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a94af129ee20fbe47ae99a08fa845de8, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalHudLayout
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalHudLayout
   safeArea: {fileID: 8907674254057805263}
   header: {fileID: 3752056717985524884}
   intel: {fileID: 2693334310370284857}
@@ -15585,7 +15585,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 5
   label: {fileID: 5303188161339932612}
   selection: {fileID: 1104039621560479301}
@@ -17105,7 +17105,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 1
   label: {fileID: 23503025430296302}
   selection: {fileID: 8588673463631954}
@@ -17310,7 +17310,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 8
   label: {fileID: 2538475684378067430}
   selection: {fileID: 8649330681933980914}
@@ -17587,7 +17587,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 0
   enemy: 0
   button: {fileID: 5221487543946212347}
@@ -18312,7 +18312,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 10
   label: {fileID: 7158671131353642231}
   selection: {fileID: 2859212805491262404}
@@ -18894,7 +18894,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 2
   label: {fileID: 8715920020345541376}
   selection: {fileID: 5425989718688370075}
@@ -19616,7 +19616,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 1
   enemy: 1
   button: {fileID: 3564622579109655935}
@@ -20422,7 +20422,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 0
   enemy: 1
   button: {fileID: 6268393192635598885}
@@ -23634,7 +23634,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 6
   label: {fileID: 878483470848638670}
   selection: {fileID: 2692481903735801324}
@@ -24939,7 +24939,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 2
   enemy: 0
   button: {fileID: 4582869634115143919}
@@ -25607,7 +25607,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 4
   enemy: 0
   button: {fileID: 5714848165023868317}
@@ -26226,7 +26226,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 2
   label: {fileID: 7646961211784361346}
   selection: {fileID: 7815705154854737018}
@@ -26993,7 +26993,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 4
   enemy: 1
   button: {fileID: 1107368555452676907}
@@ -28805,7 +28805,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 3
   label: {fileID: 856724204290627132}
   selection: {fileID: 2845401342065816948}
@@ -29358,7 +29358,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 8
   label: {fileID: 5553367399121292450}
   selection: {fileID: 2200345814671173708}
@@ -29426,7 +29426,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 5
   label: {fileID: 5061951610478834233}
   selection: {fileID: 5454017941297092665}
@@ -30654,7 +30654,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 486ca4ca79fb4a54e9c61791485e286a, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleAudio
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.BattleAudio
   source: {fileID: 2368390677523033694}
   turnStart: {fileID: 8300000, guid: c46f15cd90b11cd478ac036410d113fe, type: 3}
 --- !u!1 &6842123238468951923
@@ -31684,7 +31684,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 9
   label: {fileID: 8151711305138533490}
   selection: {fileID: 5067698800813516389}
@@ -31842,7 +31842,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 10
   label: {fileID: 1746501569830247222}
   selection: {fileID: 6620396201931534557}
@@ -34151,7 +34151,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 3
   enemy: 1
   button: {fileID: 7396468681433115926}
@@ -34755,7 +34755,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4951d014a29941c681c090fe6bbc23bf, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalFieldMap
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalFieldMap
   definition: {fileID: 11400000, guid: 9a14c485cd8077c42a016d24b11f0e73, type: 2}
   alliedField: {fileID: 2988244662664606244}
   neutralField: {fileID: 3742102521970880862}
@@ -36129,7 +36129,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a2eb5e0e947a9b6408aa370944c25e06, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleSession
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.BattleSession
 --- !u!114 &829689690124922505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36141,7 +36141,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7129e5fc6c47f54ebb78bae3c1d7db9, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.BattleBootstrap
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.BattleBootstrap
   configuration: {fileID: 11400000, guid: 2495d7b17448df64f87d37483189e49a, type: 2}
   session: {fileID: 6934028264796618733}
   world: {fileID: 5582309038754964667}
@@ -38135,7 +38135,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 6
   label: {fileID: 7104937773278142999}
   selection: {fileID: 1036238805470101892}
@@ -39801,7 +39801,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 382af99df53747e4f8fb6a4f756897b0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalRosterCard
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalRosterCard
   slot: 2
   enemy: 1
   button: {fileID: 2581063746850370075}
@@ -39976,7 +39976,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3eb0617ebbf8d143a36bf4e4f40bb3e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: TurnZero.Game.Runtime::TurnZero.Game.LocalActorView
+  m_EditorClassIdentifier: TurnZero.Runtime::TurnZero.LocalActorView
   entityId: 101
   label: {fileID: 9162326284673463296}
   selection: {fileID: 6097587997998072097}

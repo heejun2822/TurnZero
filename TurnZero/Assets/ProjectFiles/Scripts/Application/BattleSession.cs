@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     public sealed class BattleSession : MonoBehaviour
     {
@@ -24,7 +24,7 @@ namespace TurnZero.Game
         public string Message { get; private set; }
         public GridCell? HoverCell { get; private set; }
         public GridCell? PortalEntrance { get; private set; }
-        public int[] Fields { get; } = new int[2];
+        public int[] Fields { get; } = new int[GameDefinitions.PlayerCount];
         public int[][] EquipmentDecks { get; } = new[] { new[] { 0,1,2,-1,-1 },new[] { 0,1,2,-1,-1 } };
         public List<string> History { get; } = new List<string>();
         public List<GridCell> PathPreview { get; private set; } = new List<GridCell>();
@@ -66,7 +66,7 @@ namespace TurnZero.Game
             if (!(Paused && Match.Phase == BattlePhase.Planning)) clock += Time.unscaledDeltaTime;
             if (Match.Tick(clock))
             {
-                if (SelectedId == 0) SelectedId = Player * 5 + 1;
+                if (SelectedId == 0) SelectedId = Player * GameDefinitions.CharactersPerTeam + 1;
                 Message = "Plan one action per character. TAB switches player. ENTER readies your team.";
                 Events.Refresh();
             }
@@ -77,10 +77,10 @@ namespace TurnZero.Game
             if (playback != null) StopCoroutine(playback);
             replay.Reset(); playback = null;
             Match = new LocalBattleMatch(Configuration.CreateRules()); Player = 0; SelectedId = 0; Action = BattleAction.Move;
-            for (int owner = 0; owner < 2; owner++)
+            for (int owner = 0; owner < GameDefinitions.PlayerCount; owner++)
             {
                 Fields[owner] %= Configuration.Fields.Length;
-                for (int slot = 0; slot < 5; slot++) if (EquipmentDecks[owner][slot] >= Rules.Equipment.Length) EquipmentDecks[owner][slot] = -1;
+                for (int slot = 0; slot < GameDefinitions.EquipmentDeckSlots; slot++) if (EquipmentDecks[owner][slot] >= Rules.Equipment.Length) EquipmentDecks[owner][slot] = -1;
             }
             Armed = false; Running = false; Paused = false; RevealAll = false; ShowHelp = false;
             clock = 0; PortalEntrance = null; HoverCell = null; History.Clear();
@@ -102,7 +102,7 @@ namespace TurnZero.Game
         }
         private void SetField(int player, int index)
         {
-            if (Match.Phase != BattlePhase.Setup || player < 0 || player > 1 || index < 0 || index >= Configuration.Fields.Length) return;
+            if (Match.Phase != BattlePhase.Setup || player < 0 || player >= GameDefinitions.PlayerCount || index < 0 || index >= Configuration.Fields.Length) return;
             Fields[player] = index; Events.Refresh();
         }
         private void Select(int id, bool focus)
@@ -119,14 +119,14 @@ namespace TurnZero.Game
         }
         private bool ApplyDecks()
         {
-            for (int player = 0; player < 2; player++)
+            for (int player = 0; player < GameDefinitions.PlayerCount; player++)
                 if (!Match.SetEquipmentDeck(player,EquipmentDecks[player].Where(i => i >= 0).ToArray()))
                 { Message = "Choose 1 to 5 distinct equipment types for each team."; Events.Refresh(); return false; }
             return true;
         }
         private void CycleDeck(int player, int slot)
         {
-            if (Match.Phase != BattlePhase.Setup || player < 0 || player > 1 || slot < 0 || slot >= 5) return;
+            if (Match.Phase != BattlePhase.Setup || player < 0 || player >= GameDefinitions.PlayerCount || slot < 0 || slot >= GameDefinitions.EquipmentDeckSlots) return;
             int candidate = EquipmentDecks[player][slot];
             do { candidate = (candidate+2) % (Rules.Equipment.Length+1)-1; }
             while (candidate >= 0 && EquipmentDecks[player].Where((_,i) => i != slot).Contains(candidate));
@@ -140,7 +140,7 @@ namespace TurnZero.Game
                 Submit(new BattleOrder { UnitId = SelectedId, Action = BattleAction.Wait }); Armed = false; PortalEntrance = null; Events.Refresh(); return;
             }
             if (!Selected.Alive && action != BattleAction.Revive) action = BattleAction.Revive;
-            if ((int)action < 4 && Selected.ReadyOn[(int)action] > Match.Turn)
+            if ((int)action < GameDefinitions.CooldownActionCount && Selected.ReadyOn[(int)action] > Match.Turn)
             { Message = $"Available on turn {Selected.ReadyOn[(int)action]}."; Events.Refresh(); return; }
             bool rootBlocked = Selected.Rooted(Match.Turn) && (action == BattleAction.Move || action == BattleAction.Skill && Rules.Characters[Selected.Slot].SkillEffect == SkillEffect.StealthMove ||
                 action == BattleAction.Equipment && Selected.Equipment >= 0 && Rules.Equipment[Selected.Equipment].Effect == EquipmentEffect.Swap);
@@ -225,7 +225,7 @@ namespace TurnZero.Game
         private void Switch()
         {
             if (Running || Match.Phase == BattlePhase.BasePlacement || Match.Phase == BattlePhase.UnitPlacement || Match.Phase == BattlePhase.Setup) return;
-            Player = 1 - Player; SelectedId = Player * 5 + 1; Armed = false; PortalEntrance = null; HoverCell = null;
+            Player = 1 - Player; SelectedId = Player * GameDefinitions.CharactersPerTeam + 1; Armed = false; PortalEntrance = null; HoverCell = null;
             Message = $"P{Player+1} perspective. Enemy orders and AP stay private. Your field is below."; Events.Refresh();
         }
         private void TogglePause()

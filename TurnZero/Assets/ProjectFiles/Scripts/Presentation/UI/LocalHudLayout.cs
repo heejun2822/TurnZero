@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TurnZero.Game
+namespace TurnZero
 {
     [ExecuteAlways]
     public sealed class LocalHudLayout : MonoBehaviour

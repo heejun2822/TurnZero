@@ -1,0 +1,5 @@
+{
+  "name": "TurnZero.Domain",
+  "rootNamespace": "TurnZero",
+  "noEngineReferences": true
+}
