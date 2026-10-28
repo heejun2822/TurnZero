@@ -1,93 +1,90 @@
-# 로컬 인게임 플레이 검증
+# 로컬 인게임 실행 가이드
 
-`DevelopmentPlan.md`의 인게임 요구를 혼자 확인하는 로컬 플레이 단계다. 온라인 매칭이나 계정 성장 없이 한 기기에서 양측을 바꿔 조작한다. 미정 규칙은 아래 로컬 프로필로 시험하며 정식 기획 결정으로 취급하지 않는다.
+| 항목 | 내용 |
+|---|---|
+| Git 최초 확인 | 2026-10-22, eba3e9b |
+| 직전 마지막 커밋 | 2026-10-23, ed5cc8a. 총 5개 커밋, 이후 기획 문답에서 작업 트리 수정 |
+| 현재 점검 / 갱신 | 2026-10-28, 실행 메뉴·씬·입력·설정 소스 확인 |
+| 역할 / 관리 조건 | 현재 로컬 씬의 실행·조작·데이터 편집 안내. 실행/입력 변경 시 갱신 |
+| 게임 기준 / 현재 차이 | [DevelopmentPlan.md](DevelopmentPlan.md) / [Development.md](Development.md#2-명세와-현재-구현의-차이) |
+| 구조 / 검증 | [GameArchitecture.md](GameArchitecture.md) / [Verification.md](Verification.md) |
+| 이전 판본 | [재편 전 가이드](Archive/2026-10-28/LocalPlaytest.md) |
 
-## 실행
+한 기기에서 양 팀을 번갈아 조작하는 로컬 개발 도구다. 아래 조작은 현재 구현 안내이며 최종 입력 기획의 확정과 구분한다. 현재 코드는 최신 명세의 모든 후속 결정을 반영하지 않았으며 이번 문서 재편에서는 Play 실행·실기기 검증을 하지 않았다.
 
-1. Unity 6000.3.5f2에서 `TurnZero` 프로젝트를 연다.
-2. `TurnZero > Local Playtest > Open game` 또는 `Assets/ProjectFiles/Scenes/LocalBattle.unity`를 연다. 이 씬이 빌드의 첫 씬이다.
-3. Play를 누른다. 양측 필드와 장비 덱 5칸을 고른다. 장비 칸을 누르면 정의된 세 종류를 순환한다. 캐릭터는 현재 정의된 5종 스타터 편성을 사용한다.
-4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명 → P2 기지 → P2 캐릭터 5명을 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 놓는다. 겹쳐 배치할 수도 있다. **QUICK DEPLOY**는 배치를 건너뛰는 테스트 도구다.
-5. 첫 턴은 2초 안내 후 30초 준비로 넘어간다. 행동을 예약하고 **TAB / VIEW P2**로 상대 팀도 조작한다. 양측 준비 완료 또는 시간 만료에 행동을 재생한다.
-6. 기지 파괴나 캐릭터 전멸로 종료하면 **SET UP A REMATCH**로 다시 시작한다.
+## 1. 실행
 
-이전 씬 `Assets/ProjectFiles/Prototype/Scenes/Battle.unity`와 관련 코드·테스트는 `Assets/ProjectFiles/Prototype`에 보존한다. 현재 인게임은 `Assets/ProjectFiles/Scenes/LocalBattle.unity`와 `Assets/ProjectFiles/Scripts`를 사용한다.
+1. Unity 6000.3.5f2에서 TurnZero 프로젝트를 연다.
+2. 메뉴 **TurnZero > Local Playtest > Open game** 또는 [LocalBattle.unity](../TurnZero/Assets/ProjectFiles/Scenes/LocalBattle.unity)를 연다. 현재 빌드 설정의 첫 씬이다.
+3. Play를 누르고 양측 필드·장비 덱을 선택한다. 현재 장비 UI는 5칸에서 3종을 순환한다. 명세의 중복 없는 1~5종 선택과의 차이는 Development.md의 PT-08이다.
+4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명 → P2 기지 → P2 캐릭터 5명을 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 둔다. **QUICK DEPLOY**는 로컬 빠른 배치 도구다.
+5. 턴 안내 후 준비 중 행동을 예약한다. **TAB / VIEW P2**로 상대도 조작한다. 양측 완료 또는 시간 만료에 판정/재생한다.
+6. 종료 후 **SET UP A REMATCH**로 다시 시작한다.
 
-## 조작
+실행 도구 근거: [LocalPlaytestBuilder.cs](../TurnZero/Assets/ProjectFiles/Editor/LocalPlaytestBuilder.cs), 입력 근거: [BattleInput.cs](../TurnZero/Assets/ProjectFiles/Scripts/Input/BattleInput.cs)와 [BattleSession.cs](../TurnZero/Assets/ProjectFiles/Scripts/Application/BattleSession.cs).
+
+## 2. 현재 조작
 
 | 목적 | PC | 터치 / 화면 버튼 |
 |---|---|---|
 | 아군 선택 | 모델·카드 클릭, 1~5 | 모델·카드 탭 |
-| 같은 타일 선택 | 행동 미선택 상태에서 타일을 다시 눌러 관측 중인 캐릭터 순환, 또는 개별 카드 | 동일 |
-| 캐릭터 중심 | 카드 더블클릭, 같은 숫자 키 빠르게 두 번 | 카드 더블탭 |
-| 이동 | Q 후 타일 클릭, 타일 우클릭, 선택 캐릭터를 드래그해 경로 지정 | 이동 버튼 후 타일 탭, 선택 캐릭터 드래그 |
-| 공격 / 스킬 / 장비 | W / E / R 후 타일 클릭 | 해당 행동 버튼 후 타일 탭 |
+| 중첩 타일 선택 | 행동 미선택 상태에서 바닥 반복 클릭, 또는 개별 카드 | 바닥 반복 탭·카드 |
+| 캐릭터 중심 | 카드 더블클릭, 같은 숫자 키 빠르게 2회 | 카드 더블탭 |
+| 이동 | Q 후 타일 클릭, 우클릭, 선택 캐릭터 드래그 경로 | 이동 버튼 후 타일, 선택 캐릭터 드래그 |
+| 공격 / 스킬 / 장비 | W / E / R 후 대상 타일 | 해당 행동 버튼 후 대상 |
 | 대기 / 예약 취소 | T 또는 Esc | WAIT / CANCEL |
-| 부활 | 죽은 아군 카드 선택 → REVIVE → 자기 기지 시야 안의 타일 | 동일 |
-| 카메라 이동 | 빈 전장 드래그 | 빈 전장 드래그 |
-| 줌 | 전장 위에서 휠 | 두 손가락 핀치 |
+| 부활 | 사망 아군 카드 → REVIVE → 부활 타일 | 동일 |
+| 카메라 이동 / 줌 | 빈 전장 드래그 / 휠 | 빈 전장 드래그 / 핀치 |
 | 준비 완료 | Enter | READY |
 | 시점 전환 | Tab | VIEW P1 / P2 |
 | 타이머 정지 | P | PAUSE / RESUME |
-| 강제 판정 / 재생 빨리 넘기기 | Space | RESOLVE / FAST |
+| 강제 판정 / 재생 넘기기 | Space | RESOLVE / FAST |
 | 조작 안내 | F1 | GUIDE |
 
-시뮬레이션 중 수동 카메라와 명령 편집은 잠긴다. 카메라는 공개 가능한 행동 위치를 따라간다. 한 단계의 공격은 자기 팀부터 보여주고, 해당 단계의 피해는 모두 모아서 반영한다. 표시 순서가 선공권을 만들지 않는다. UI 위의 드래그·휠은 카메라로 전달하지 않는다.
+- 중첩 모델은 같은 타일 안에서 분산 표시한다. 논리 위치는 같은 타일이며 모델 직접 클릭과 바닥 순환 선택을 구분한다.
+- 현재 입력에는 행동 지정 중 아군 모델 클릭 시 선택 변경 예외가 남아 있다. 명세는 전장 모델/바닥 모두 대상 타일로 처리하며 PT-13에서 수정/검증한다.
+- 경로 드래그는 이동력까지 미리보기를 제한하고 되돌아가면 경로를 줄일 수 있다. 한도 밖 드래그 종료와 유효하지 않은 최종 경로 제출의 처리는 명세 기준 재검증 대상이다.
+- UI 위 드래그/휠은 전장 카메라 입력과 구분하고 시뮬레이션 중 수동 카메라·명령 편집을 잠근다.
+- **VISION / DEBUG**, 빠른 배치·강제 판정·타이머 정지는 테스트 도구다. 정상 시야와 온라인 정보 공개를 검증할 때 디버그 모드를 끈다.
+- 타이머 정지는 준비 시간만 멈춘다. 준비 완료와 강제 판정은 계속 사용할 수 있다.
+- 최종 단축키·제스처는 Q-18에서 결정한다. 현재 1~5·Q/W/E/R/T 구현만으로 원문 입력 공백을 확정하지 않는다.
 
-경로 드래그는 해당 캐릭터의 이동 거리까지만 이어진다. 한도에 도달한 뒤 이전 경로의 칸으로 되돌아오면 경로를 줄여 다시 그릴 수 있다. 은신 이동을 선택한 경우에는 일반 이동 대신 스킬의 이동 거리로 제한한다. 한도 밖에서 드래그를 끝내도 마지막 유효 경로가 예약된다.
+## 3. 데이터와 씬 편집
 
-양측에 자기 필드가 아래에 보인다. 전투 카메라는 화면 전체를 그리며 HUD는 그 위에 겹쳐 표시된다. 셋업 화면은 배치를 시작하면 닫힌다. **VISION / DEBUG**는 안개를 해제하는 명시적인 로컬 검증 도구이며 정상 관측 모드와 구분된다. 타이머 정지는 준비 시간만 멈춘다. 준비 완료와 강제 판정은 계속 사용할 수 있다.
-
-## 데이터 편집
+경로는 Unity 프로젝트 TurnZero 기준이다.
 
 | 위치 | 편집 대상 |
 |---|---|
-| `Assets/ProjectFiles/Data/LocalBattleConfiguration.asset` | 편성·장비·필드 에셋 참조, 기지 HP·시야, AP·부활·재료, 시간, 재생 속도, 카메라 설정, 난수 시드, 임시 프로필 설명 |
-| `Assets/ProjectFiles/Data/Characters` | 캐릭터 HP, 이동·공격·스킬의 비용·거리·범위·우선순위·쿨다운, 스킬 효과, 초상화·모델 |
-| `Assets/ProjectFiles/Data/Equipment` | 장비 효과·행동 수치, 구조물 HP, 포털 설치 턴·출구 거리, 아이콘 |
-| `Assets/ProjectFiles/Data/Fields` | 필드 프리셋 3개, 타일 색·변형, 크기·간격 |
-| `Assets/ProjectFiles/Prefabs/LocalBattleSession.prefab` | 씬 연결, 월드·HUD 배치 |
+| [LocalBattleConfiguration.asset](../TurnZero/Assets/ProjectFiles/Data/LocalBattleConfiguration.asset) | 콘텐츠 참조·HP/시야·AP·부활·재료·시간·재생 속도·카메라·시드·프로필 메모 |
+| [Data/Characters](../TurnZero/Assets/ProjectFiles/Data/Characters) | HP·이동/공격/스킬 수치·효과·모델·초상화 |
+| [Data/Equipment](../TurnZero/Assets/ProjectFiles/Data/Equipment) | 장비 행동·설치 HP·포털 기간/거리·아이콘 |
+| [Data/Fields](../TurnZero/Assets/ProjectFiles/Data/Fields) | 같은 크기를 사용하는 필드 프리셋 |
+| [LocalBattleSession.prefab](../TurnZero/Assets/ProjectFiles/Prefabs/LocalBattleSession.prefab) | 세션 연결·월드/HUD 배치 |
 
-숫자와 에셋 참조를 수정한 뒤 Play를 새로 시작하거나 REMATCH로 다시 초기화한다. 경기마다 SO 데이터를 일반 C# 데이터로 복사하므로 AP·HP·상태가 원본 에셋에 저장되지 않는다. 모델·초상화는 캐릭터 에셋 참조로 교체한다.
+수치 변경 후 새 Play 또는 REMATCH로 상태를 다시 초기화한다. SO 데이터는 경기별 일반 C# 상태로 복사한다. 최종 기획 수치를 바꾸는 작업이라면 DevelopmentPlan.md의 해당 콘텐츠/VAL 표도 함께 갱신한다.
 
-경기 설정의 **Initial Zoom**은 시작 카메라 거리 비율이며 작을수록 가까워진다. 기본값은 0.45로 이전 거리의 절반이며, 재시작할 때 복원된다. **Zoom Sensitivity**는 1.2로 이전 0.12의 10배다. 휠과 핀치에 같은 민감도를 사용하며 Minimum/Maximum Zoom 범위 안에서 동작한다.
+경기 설정의 Initial Zoom은 시작 거리 비율, Zoom Sensitivity는 휠/핀치 감도다. 현재 기본값은 0.45와 1.2이며 Minimum/Maximum Zoom으로 제한한다. 이 값은 구현 설정이며 확정된 전체 게임 밸런스/입력 목표가 아니다.
 
-필드 프리셋은 같은 크기를 사용한다. 맵 크기나 간격, 생성되는 HUD 배치를 바꾸면 **Build scene and missing defaults**로 씬을 다시 만든다. 이 도구는 기존 SO 수치를 유지하고 없는 기본 에셋만 만든다. 씬과 세션 프리팹은 재생성하므로 직접 편집한 레이아웃은 먼저 보관한다.
+### 3.1. 필드 저작
 
-필드는 `Local Battle > World > Field / 12 x 20 > Field Grid` 아래의 **Allied Field / Neutral Field / Enemy Field** Tilemap으로 구성한다. Grid 간격은 2.2, 바닥 크기는 2×2이며 XZY 좌표를 사용한다. `LocalFieldMap` Inspector의 **Paint … Field**를 누르면 전용 Tile Palette와 GameObject Brush가 선택된다. 기존 바닥을 지우고 새 바닥 프리팹을 칠하며 Z=0과 셀당 바닥 하나를 유지한다. 아군 Y=0~7, 중립 Y=8~11, 적군 Y=12~19다. 좌표는 Tilemap에서 읽으므로 프리팹을 다른 셀에 칠해도 입력과 시야가 해당 셀에 맞는다. 배치를 편집한 뒤에는 씬 또는 세션 프리팹을 저장하며, 생성 도구를 다시 실행하면 배치가 초기화된다.
+현재 필드는 Local Battle > World > Field / 12 x 20 > Field Grid 아래 **Allied Field / Neutral Field / Enemy Field** Tilemap으로 구성한다. 바닥 크기 2×2, 간격 2.2, XZY 좌표이며 아군 Y=0~7·중립 Y=8~11·적군 Y=12~19다.
 
-## 로컬 프로필 v1 — 임시 해석
+LocalFieldMap Inspector의 **Paint … Field**로 Tile Palette/GameObject Brush를 선택한다. 바닥을 바꿀 때 기존 칸을 지우고 새 프리팹을 칠하며 Z=0·셀당 바닥 하나를 유지한다. 씬/프리팹을 저장한다. 게임 내 커스텀 필드 편집 UI나 저장 슬롯의 구현과 구분한다.
 
-아래는 열린 Q 항목을 끝낸 결정이 아니다. 플레이 테스트를 가능하게 하는 교체 가능한 기준이다. 적용 설명은 경기 설정 SO의 `Local Profile Notes`에도 들어 있다.
+### 3.2. 재생성 도구
 
-| ID | 임시 동작 | 관련 질문 |
-|---|---|---|
-| PT-01 | 맨해튼 거리. 범위 0·1은 중심 1칸, N은 반경 N-1. 공격은 지정 타일에 고정하며 암흑 지정·무적중 실행 가능. 적 캐릭터·기지·구조물에만 피해 | Q-05·06 |
-| PT-02 | 아군·적군 모두 중첩·통과·자리 교환·뒤따라 이동 가능. 기지 타일 통과·정지는 금지. 경로 길이로 이동 제한 | Q-04·05 |
-| PT-03 | 쿨다운 1은 다음 턴 사용, 2는 한 턴 쉼. 실행 시 시작하고 죽은 행동·취소된 교환에는 비용·쿨다운 없음 | Q-03·07 |
-| PT-04 | 불 지대는 생성 턴 포함 3턴. 생성 시 범위 피해, 이후 진입·이동 단계 종료 시 지대당 캐릭터당 턴 1회 피해. 시전자 사망 후 유지 | Q-08 |
-| PT-05 | 은신은 다음 턴 끝까지 유지. 공격이 은신을 즉시 풀지 않음. 고정은 다음 턴에만 이동·이동 스킬·교환·포털 이동을 제한 | Q-09 |
-| PT-06 | 처치 AP 4는 적 캐릭터당 한 번 즉시 지급, 상한 적용. 정상 실행 공격의 무적중은 비용 소비. 예약 한도는 현재 AP만 사용 | Q-03 |
-| PT-07 | 사망 다음 턴 부활 비용 15에서 시작해 이후 턴마다 1 할인, 최소 10. 자기 필드 기지 시야 안에 최대 HP·장비 없음·상태와 쿨다운 초기화로 부활. 그 턴 추가 행동 없음 | Q-10 |
-| PT-08 | 준비 중 재료 1개로 장비 1개 제작·장착, AP나 행동 소모 없음. 교체는 명시 확인 후 기존 장비 파괴. 장비 5칸은 현재 정의된 3종의 중복 허용 | Q-11·12 |
-| PT-09 | 포털은 시작 턴 포함 3턴으로 T+2에 활성화. 설치 시 AP 한 번, 진행 중 다른 행동 가능. 미완성 구조물도 공격 가능. 어느 끝이든 파괴되면 양쪽 소멸. 이동 도착만 한 번 전송하며 연쇄 전송 없음 | Q-13 |
-| PT-10 | 시야 구조물은 반경 4, 파괴 전까지 유지하며 소유 캐릭터 사망과 독립 | Q-16 |
-| PT-11 | 5·10·15…턴에 각 구역 재료 1개. 기지·캐릭터·아이템·구조물 칸 제외, 후보 없으면 생략. 같은 턴 양측 방문은 각각 1개, 같은 팀 여러 방문은 1개, 턴 종료에 제거. 고정 시드로 재현 | Q-14·15 |
-| PT-12 | 적의 HP·장비·상태·기지 HP는 관측 스냅샷. 관측한 사망만 카드에 반영하고 시야 밖 사망으로 마커를 지우지 않음. 아이템은 탐색 영역에서 실시간, 적 구조물은 현재 시야에서만 표시. 적 이동은 관측 구간만 표시하며 은신 이동 큐는 상대 카메라·효과에 전달하지 않음. 숨은 공격 출발점도 제거 | Q-05·17 |
-| PT-13 | 준비 완료 후 해제 불가, 미지정 무료 대기. 5번 캐릭터 키는 5, 다섯 번째 행동은 T, 부활은 첫 행동 버튼으로 접근 | Q-18·19 |
-| PT-14 | 양측 기지 파괴와 전멸 등이 겹치는 미정 복합 패배는 기존 무승부 유지 | Q-02 |
+**TurnZero > Local Playtest > Build scene and missing defaults**는 없는 기본 에셋을 만들고 씬·세션 프리팹을 다시 저작한다. 기존 SO 수치는 유지하지만 직접 편집한 씬/프리팹 배치는 재생성 전에 보관한다. 일반 실행에는 Open game을 사용한다.
 
-장비 강화 재료·소비 아이템 종류와 효과는 원문 공란이므로 임의로 추가하지 않았다. 해당 인벤토리는 `--`로 표시한다. 6n·6n+3 생성 일정, 강화·소비 사용, 필드 편집 UI, 온라인·계정 재화·뽑기·진화는 후속 범위다.
+Local Profile Notes는 과거 실행 프로필 메모일 수 있다. 최신 게임 규칙을 판단할 때는 명세와 Development.md의 차이 목록을 확인한다.
 
-## 검증
+## 4. 테스트와 판정 기준
 
-- 코어: `dotnet run --project Tools/Checks/TurnZero.Checks.csproj` (.NET SDK 8 사용 권장).
-- Unity Test Runner: 새 `TurnZero.Game.Tests` EditMode와 `TurnZero.Game.PlayModeTests` PlayMode. 기존 프로토타입 테스트도 함께 유지한다.
-- PlayMode는 수동 배치, AP 예약·취소, 제작·장착, 양측 준비 완료, 씬에서 기지 파괴까지 반복 플레이, 재시작, 실제 입력 장치 이벤트와 카메라 잠금, 세로 HUD 접근을 검증한다.
-- `TURNZERO_LOCAL_PREVIEWS` 환경변수에 출력 폴더를 지정하면 새 PlayMode 테스트가 설정·전투·결과·조작 안내 PNG를 저장한다. 결과 XML·로그와 이미지의 작업용 기본 위치는 `Tools/Checks/Results`이며 Git에서는 제외한다.
+Unity Test Runner에서 현재 인게임 EditMode·PlayMode 테스트를 실행한다. Unity가 패키지를 가져온 뒤 .NET SDK 8에서도 코어 검사를 실행할 수 있다.
 
-물리 PC 조작 감도, 모바일 실기기와 네트워크는 별도 검증 대상이다.
+```powershell
+dotnet run --project Tools/Checks/TurnZero.Checks.csproj
+```
 
-2026-10-22 `local-playtest-v1` 검증 결과: 코어 57/57, Unity EditMode 67/67, PlayMode 19/19 통과. 설정·준비·다음 턴·승리의 가로 렌더와 준비·조작 안내의 세로 렌더도 확인했다. 열린 원본 에디터의 작업을 유지하기 위해 `Tools/Checks/obj/UnityLocalPlaytest` 복사본에서 동일 소스를 검증하고 생성 에셋을 원본에 반영했다.
+검증 ID·기대 결과·과거 실행 범위와 새 결과는 [Verification.md](Verification.md)에 관리한다. Tools/Checks/Results는 실행 로그·XML·렌더 증거 저장 위치이며 과거 기록의 경로가 현재 체크아웃에 존재하는지는 실행 시 함께 확인한다.
 
-같은 날 전체 화면·타일맵 후속 검증: EditMode 69/69, PlayMode 20/20 통과. `fullscreen-editmode.xml`·`fullscreen-playmode.xml`과 `Previews/Fullscreen`에 결과를 기록했다. 네이티브 팔레트와 브러시 대상, 편집 후 좌표·프리팹 재저장, 전체 카메라 뷰포트, 셋업 닫기·재시작, 세로 화면 초기 아군의 HUD 가림 방지를 확인했다.
+이전 씬 Assets/ProjectFiles/Prototype/Scenes/Battle.unity는 회귀용이다. [보관 프로토타입 가이드](Archive/2026-10-28/Prototype.md)의 16×24 맵·4인 편성·옛 조작을 현재 LocalBattle 가이드에 섞지 않는다.
