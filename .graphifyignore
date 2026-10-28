@@ -21,3 +21,21 @@
 /TurnZero/Assets/**/*.gif
 /TurnZero/Assets/**/*.webp
 /TurnZero/Assets/**/*.svg
+
+# Match the investigation boundaries in AGENTS.md.
+/TurnZero/ExportedObj/
+/TurnZero/ServerData/
+/TurnZero/UIElementsSchema/
+/TurnZero/Assets/External/
+/TurnZero/Assets/Resources/
+/TurnZero/Packages/
+/TurnZero/ProjectSettings/
+**/.vs/
+**/.idea/
+**/.gradle/
+/Tools/Checks/bin/
+/Tools/Checks/obj/
+/.codex/
+/.git/
+/graphify-out/
+/TurnZero/graphify-out/
