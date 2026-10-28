@@ -4,12 +4,28 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static TurnZero.BattleUiStyle;
+
 namespace TurnZero
 {
     public sealed class BattleToolbarView : MonoBehaviour
     {
-        [SerializeField] private Button switchButton, rotateButton, zoomInButton, zoomOutButton, resolveButton, exportButton, restartButton;
-        [SerializeField] private TMP_Text switchText;
+        [SerializeField]
+        private Button switchButton;
+        [SerializeField]
+        private Button rotateButton;
+        [SerializeField]
+        private Button zoomInButton;
+        [SerializeField]
+        private Button zoomOutButton;
+        [SerializeField]
+        private Button resolveButton;
+        [SerializeField]
+        private Button exportButton;
+        [SerializeField]
+        private Button restartButton;
+        [SerializeField]
+        private TMP_Text switchText;
+
         public void Bind(Action switchPlayer, BattleCameraRig camera, Action resolve, Action save, Action restart)
         {
             switchButton.onClick.AddListener(() => switchPlayer());
@@ -20,6 +36,7 @@ namespace TurnZero
             exportButton.onClick.AddListener(() => save());
             restartButton.onClick.AddListener(() => restart());
         }
+
         public void Render(PlayerView view)
         {
             switchText.text = $"VIEW P{view.Player + 1} / SWITCH";

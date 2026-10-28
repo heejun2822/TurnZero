@@ -7,9 +7,12 @@ namespace TurnZero
     {
         public List<ResolutionStep> Steps = new List<ResolutionStep>();
         public MatchState Final;
+
         public void Record(MatchState state, GameRules rules, ResolutionStep step)
         {
-            BattleVisibility.Observe(state,rules); step.After = state.Copy(); Steps.Add(step);
+            BattleVisibility.Observe(state, rules);
+            step.After = state.Copy();
+            Steps.Add(step);
         }
     }
 }

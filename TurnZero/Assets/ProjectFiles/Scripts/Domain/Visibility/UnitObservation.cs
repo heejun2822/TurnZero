@@ -10,6 +10,15 @@ namespace TurnZero
         public BattleUnit Unit;
         public int Turn;
         public bool HasPosition = true;
-        public UnitObservation Copy() => new UnitObservation { Unit = Unit.Copy(), Turn = Turn, HasPosition = HasPosition };
+
+        public UnitObservation Copy()
+        {
+            return new UnitObservation
+            {
+                Unit = Unit.Copy(),
+                Turn = Turn,
+                HasPosition = HasPosition
+            };
+        }
     }
 }

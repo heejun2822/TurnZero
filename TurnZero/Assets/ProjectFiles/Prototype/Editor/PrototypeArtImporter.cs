@@ -6,8 +6,13 @@ namespace TurnZero.Editor
     {
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith("Assets/Resources/PrototypeUI/")) return;
-            var importer = (TextureImporter)assetImporter;
+            if (!assetPath.StartsWith("Assets/Resources/PrototypeUI/"))
+            {
+                return;
+            }
+
+            TextureImporter importer = (TextureImporter)assetImporter;
+
             importer.textureShape = TextureImporterShape.Texture2D;
             importer.textureType = assetPath.EndsWith("portrait-atlas.png") ? TextureImporterType.Default : TextureImporterType.Sprite;
             importer.spriteImportMode = assetPath.EndsWith("portrait-atlas.png") ? SpriteImportMode.None : SpriteImportMode.Single;

@@ -22,6 +22,7 @@ namespace TurnZero.Tests
         private InputSettings.BackgroundBehavior previousBackgroundBehavior;
 #if UNITY_EDITOR
         private InputSettings.EditorInputBehaviorInPlayMode previousEditorInputBehavior;
+
 #endif
 
         [UnitySetUp]
@@ -53,18 +54,43 @@ namespace TurnZero.Tests
             yield return null;
         }
 
-        private static Button Button(string name) => GameObject.Find(name).GetComponent<Button>();
-        private static TMP_Text Text(string name) => GameObject.Find(name).GetComponent<TMP_Text>();
-        private static GameObject Floor(int x, int y) => Object.FindObjectsByType<BattleTileView>(FindObjectsSortMode.None)
-            .Single(t => t.Cell == new Cell(x,y)).gameObject;
-        private static void Tile(int x, int y) => Floor(x,y).GetComponent<BattleWorldTarget>()
-            .OnPointerClick(new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left });
+        private static Button Button(string name)
+        {
+            return GameObject.Find(name).GetComponent<Button>();
+        }
+
+        private static TMP_Text Text(string name)
+        {
+            return GameObject.Find(name).GetComponent<TMP_Text>();
+        }
+
+        private static GameObject Floor(int x, int y)
+        {
+            return Object.FindObjectsByType<BattleTileView>(FindObjectsSortMode.None)
+                .Single(t => t.Cell == new Cell(x, y))
+                .gameObject;
+        }
+
+        private static void Tile(int x, int y)
+        {
+            Floor(x, y)
+                .GetComponent<BattleWorldTarget>()
+                .OnPointerClick(new PointerEventData(EventSystem.current)
+                {
+                    button = PointerEventData.InputButton.Left
+                });
+        }
 
         private static IEnumerator ResolveTurn()
         {
             Button("Resolve Turn").onClick.Invoke();
             float timeout = Time.realtimeSinceStartup + 3;
-            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout) yield return null;
+
+            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+
             Assert.That(Text("Phase").text, Does.Not.Contain("RESOLVING"));
         }
 
@@ -73,30 +99,42 @@ namespace TurnZero.Tests
         {
             void AssertUnexplored(BattleTileView tile)
             {
-                var surface = tile.transform.Find("Surface").GetComponent<Renderer>();
+                Renderer surface = tile.transform.Find("Surface").GetComponent<Renderer>();
+
                 Assert.That(surface.enabled, Is.True);
                 Assert.That(tile.GetComponentsInChildren<Renderer>(true).Where(r => r != surface).All(r => !r.enabled), Is.True);
-                var tint = new MaterialPropertyBlock();
+                MaterialPropertyBlock tint = new MaterialPropertyBlock();
+
                 surface.GetPropertyBlock(tint);
                 Assert.That(Vector4.Distance(tint.GetColor("_BaseColor"), new Color(0.045f, 0.055f, 0.07f)), Is.LessThan(0.001f));
             }
             Assert.That(Camera.main.backgroundColor, Is.EqualTo(Color.black));
-            var tree = Floor(3,10).GetComponent<BattleTileView>();
-            var wall = Floor(4,10).GetComponent<BattleTileView>();
+            BattleTileView tree = Floor(3, 10).GetComponent<BattleTileView>();
+            BattleTileView wall = Floor(4, 10).GetComponent<BattleTileView>();
+
             AssertUnexplored(tree);
             AssertUnexplored(wall);
-            AssertUnexplored(Floor(15,23).GetComponent<BattleTileView>());
-            var home = Floor(15,9).GetComponent<BattleTileView>();
-            var property = new MaterialPropertyBlock();
+            AssertUnexplored(Floor(15, 23).GetComponent<BattleTileView>());
+            BattleTileView home = Floor(15, 9).GetComponent<BattleTileView>();
+            MaterialPropertyBlock property = new MaterialPropertyBlock();
+
             home.transform.Find("Surface").GetComponent<Renderer>().GetPropertyBlock(property);
-            var dim = property.GetColor("_BaseColor");
+            Color dim = property.GetColor("_BaseColor");
+
             Assert.That(dim.r, Is.EqualTo(home.TerrainColor.r * 0.3f).Within(0.001f));
-            var view = new PlayerView { Player = 0, Phase = MatchPhase.Planning };
+            PlayerView view = new PlayerView
+            {
+                Player = 0,
+                Phase = MatchPhase.Planning
+            };
+
             view.ExploredCells.Add(tree.Cell);
             view.ExploredCells.Add(wall.Cell);
-            var world = root.GetComponentInChildren<BattleWorldView>();
+            BattleWorldView world = root.GetComponentInChildren<BattleWorldView>();
+
             world.Refresh(view, 0, ActionKind.Move);
-            var trunk = tree.transform.Find("Tree").GetComponentInChildren<Renderer>();
+            Renderer trunk = tree.transform.Find("Tree").GetComponentInChildren<Renderer>();
+
             Assert.That(trunk.enabled, Is.True);
             trunk.GetPropertyBlock(property);
             Assert.That(property.GetColor("_BaseColor").r, Is.EqualTo(trunk.sharedMaterial.GetColor("_BaseColor").r * 0.3f).Within(0.001f));
@@ -113,11 +151,11 @@ namespace TurnZero.Tests
             AssertUnexplored(tree);
             Assert.That(tree.transform.Find("Selection Border").gameObject.activeSelf, Is.False);
             Button("Restart").onClick.Invoke();
-            Tile(7,8);
-            Tile(8,20);
+            Tile(7, 8);
+            Tile(8, 20);
             yield return Preview("fog-states.png");
             Button("Switch Player").onClick.Invoke();
-            AssertUnexplored(Floor(3,1).GetComponent<BattleTileView>());
+            AssertUnexplored(Floor(3, 1).GetComponent<BattleTileView>());
             yield return Preview("fog-player-two.png");
             LogAssert.NoUnexpectedReceived();
         }
@@ -125,14 +163,19 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator ResolutionKeepsItsTurnVisibleBeforeStartingTheNextPlanningWindow()
         {
-            Tile(7,8);
-            Tile(8,20);
+            Tile(7, 8);
+            Tile(8, 20);
             Button("Resolve Turn").onClick.Invoke();
             Assert.That(Text("Phase").text, Does.Contain("TURN 01").And.Contain("RESOLVING"));
             Assert.That(Button("Resolve Turn").interactable, Is.False);
             Assert.That(Button("Move").interactable, Is.False);
             float timeout = Time.realtimeSinceStartup + 3;
-            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout) yield return null;
+
+            while (Text("Phase").text.Contains("RESOLVING") && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+
             Assert.That(Text("Phase").text, Does.Contain("TURN 02").And.Contain("PLAN ORDERS"));
             Assert.That(Text("Timer").text, Is.EqualTo("00:30"));
             Assert.That(Button("Resolve Turn").interactable, Is.True);
@@ -169,20 +212,26 @@ namespace TurnZero.Tests
         private static IEnumerator Preview(string filename, int width = 1600, int height = 900)
         {
             string folder = System.Environment.GetEnvironmentVariable("TURNZERO_PREVIEW_DIR");
-            if (string.IsNullOrEmpty(folder) || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) yield break;
+
+            if (string.IsNullOrEmpty(folder) || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                yield break;
+            }
+
             yield return null;
-            var canvas = Object.FindFirstObjectByType<Canvas>();
-            var camera = Camera.main;
-            var texture = new RenderTexture(width, height, 24);
-            var pixels = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            var previousMode = canvas.renderMode;
-            var previousCamera = canvas.worldCamera;
-            var previousTarget = camera.targetTexture;
-            var previousAspect = camera.aspect;
-            var scaler = canvas.GetComponent<CanvasScaler>();
-            var previousScale = canvas.scaleFactor;
-            var previousScalerEnabled = scaler.enabled;
-            var previousActive = RenderTexture.active;
+            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
+            Camera camera = Camera.main;
+            RenderTexture texture = new RenderTexture(width, height, 24);
+            Texture2D pixels = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            RenderMode previousMode = canvas.renderMode;
+            Camera previousCamera = canvas.worldCamera;
+            RenderTexture previousTarget = camera.targetTexture;
+            float previousAspect = camera.aspect;
+            CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+            float previousScale = canvas.scaleFactor;
+            bool previousScalerEnabled = scaler.enabled;
+            RenderTexture previousActive = RenderTexture.active;
+
             try
             {
                 texture.Create();
@@ -197,7 +246,10 @@ namespace TurnZero.Tests
                 yield return null;
                 yield return null;
                 Canvas.ForceUpdateCanvases();
-                RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = texture });
+                RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest
+                {
+                    destination = texture
+                });
                 RenderTexture.active = texture;
                 pixels.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 pixels.Apply();
@@ -217,6 +269,7 @@ namespace TurnZero.Tests
                 Object.Destroy(pixels);
                 Canvas.ForceUpdateCanvases();
             }
+
             yield return null;
         }
 
@@ -225,13 +278,15 @@ namespace TurnZero.Tests
         {
             Tile(2, 3);
             Tile(2, 15);
+
             for (int y = 5; y <= 13; y++)
             {
                 Button("Unit 1").onClick.Invoke();
                 Button("Move").onClick.Invoke();
-                Tile(2,y);
+                Tile(2, y);
                 yield return ResolveTurn();
             }
+
             // Clear the enemy in front of the base, then advance into its vacated tile.
             for (int hit = 0; hit < 3; hit++)
             {
@@ -240,10 +295,12 @@ namespace TurnZero.Tests
                 Tile(2, 14);
                 yield return ResolveTurn();
             }
+
             Button("Unit 1").onClick.Invoke();
             Button("Move").onClick.Invoke();
             Tile(2, 14);
             yield return ResolveTurn();
+
             for (int hit = 0; hit < 8; hit++)
             {
                 Button("Unit 1").onClick.Invoke();
@@ -251,6 +308,7 @@ namespace TurnZero.Tests
                 Tile(2, 15);
                 yield return ResolveTurn();
             }
+
             Assert.That(Text("Phase").text, Is.EqualTo("PLAYER 1 WINS"));
             Assert.That(Button("Resolve Turn").interactable, Is.False);
             Button("Restart").onClick.Invoke();
@@ -262,27 +320,34 @@ namespace TurnZero.Tests
         [Test]
         public void RecordingJsonPreservesReplayInputsAndResults()
         {
-            var match = new BattleMatch(new BattleRules());
+            BattleMatch match = new BattleMatch(new BattleRules());
+
             match.PlaceBase(0, new Cell(2, 2), 0, out _);
             match.PlaceBase(1, new Cell(5, 7), 0, out _);
             match.QueueOrder(0, 1, ActionOrder.Move(1, new Cell(2, 4)), out _);
             match.ResolveNow(1);
-            var recording = JsonUtility.FromJson<BattleRecording>(JsonUtility.ToJson(match.ExportRecording()));
+            BattleRecording recording = JsonUtility.FromJson<BattleRecording>(JsonUtility.ToJson(match.ExportRecording()));
+
             Assert.That(recording.BasePlacements.Count, Is.EqualTo(2));
             Assert.That(recording.Turns.Count, Is.EqualTo(1));
-            var turn = recording.Turns[0];
-            var replay = BattleResolver.Resolve(turn.Before, recording.Rules, turn.PlayerOneOrders, turn.PlayerTwoOrders).State;
+            TurnRecord turn = recording.Turns[0];
+            BattleState replay = BattleResolver.Resolve(turn.Before, recording.Rules, turn.PlayerOneOrders, turn.PlayerTwoOrders).State;
+
             Assert.That(JsonUtility.ToJson(replay), Is.EqualTo(JsonUtility.ToJson(turn.After)));
         }
 
         [UnityTest]
         public IEnumerator RestartReusesAuthoredObjectsAndAppliesCombatRules()
         {
-            var objects = root.GetComponentsInChildren<Transform>(true);
-            var canvas = root.GetComponentInChildren<Canvas>();
-            var map = root.GetComponentInChildren<BattleMapView>();
-            var actor = root.GetComponentsInChildren<BattleActorView>(true)[0];
-            JsonUtility.FromJsonOverwrite("{\"rules\":" + JsonUtility.ToJson(new BattleRules { UnitHealth = 5 }) + "}", root.GetComponent<BattleController>());
+            Transform[] objects = root.GetComponentsInChildren<Transform>(true);
+            Canvas canvas = root.GetComponentInChildren<Canvas>();
+            BattleMapView map = root.GetComponentInChildren<BattleMapView>();
+            BattleActorView actor = root.GetComponentsInChildren<BattleActorView>(true)[0];
+
+            JsonUtility.FromJsonOverwrite("{\"rules\":" + JsonUtility.ToJson(new BattleRules
+            {
+                UnitHealth = 5
+            }) + "}", root.GetComponent<BattleController>());
             Tile(2, 2);
             Button("Restart").onClick.Invoke();
             Button("Restart").onClick.Invoke();
@@ -338,16 +403,19 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator WorldUsesPerspectiveMeshesAndCameraControls()
         {
-            var tile = Floor(2,2);
+            GameObject tile = Floor(2, 2);
+
             Assert.That(tile.GetComponentInChildren<MeshRenderer>(), Is.Not.Null);
             Assert.That(tile.GetComponentInChildren<BoxCollider>(), Is.Not.Null);
             Assert.That(tile.GetComponent<Button>(), Is.Null);
             Assert.That(Camera.main.orthographic, Is.False);
             Assert.That(Camera.main.GetComponent<PhysicsRaycaster>(), Is.Not.Null);
-            var rotation = Camera.main.transform.rotation;
+            Quaternion rotation = Camera.main.transform.rotation;
+
             Button("Rotate Camera").onClick.Invoke();
             Assert.That(Camera.main.transform.rotation, Is.Not.EqualTo(rotation));
-            var position = Camera.main.transform.position;
+            Vector3 position = Camera.main.transform.position;
+
             Button("Zoom In").onClick.Invoke();
             Assert.That(Camera.main.transform.position, Is.Not.EqualTo(position));
             Tile(2, 3);
@@ -358,8 +426,17 @@ namespace TurnZero.Tests
 
         private static void CameraMouse(BattleCameraRig rig, Mouse mouse, Vector2 pointer, float wheel = 0, bool held = false)
         {
-            var state = new MouseState { position = pointer, scroll = new Vector2(0, wheel) };
-            if (held) state = state.WithButton(MouseButton.Left);
+            MouseState state = new MouseState
+            {
+                position = pointer,
+                scroll = new Vector2(0, wheel)
+            };
+
+            if (held)
+            {
+                state = state.WithButton(MouseButton.Left);
+            }
+
             InputSystem.QueueStateEvent(mouse, state);
             InputSystem.Update();
             typeof(BattleCameraRig).GetMethod("ReadMouse", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -369,24 +446,29 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator MouseWheelAndButtonsRespectZoomLimitsAndHud()
         {
-            var rig = root.GetComponentInChildren<BattleCameraRig>();
+            BattleCameraRig rig = root.GetComponentInChildren<BattleCameraRig>();
+
             rig.enabled = false;
-            var mouse = InputSystem.AddDevice<Mouse>();
-            var area = root.GetComponentInChildren<BattleHudLayout>().FieldViewport;
-            var center = Vector2.Scale(area.center, new Vector2(Screen.width, Screen.height));
-            var full = rig.Camera.transform.position;
+            Mouse mouse = InputSystem.AddDevice<Mouse>();
+            Rect area = root.GetComponentInChildren<BattleHudLayout>().FieldViewport;
+            Vector2 center = Vector2.Scale(area.center, new Vector2(Screen.width, Screen.height));
+            Vector3 full = rig.Camera.transform.position;
+
             try
             {
                 CameraMouse(rig, mouse, center, 1);
                 Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.GreaterThan(0.1f));
-                var zoomed = rig.Camera.transform.position;
+                Vector3 zoomed = rig.Camera.transform.position;
+
                 CameraMouse(rig, mouse, new Vector2(-1, Screen.height * 0.5f), 1);
                 Assert.That(rig.Camera.transform.position, Is.EqualTo(zoomed));
 
-                var overlay = new GameObject("Camera Test HUD", typeof(RectTransform), typeof(Image));
+                GameObject overlay = new GameObject("Camera Test HUD", typeof(RectTransform), typeof(Image));
+
                 try
                 {
-                    var rect = overlay.GetComponent<RectTransform>();
+                    RectTransform rect = overlay.GetComponent<RectTransform>();
+
                     rect.SetParent(root.GetComponentInChildren<Canvas>().transform, false);
                     rect.anchorMin = rect.anchorMax = area.center;
                     rect.anchoredPosition = Vector2.zero;
@@ -396,10 +478,14 @@ namespace TurnZero.Tests
                     CameraMouse(rig, mouse, RectTransformUtility.WorldToScreenPoint(null, rect.position), 1);
                     Assert.That(rig.Camera.transform.position, Is.EqualTo(zoomed), "Wheel over HUD must not zoom the field.");
                 }
-                finally { Object.DestroyImmediate(overlay); }
+                finally
+                {
+                    Object.DestroyImmediate(overlay);
+                }
 
                 rig.Zoom(-100);
-                var nearest = rig.Camera.transform.position;
+                Vector3 nearest = rig.Camera.transform.position;
+
                 Button("Zoom In").onClick.Invoke();
                 Assert.That(rig.Camera.transform.position, Is.EqualTo(nearest));
                 rig.Zoom(100);
@@ -407,7 +493,11 @@ namespace TurnZero.Tests
                 Button("Zoom Out").onClick.Invoke();
                 Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
             }
-            finally { InputSystem.RemoveDevice(mouse); }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse);
+            }
+
             yield return null;
             LogAssert.NoUnexpectedReceived();
         }
@@ -415,69 +505,110 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator EdgeScrollingFollowsScreenDirectionsAndIgnoresDragging()
         {
-            var rig = root.GetComponentInChildren<BattleCameraRig>();
+            BattleCameraRig rig = root.GetComponentInChildren<BattleCameraRig>();
+
             rig.enabled = false;
-            var mouse = InputSystem.AddDevice<Mouse>();
-            var center = new Vector2(Screen.width, Screen.height) * 0.5f;
+            Mouse mouse = InputSystem.AddDevice<Mouse>();
+            Vector2 center = new Vector2(Screen.width, Screen.height) * 0.5f;
+
             try
             {
                 for (int rotation = 0; rotation < 3; rotation++)
                 {
-                    foreach (var edge in new[] { new Vector2(1, center.y), new Vector2(Screen.width - 1, center.y),
-                        new Vector2(center.x, 1), new Vector2(center.x, Screen.height - 1) })
+                    foreach (Vector2 edge in new[]
+                    {
+                        new Vector2(1, center.y),
+                        new Vector2(Screen.width - 1, center.y),
+                        new Vector2(center.x, 1),
+                        new Vector2(center.x, Screen.height - 1)
+                    })
                     {
                         rig.Zoom(100);
                         rig.Zoom(-100);
-                        var before = rig.Camera.transform.position;
+                        Vector3 before = rig.Camera.transform.position;
+
                         CameraMouse(rig, mouse, center);
                         CameraMouse(rig, mouse, edge, held: true);
                         CameraMouse(rig, mouse, new Vector2(-1, center.y));
                         Assert.That(rig.Camera.transform.position, Is.EqualTo(before));
                         CameraMouse(rig, mouse, edge);
-                        var motion = rig.Camera.transform.position - before;
-                        var expected = edge.x < center.x ? -rig.Camera.transform.right :
-                            edge.x > center.x ? rig.Camera.transform.right :
-                            edge.y < center.y ? -rig.Camera.transform.forward : rig.Camera.transform.forward;
+                        Vector3 motion = rig.Camera.transform.position - before;
+                        Vector3 expected = edge.x < center.x
+                            ? -rig.Camera.transform.right
+                            : edge.x > center.x
+                            ? rig.Camera.transform.right
+                            : edge.y < center.y ? -rig.Camera.transform.forward : rig.Camera.transform.forward;
+
                         expected.y = 0;
-                        Assert.That(Vector3.Dot(motion, expected.normalized), Is.GreaterThan(0.01f), "Scroll direction after rotation.");
+                        Assert.That(
+                            Vector3.Dot(motion, expected.normalized),
+                            Is.GreaterThan(0.01f),
+                            "Scroll direction after rotation.");
                     }
+
                     rig.Rotate();
                 }
-                var beforeTouch = rig.Camera.transform.position;
-                var touch = InputSystem.AddDevice<Touchscreen>();
+
+                Vector3 beforeTouch = rig.Camera.transform.position;
+                Touchscreen touch = InputSystem.AddDevice<Touchscreen>();
+
                 try
                 {
-                    InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Began, position = center });
+                    InputSystem.QueueStateEvent(touch, new TouchState
+                    {
+                        touchId = 1,
+                        phase = UnityEngine.InputSystem.TouchPhase.Began,
+                        position = center
+                    });
                     InputSystem.Update();
                     CameraMouse(rig, mouse, new Vector2(1, 1));
                     Assert.That(rig.Camera.transform.position, Is.EqualTo(beforeTouch));
                 }
-                finally { InputSystem.RemoveDevice(touch); }
+                finally
+                {
+                    InputSystem.RemoveDevice(touch);
+                }
             }
-            finally { InputSystem.RemoveDevice(mouse); }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse);
+            }
+
             yield return null;
             LogAssert.NoUnexpectedReceived();
         }
 
         private static void AssertCameraBounds(BattleCameraRig rig, BattleMapView map, BattleHudLayout layout)
         {
-            var field = layout.FieldViewport;
-            var ground = new Plane(map.transform.up, map.transform.position);
-            var points = new Vector2[4];
+            Rect field = layout.FieldViewport;
+            Plane ground = new Plane(map.transform.up, map.transform.position);
+            Vector2[] points = new Vector2[4];
+
             for (int i = 0; i < 4; i++)
             {
-                var ray = rig.Camera.ViewportPointToRay(new Vector3(i % 2 == 0 ? field.xMin : field.xMax,
-                    i / 2 == 0 ? field.yMin : field.yMax, 0));
+                Ray ray = rig.Camera.ViewportPointToRay(new Vector3(
+                    i % 2 == 0 ? field.xMin : field.xMax,
+                    i / 2 == 0 ? field.yMin : field.yMax,
+                    0));
+
                 Assert.That(ground.Raycast(ray, out float distance), Is.True);
-                var point = map.transform.InverseTransformPoint(ray.GetPoint(distance));
+                Vector3 point = map.transform.InverseTransformPoint(ray.GetPoint(distance));
+
                 points[i] = new Vector2(point.x, point.z);
             }
-            var half = new Vector2(map.Width * 0.5f + 0.65f, map.Height * 0.5f + 0.65f) * map.Spacing;
+
+            Vector2 half = new Vector2(map.Width * 0.5f + 0.65f, map.Height * 0.5f + 0.65f) * map.Spacing;
+
             for (int axis = 0; axis < 2; axis++)
             {
                 float minimum = points.Min(p => p[axis]);
                 float maximum = points.Max(p => p[axis]);
-                if (maximum - minimum > half[axis] * 2) continue;
+
+                if (maximum - minimum > half[axis] * 2)
+                {
+                    continue;
+                }
+
                 Assert.That(minimum, Is.GreaterThanOrEqualTo(-half[axis] - 0.001f));
                 Assert.That(maximum, Is.LessThanOrEqualTo(half[axis] + 0.001f));
             }
@@ -486,49 +617,77 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator CameraStaysWithinFieldWhenPanningRotatingAndResizing()
         {
-            var rig = root.GetComponentInChildren<BattleCameraRig>();
-            var map = root.GetComponentInChildren<BattleMapView>();
-            var layout = root.GetComponentInChildren<BattleHudLayout>();
+            BattleCameraRig rig = root.GetComponentInChildren<BattleCameraRig>();
+            BattleMapView map = root.GetComponentInChildren<BattleMapView>();
+            BattleHudLayout layout = root.GetComponentInChildren<BattleHudLayout>();
+
             rig.enabled = false;
-            var mouse = InputSystem.AddDevice<Mouse>();
+            Mouse mouse = InputSystem.AddDevice<Mouse>();
             float previousAspect = rig.Camera.aspect;
-            var full = rig.Camera.transform.position;
+            Vector3 full = rig.Camera.transform.position;
+
             try
             {
                 rig.Zoom(-100);
-                foreach (var edge in new[] { new Vector2(1, 1), new Vector2(Screen.width - 1, Screen.height - 1) })
+
+                foreach (Vector2 edge in new[]
                 {
-                    for (int i = 0; i < 150; i++) CameraMouse(rig, mouse, edge);
-                    var limit = rig.Camera.transform.position;
+                    new Vector2(1, 1),
+                    new Vector2(Screen.width - 1, Screen.height - 1)
+                })
+                {
+                    for (int i = 0; i < 150; i++)
+                    {
+                        CameraMouse(rig, mouse, edge);
+                    }
+
+                    Vector3 limit = rig.Camera.transform.position;
+
                     CameraMouse(rig, mouse, edge);
                     Assert.That(Vector3.Distance(limit, rig.Camera.transform.position), Is.LessThan(0.001f));
                     AssertCameraBounds(rig, map, layout);
                     rig.Rotate();
                     AssertCameraBounds(rig, map, layout);
                 }
+
                 CameraMouse(rig, mouse, new Vector2(Screen.width, Screen.height) * 0.5f);
                 rig.enabled = true;
                 yield return Preview("camera-zoomed.png");
                 rig.enabled = false;
+
                 foreach (float aspect in new[] { 9f / 16, 16f / 9 })
                 {
                     rig.Camera.aspect = aspect;
                     rig.Zoom(100);
+
                     foreach (int x in new[] { 0, map.Width - 1 })
+                    {
                         foreach (int y in new[] { 0, map.Height - 1 })
                         {
-                            var point = rig.Camera.WorldToViewportPoint(map.Position(new Cell(x,y)) + Vector3.up * 1.9f);
-                            Assert.That(layout.FieldViewport.Contains(new Vector2(point.x, point.y)), Is.True, "Full board must fit the available HUD area.");
+                            Vector3 point = rig.Camera.WorldToViewportPoint(map.Position(new Cell(x, y)) + Vector3.up * 1.9f);
+
+                            Assert.That(
+                                layout.FieldViewport.Contains(new Vector2(point.x, point.y)),
+                                Is.True,
+                                "Full board must fit the available HUD area.");
                             Assert.That(point.z, Is.GreaterThan(rig.Camera.nearClipPlane));
                             Assert.That(point.z, Is.LessThan(rig.Camera.farClipPlane), "Expanded field must not be clipped.");
                         }
+                    }
+
                     rig.Zoom(-100);
                     rig.Reframe();
                     AssertCameraBounds(rig, map, layout);
                 }
+
                 rig.Camera.aspect = previousAspect;
+
                 // Restore the initial rotation and verify zooming out returns to the full board.
-                for (int i = 0; i < 6; i++) rig.Rotate();
+                for (int i = 0; i < 6; i++)
+                {
+                    rig.Rotate();
+                }
+
                 rig.Zoom(100);
                 Assert.That(Vector3.Distance(full, rig.Camera.transform.position), Is.LessThan(0.001f));
                 CameraMouse(rig, mouse, new Vector2(1, 1));
@@ -539,6 +698,7 @@ namespace TurnZero.Tests
                 rig.Camera.aspect = previousAspect;
                 InputSystem.RemoveDevice(mouse);
             }
+
             yield return null;
             LogAssert.NoUnexpectedReceived();
         }
@@ -556,17 +716,35 @@ namespace TurnZero.Tests
             Button("Switch Player").onClick.Invoke();
             Assert.That(GameObject.Find("Entity 5"), Is.Null);
 
-            var observation = new Observation { Entity = new EntityState { Id = 7, Owner = 1, Kind = EntityKind.Unit,
-                Position = new Cell(2, 5), Health = 3, MaximumHealth = 3 }, SeenOnTurn = 1 };
-            var hidden = new PlayerView { Player = 0, Phase = MatchPhase.Planning };
+            Observation observation = new Observation
+            {
+                Entity = new EntityState
+                {
+                    Id = 7,
+                    Owner = 1,
+                    Kind = EntityKind.Unit,
+                    Position = new Cell(2, 5),
+                    Health = 3,
+                    MaximumHealth = 3
+                },
+                SeenOnTurn = 1
+            };
+            PlayerView hidden = new PlayerView
+            {
+                Player = 0,
+                Phase = MatchPhase.Planning
+            };
+
             hidden.LastSeen.Add(observation.Copy());
             hidden.ExploredCells.Add(observation.Entity.Position);
             observation.Entity.Position = new Cell(7, 9);
             observation.Entity.Health = 1;
-            var world = root.GetComponentInChildren<BattleWorldView>();
+            BattleWorldView world = root.GetComponentInChildren<BattleWorldView>();
+
             world.Refresh(hidden, 0, ActionKind.Move);
             Assert.That(GameObject.Find("Entity 7"), Is.Null);
-            var ghost = GameObject.Find("Last Seen 7");
+            GameObject ghost = GameObject.Find("Last Seen 7");
+
             Assert.That(ghost, Is.Not.Null);
             Assert.That(ghost.transform.position, Is.EqualTo(world.Position(new Cell(2, 5))));
             Assert.That(ghost.GetComponentInChildren<TMP_Text>().text, Does.Contain("3 HP / T1"));
@@ -581,38 +759,83 @@ namespace TurnZero.Tests
         [UnityTest]
         public IEnumerator RealMouseAndTouchEventsCanPlaceBothBases()
         {
-            var mouse = InputSystem.AddDevice<Mouse>();
-            var touch = InputSystem.AddDevice<Touchscreen>();
+            Mouse mouse = InputSystem.AddDevice<Mouse>();
+            Touchscreen touch = InputSystem.AddDevice<Touchscreen>();
+
             try
             {
                 Physics.SyncTransforms();
-                Vector2 first = Camera.main.WorldToScreenPoint(Floor(2,2).transform.position + Vector3.up * 0.08f);
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = first });
+                Vector2 first = Camera.main.WorldToScreenPoint(Floor(2, 2).transform.position + Vector3.up * 0.08f);
+
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = first
+                });
                 yield return null;
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = first }.WithButton(MouseButton.Left));
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = first
+                }.WithButton(MouseButton.Left));
                 yield return null;
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = first });
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = first
+                });
                 yield return null;
                 Assert.That(Text("Phase").text, Does.Contain("P2"));
-                Vector2 second = Camera.main.WorldToScreenPoint(Floor(5,20).transform.position + Vector3.up * 0.08f);
-                InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Began, position = second, pressure = 1 });
+                Vector2 second = Camera.main.WorldToScreenPoint(Floor(5, 20).transform.position + Vector3.up * 0.08f);
+
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 1,
+                    phase = UnityEngine.InputSystem.TouchPhase.Began,
+                    position = second,
+                    pressure = 1
+                });
                 yield return null;
-                InputSystem.QueueStateEvent(touch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Ended, position = second });
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 1,
+                    phase = UnityEngine.InputSystem.TouchPhase.Ended,
+                    position = second
+                });
                 yield return null;
                 Assert.That(Text("Phase").text, Does.Contain("TURN 01"));
                 Physics.SyncTransforms();
                 Vector2 unit = Camera.main.WorldToScreenPoint(GameObject.Find("Entity 1").transform.position + Vector3.up * 0.7f);
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = unit });
+
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = unit
+                });
                 yield return null;
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = unit }.WithButton(MouseButton.Left));
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = unit
+                }.WithButton(MouseButton.Left));
                 yield return null;
-                InputSystem.QueueStateEvent(mouse, new MouseState { position = unit });
+                InputSystem.QueueStateEvent(mouse, new MouseState
+                {
+                    position = unit
+                });
                 yield return null;
                 Assert.That(Text("Selected Unit").text, Is.EqualTo("01 GUARDIAN"));
                 Vector2 card = RectTransformUtility.WorldToScreenPoint(null, Button("Unit 2").transform.position);
-                InputSystem.QueueStateEvent(touch, new TouchState { touchId = 2, phase = UnityEngine.InputSystem.TouchPhase.Began, position = card, pressure = 1 });
+
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 2,
+                    phase = UnityEngine.InputSystem.TouchPhase.Began,
+                    position = card,
+                    pressure = 1
+                });
                 yield return null;
-                InputSystem.QueueStateEvent(touch, new TouchState { touchId = 2, phase = UnityEngine.InputSystem.TouchPhase.Ended, position = card });
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 2,
+                    phase = UnityEngine.InputSystem.TouchPhase.Ended,
+                    position = card
+                });
                 yield return null;
                 Assert.That(Text("Selected Unit").text, Is.EqualTo("02 SCOUT"));
             }

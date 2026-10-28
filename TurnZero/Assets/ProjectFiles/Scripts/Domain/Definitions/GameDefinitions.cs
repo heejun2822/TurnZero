@@ -17,8 +17,8 @@ namespace TurnZero
         public const int CraftMaterialSpawnPeriod = 5;
 
         // Shared immutable status definitions.
-        public static readonly StatusEffectDefinition Stealth = new StatusEffectDefinition(StatusEffectKind.Stealth,"SE-01",0,2);
-        public static readonly StatusEffectDefinition Root = new StatusEffectDefinition(StatusEffectKind.Root,"SE-02",1,1);
+        public static readonly StatusEffectDefinition Stealth = new StatusEffectDefinition(StatusEffectKind.Stealth, "SE-01", 0, 2);
+        public static readonly StatusEffectDefinition Root = new StatusEffectDefinition(StatusEffectKind.Root, "SE-02", 1, 1);
 
         // Project asset identifiers are strings and have no Unity API dependency.
         public const string AssetRoot = "Assets/ProjectFiles/";
@@ -29,13 +29,72 @@ namespace TurnZero
     }
 
     // Explicit values preserve existing serialized enums and action indexes.
-    public enum BattlePhase { Setup = 0, BasePlacement = 1, UnitPlacement = 2, TurnStart = 3, Planning = 4, Resolving = 5, Finished = 6 }
-    public enum BattleAction { Move = 0, Attack = 1, Skill = 2, Equipment = 3, Wait = 4, Revive = 5 }
-    public enum BattleWinner { None = 0, PlayerOne = 1, PlayerTwo = 2, Draw = 3 }
-    public enum SkillEffect { Damage = 0, StealthMove = 1, BurningGround = 2, RootDamage = 3, Precision = 4 }
-    public enum EquipmentEffect { Portal = 0, Swap = 1, Beacon = 2 }
-    public enum StructureKind { PortalEntrance = 0, PortalExit = 1, Beacon = 2 }
-    public enum Sight { Unknown = 0, Explored = 1, Visible = 2 }
-    public enum CueKind { Move = 0, Attack = 1, Skill = 2, Structure = 3, Revive = 4, Portal = 5, Swap = 6, Reward = 7 }
-    public enum StatusEffectKind { Stealth = 0, Root = 1 }
+    public enum BattlePhase
+    {
+        Setup = 0,
+        BasePlacement = 1,
+        UnitPlacement = 2,
+        TurnStart = 3,
+        Planning = 4,
+        Resolving = 5,
+        Finished = 6
+    }
+    public enum BattleAction
+    {
+        Move = 0,
+        Attack = 1,
+        Skill = 2,
+        Equipment = 3,
+        Wait = 4,
+        Revive = 5
+    }
+    public enum BattleWinner
+    {
+        None = 0,
+        PlayerOne = 1,
+        PlayerTwo = 2,
+        Draw = 3
+    }
+    public enum SkillEffect
+    {
+        Damage = 0,
+        StealthMove = 1,
+        BurningGround = 2,
+        RootDamage = 3,
+        Precision = 4
+    }
+    public enum EquipmentEffect
+    {
+        Portal = 0,
+        Swap = 1,
+        Beacon = 2
+    }
+    public enum StructureKind
+    {
+        PortalEntrance = 0,
+        PortalExit = 1,
+        Beacon = 2
+    }
+    public enum Sight
+    {
+        Unknown = 0,
+        Explored = 1,
+        Visible = 2
+    }
+    public enum CueKind
+    {
+        Move = 0,
+        Attack = 1,
+        Skill = 2,
+        Structure = 3,
+        Revive = 4,
+        Portal = 5,
+        Swap = 6,
+        Reward = 7
+    }
+    public enum StatusEffectKind
+    {
+        Stealth = 0,
+        Root = 1
+    }
 }

@@ -4,14 +4,23 @@ namespace TurnZero
 {
     public sealed class BattleBootstrap : MonoBehaviour
     {
-        [SerializeField] private BattleConfiguration configuration;
-        [SerializeField] private BattleSession session;
-        [SerializeField] private LocalBattleWorld world;
-        [SerializeField] private LocalBattleHud hud;
-        [SerializeField] private LocalBattleCamera cameraRig;
-        [SerializeField] private BattleInput input;
-        [SerializeField] private BattleAudio audioPlayer;
+        [SerializeField]
+        private BattleConfiguration configuration;
+        [SerializeField]
+        private BattleSession session;
+        [SerializeField]
+        private LocalBattleWorld world;
+        [SerializeField]
+        private LocalBattleHud hud;
+        [SerializeField]
+        private LocalBattleCamera cameraRig;
+        [SerializeField]
+        private BattleInput input;
+        [SerializeField]
+        private BattleAudio audioPlayer;
+
         public BattleSession Session => session;
+
         private void Awake()
         {
             session.Initialize(configuration);

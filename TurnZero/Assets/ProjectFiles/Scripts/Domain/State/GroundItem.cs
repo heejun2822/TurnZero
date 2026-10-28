@@ -9,6 +9,14 @@ namespace TurnZero
     {
         public int Id;
         public GridCell Cell;
-        public GroundItem Copy() => new GroundItem { Id = Id, Cell = Cell };
+
+        public GroundItem Copy()
+        {
+            return new GroundItem
+            {
+                Id = Id,
+                Cell = Cell
+            };
+        }
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace TurnZero
 {
     internal static class BattleUiStyle
@@ -12,12 +13,27 @@ namespace TurnZero
         public static readonly Color Enemy = new Color(1f, 0.32f, 0.37f);
         public static readonly Color Health = new Color(0.24f, 0.95f, 0.64f);
         public static readonly Color Gold = new Color(1f, 0.77f, 0.34f);
-        public static string Outcome(BattleOutcome result) => result == BattleOutcome.Draw ? "DRAW" : result == BattleOutcome.PlayerOne ? "PLAYER 1 WINS" : "PLAYER 2 WINS";
-        public static void Fill(Image image, float amount) => image.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(amount), 1);
-        public static void Frame(GameObject target, Color color) => target.GetComponent<Outline>().effectColor = color;
+
+        public static string Outcome(BattleOutcome result)
+        {
+            return result == BattleOutcome.Draw ? "DRAW" : result == BattleOutcome.PlayerOne ? "PLAYER 1 WINS" : "PLAYER 2 WINS";
+        }
+
+        public static void Fill(Image image, float amount)
+        {
+            image.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(amount), 1);
+        }
+
+        public static void Frame(GameObject target, Color color)
+        {
+            target.GetComponent<Outline>().effectColor = color;
+        }
+
         public static void SetAnchors(RectTransform rect, Vector2 min, Vector2 max)
         {
-            rect.anchorMin = min; rect.anchorMax = max;
+            rect.anchorMin = min;
+            rect.anchorMax = max;
+
             rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
     }

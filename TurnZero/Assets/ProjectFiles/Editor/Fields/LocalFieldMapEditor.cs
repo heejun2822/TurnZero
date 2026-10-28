@@ -20,13 +20,27 @@ namespace TurnZero.Editor
     {
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector(); var map = (LocalFieldMap)target;
-            EditorGUILayout.HelpBox("Paint 3D floor prefabs with GameObject Brush at Z = 0. Erase a floor before replacing it. Edit field colors in the FieldDefinition assets.",MessageType.Info);
+            DrawDefaultInspector();
+            LocalFieldMap map = (LocalFieldMap)target;
+
+            EditorGUILayout.HelpBox("Paint 3D floor prefabs with GameObject Brush at Z = 0. Erase a floor before replacing it. Edit field colors in the FieldDefinition assets.", MessageType.Info);
             using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
-                foreach (var layer in map.Fields)
-                    if (layer != null && GUILayout.Button("Paint " + layer.name)) LocalFieldMapAuthoring.OpenPalette(layer);
+            {
+                foreach (Tilemap layer in map.Fields)
+                {
+                    if (layer != null && GUILayout.Button("Paint " + layer.name))
+                    {
+                        LocalFieldMapAuthoring.OpenPalette(layer);
+                    }
+                }
+            }
+
             string error = map.LayoutError();
-            if (error != null) EditorGUILayout.HelpBox(error,MessageType.Warning);
+
+            if (error != null)
+            {
+                EditorGUILayout.HelpBox(error, MessageType.Warning);
+            }
         }
     }
 }

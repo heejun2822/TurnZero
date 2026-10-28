@@ -20,16 +20,40 @@ namespace TurnZero.Editor
         [MenuItem("TurnZero/Local Playtest/Open game")]
         public static void Open()
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                return;
+            }
+
             EditorSceneManager.OpenScene(GameDefinitions.LocalBattleScenePath);
         }
+
         [MenuItem("TurnZero/Local Playtest/Build scene and missing defaults")]
         public static void BuildMenu()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode || !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            if (System.IO.File.Exists(GameDefinitions.LocalBattleScenePath) && !EditorUtility.DisplayDialog("Rebuild LocalBattle scene?","This rebuilds the generated LocalBattle scene and session prefab. Edited content ScriptableObjects are preserved. Save custom scene edits first.","Rebuild","Cancel")) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode ||
+                !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                return;
+            }
+
+            if (System.IO.File.Exists(GameDefinitions.LocalBattleScenePath) &&
+                !EditorUtility.DisplayDialog(
+                    "Rebuild LocalBattle scene?",
+                    "This rebuilds the generated LocalBattle scene and session prefab. Edited content ScriptableObjects are preserved. Save custom scene edits first.",
+                    "Rebuild",
+                    "Cancel"))
+            {
+                return;
+            }
+
             BuildBatch();
         }
-        public static void BuildBatch() { new LocalPlaytestBuilder().Build(); Debug.Log("TurnZero local playtest authored successfully."); }
+
+        public static void BuildBatch()
+        {
+            new LocalPlaytestBuilder().Build();
+            Debug.Log("TurnZero local playtest authored successfully.");
+        }
     }
 }

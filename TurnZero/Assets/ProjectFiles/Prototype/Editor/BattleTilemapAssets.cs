@@ -20,49 +20,91 @@ namespace TurnZero.Editor
         [MenuItem("TurnZero/Open 3D Tile Palette")]
         public static void OpenPalette()
         {
-            var map = Selection.activeGameObject == null ? null : Selection.activeGameObject.GetComponentInParent<BattleMapView>();
-            var layer = Selection.activeGameObject == null ? null : Selection.activeGameObject.GetComponentInParent<Tilemap>();
+            BattleMapView map = Selection.activeGameObject == null ? null : Selection.activeGameObject.GetComponentInParent<BattleMapView>();
+            Tilemap layer = Selection.activeGameObject == null ? null : Selection.activeGameObject.GetComponentInParent<Tilemap>();
+
             OpenPalette(layer != null ? layer : map == null ? null : map.AlliedField);
         }
+
         public static void OpenPalette(Tilemap target)
         {
             EditorApplication.ExecuteMenuItem("Window/2D/Tile Palette");
             GridPaintingState.gridBrush = AssetDatabase.LoadAssetAtPath<GameObjectBrush>(BrushPath);
             GridPaintingState.palette = AssetDatabase.LoadAssetAtPath<GameObject>(PalettePath);
-            if (target != null) { Selection.activeGameObject = target.gameObject; GridPaintingState.scenePaintTarget = target.gameObject; }
+
+            if (target != null)
+            {
+                Selection.activeGameObject = target.gameObject;
+                GridPaintingState.scenePaintTarget = target.gameObject;
+            }
         }
 
         public static void MigrateBatch()
         {
-            var root = PrefabUtility.LoadPrefabContents(MapPath);
-            try { BuildMap(root.GetComponent<BattleMapView>()); PrefabUtility.SaveAsPrefabAsset(root, MapPath); }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-            var session = PrefabUtility.LoadPrefabContents("Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab");
+            GameObject root = PrefabUtility.LoadPrefabContents(MapPath);
+
             try
             {
-                var map = session.GetComponentInChildren<BattleMapView>();
-                var rules = new SerializedObject(session.GetComponent<BattleController>()).FindProperty("rules");
+                BuildMap(root.GetComponent<BattleMapView>());
+                PrefabUtility.SaveAsPrefabAsset(root, MapPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            GameObject session = PrefabUtility.LoadPrefabContents("Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab");
+
+            try
+            {
+                BattleMapView map = session.GetComponentInChildren<BattleMapView>();
+                SerializedProperty rules = new SerializedObject(session.GetComponent<BattleController>()).FindProperty("rules");
+
                 rules.FindPropertyRelative("Width").intValue = map.Width;
                 rules.FindPropertyRelative("Height").intValue = map.Height;
                 rules.FindPropertyRelative("NeutralHeight").intValue = map.NeutralHeight;
                 rules.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-                var cells = new[] { new Cell(7,4), new Cell(8,3), new Cell(7,2), new Cell(6,3), new Cell(7,3) };
-                foreach (var actor in session.GetComponentsInChildren<BattleActorView>(true))
+                Cell[] cells = new[]
                 {
-                    int id = actor.EntityId, owner = id == 102 || id >= 5 && id <= 8 ? 1 : 0;
-                    var cell = cells[id > 100 ? 4 : id - owner * 4 - 1];
-                    if (owner == 1) cell = new Cell(map.Width - 1 - cell.X, map.Height - 1 - cell.Y);
+                    new Cell(7,4),
+                    new Cell(8,3),
+                    new Cell(7,2),
+                    new Cell(6,3),
+                    new Cell(7,3)
+                };
+
+                foreach (BattleActorView actor in session.GetComponentsInChildren<BattleActorView>(true))
+                {
+                    int id = actor.EntityId;
+                    int owner = id == 102 || id >= 5 && id <= 8 ? 1 : 0;
+                    Cell cell = cells[id > 100 ? 4 : id - owner * 4 - 1];
+
+                    if (owner == 1)
+                    {
+                        cell = new Cell(map.Width - 1 - cell.X, map.Height - 1 - cell.Y);
+                    }
+
                     actor.transform.position = map.Position(cell);
                     PrefabUtility.RecordPrefabInstancePropertyModifications(actor.transform);
                 }
+
                 session.GetComponentInChildren<BattleCameraRig>().Reframe();
                 PrefabUtility.SaveAsPrefabAsset(session, "Assets/ProjectFiles/Prototype/Prefabs/BattleSession.prefab");
             }
-            finally { PrefabUtility.UnloadPrefabContents(session); }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(session);
+            }
+
             AssetDatabase.SaveAssets();
-            var scene = EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
-            var field = Object.FindFirstObjectByType<BattleMapView>();
-            if (field.LayoutError() != null) throw new InvalidOperationException(field.LayoutError());
+            UnityEngine.SceneManagement.Scene scene = EditorSceneManager.OpenScene("Assets/ProjectFiles/Prototype/Scenes/Battle.unity");
+            BattleMapView field = Object.FindFirstObjectByType<BattleMapView>();
+
+            if (field.LayoutError() != null)
+            {
+                throw new InvalidOperationException(field.LayoutError());
+            }
+
             Object.FindFirstObjectByType<BattleCameraRig>().Reframe();
             EditorSceneManager.SaveScene(scene);
             Debug.Log("TurnZero: 16x24 field saved as Allied 16x10 / Neutral 16x4 / Enemy 16x10. Exterior removed.");
@@ -70,8 +112,13 @@ namespace TurnZero.Editor
 
         public static void BuildMap(BattleMapView map)
         {
-            foreach (var child in map.transform.Cast<Transform>().ToArray()) Object.DestroyImmediate(child.gameObject);
-            var serialized = new SerializedObject(map);
+            foreach (Transform child in map.transform.Cast<Transform>().ToArray())
+            {
+                Object.DestroyImmediate(child.gameObject);
+            }
+
+            SerializedObject serialized = new SerializedObject(map);
+
             serialized.FindProperty("width").intValue = 16;
             serialized.FindProperty("homeHeight").intValue = 10;
             serialized.FindProperty("neutralHeight").intValue = 4;
@@ -79,35 +126,67 @@ namespace TurnZero.Editor
             BattleMapAuthoring.CreateGrid(map, 2.2f);
             CreateDecoratedTile("TreeTile", "Grass", "Tree");
             CreateDecoratedTile("RuinedWallTile", "StoneDark", "RuinedWall");
-            var prefabs = Names.Select(n => AssetDatabase.LoadAssetAtPath<GameObject>(Folder + n + ".prefab")).ToArray();
-            if (prefabs.Any(p => p == null)) throw new InvalidOperationException("Missing field palette prefab.");
-            var brush = ScriptableObject.CreateInstance<GameObjectBrush>();
+            GameObject[] prefabs = Names.Select(n => AssetDatabase.LoadAssetAtPath<GameObject>(Folder + n + ".prefab")).ToArray();
+
+            if (prefabs.Any(p => p == null))
+            {
+                throw new InvalidOperationException("Missing field palette prefab.");
+            }
+
+            GameObjectBrush brush = ScriptableObject.CreateInstance<GameObjectBrush>();
+
             try
             {
                 for (int y = 0; y < map.Height; y++)
+                {
                     for (int x = 0; x < map.Width; x++)
                     {
                         bool upper = y >= map.HomeHeight + map.NeutralHeight;
-                        int sx = upper ? map.Width - 1 - x : x, sy = upper ? map.Height - 1 - y : y;
+                        int sx = upper ? map.Width - 1 - x : x;
+                        int sy = upper ? map.Height - 1 - y : y;
                         bool neutral = y >= map.HomeHeight && y < map.HomeHeight + map.NeutralHeight;
                         int type = neutral ? (x == 7 || x == 8 ? 0 : 2) : (sx * 13 + sy * 7) % 5 < 2 ? 2 : (sx + sy) % 2;
+
                         if (neutral)
                         {
-                            if (y >= 12) { sx = map.Width - 1 - x; sy = map.Height - 1 - y; }
-                            if (sx == 3 && sy == 10 || sx == 5 && sy == 11) type = 3;
-                            if (sx == 4 && sy == 10 || sx == 6 && sy == 11) type = 4;
+                            if (y >= 12)
+                            {
+                                sx = map.Width - 1 - x;
+                                sy = map.Height - 1 - y;
+                            }
+
+                            if (sx == 3 && sy == 10 || sx == 5 && sy == 11)
+                            {
+                                type = 3;
+                            }
+
+                            if (sx == 4 && sy == 10 || sx == 6 && sy == 11)
+                            {
+                                type = 4;
+                            }
                         }
-                        Paint(brush, map.FieldFor(new Cell(x,y)), new Vector3Int(x,y,0), prefabs[type]);
+
+                        Paint(brush, map.FieldFor(new Cell(x, y)), new Vector3Int(x, y, 0), prefabs[type]);
                     }
+                }
             }
-            finally { Object.DestroyImmediate(brush); }
+            finally
+            {
+                Object.DestroyImmediate(brush);
+            }
+
             CreatePalette(prefabs);
-            if (map.LayoutError() != null) throw new InvalidOperationException(map.LayoutError());
+
+            if (map.LayoutError() != null)
+            {
+                throw new InvalidOperationException(map.LayoutError());
+            }
         }
 
         private static void CreateDecoratedTile(string name, string floor, string prop)
         {
-            var root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + floor + ".prefab"));
+            GameObject root = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + floor + ".prefab"));
+
             try
             {
                 PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
@@ -115,21 +194,40 @@ namespace TurnZero.Editor
                 PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + prop + ".prefab"), root.transform);
                 PrefabUtility.SaveAsPrefabAsset(root, Folder + name + ".prefab");
             }
-            finally { Object.DestroyImmediate(root); }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
         }
+
         private static void CreatePalette(GameObject[] prefabs)
         {
-            var palette = PrefabUtility.LoadPrefabContents(PalettePath);
-            var brush = ScriptableObject.CreateInstance<GameObjectBrush>();
+            GameObject palette = PrefabUtility.LoadPrefabContents(PalettePath);
+            GameObjectBrush brush = ScriptableObject.CreateInstance<GameObjectBrush>();
+
             try
             {
-                var layer = palette.GetComponentInChildren<Tilemap>();
-                foreach (var child in layer.transform.Cast<Transform>().ToArray()) Object.DestroyImmediate(child.gameObject);
-                for (int i = 0; i < prefabs.Length; i++) Paint(brush, layer, new Vector3Int(i % 4, -(i / 4), 0), prefabs[i]);
+                Tilemap layer = palette.GetComponentInChildren<Tilemap>();
+
+                foreach (Transform child in layer.transform.Cast<Transform>().ToArray())
+                {
+                    Object.DestroyImmediate(child.gameObject);
+                }
+
+                for (int i = 0; i < prefabs.Length; i++)
+                {
+                    Paint(brush, layer, new Vector3Int(i % 4, -(i / 4), 0), prefabs[i]);
+                }
+
                 PrefabUtility.SaveAsPrefabAsset(palette, PalettePath);
             }
-            finally { Object.DestroyImmediate(brush); PrefabUtility.UnloadPrefabContents(palette); }
+            finally
+            {
+                Object.DestroyImmediate(brush);
+                PrefabUtility.UnloadPrefabContents(palette);
+            }
         }
+
         private static void Paint(GameObjectBrush brush, Tilemap layer, Vector3Int cell, GameObject prefab)
         {
             brush.SetGameObject(Vector3Int.zero, prefab);

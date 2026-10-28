@@ -7,9 +7,14 @@ namespace TurnZero
     [Serializable]
     public sealed class BattleBase
     {
-        public int Owner, Health;
+        public int Owner;
+        public int Health;
         public bool Placed;
         public GridCell Cell;
-        public BattleBase Copy() => (BattleBase)MemberwiseClone();
+
+        public BattleBase Copy()
+        {
+            return (BattleBase)MemberwiseClone();
+        }
     }
 }

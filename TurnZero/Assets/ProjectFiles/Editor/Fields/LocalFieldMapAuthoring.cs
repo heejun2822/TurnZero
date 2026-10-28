@@ -22,7 +22,9 @@ namespace TurnZero.Editor
             EditorApplication.ExecuteMenuItem("Window/2D/Tile Palette");
             GridPaintingState.gridBrush = AssetDatabase.LoadAssetAtPath<GameObjectBrush>(GameDefinitions.FieldBrushPath);
             GridPaintingState.palette = AssetDatabase.LoadAssetAtPath<GameObject>(GameDefinitions.FieldPalettePath);
-            Selection.activeGameObject = target.gameObject; GridPaintingState.scenePaintTarget = target.gameObject;
+
+            Selection.activeGameObject = target.gameObject;
+            GridPaintingState.scenePaintTarget = target.gameObject;
         }
     }
 }

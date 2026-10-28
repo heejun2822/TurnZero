@@ -7,7 +7,16 @@ namespace TurnZero
     {
         public string Name;
         public string Description;
-        public int Range, Area, Damage, Cost, Priority, Cooldown;
-        public ActionSpec Copy() => (ActionSpec)MemberwiseClone();
+        public int Range;
+        public int Area;
+        public int Damage;
+        public int Cost;
+        public int Priority;
+        public int Cooldown;
+
+        public ActionSpec Copy()
+        {
+            return (ActionSpec)MemberwiseClone();
+        }
     }
 }

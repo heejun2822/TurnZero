@@ -4,8 +4,15 @@ namespace TurnZero
     {
         public readonly StatusEffectKind Kind;
         public readonly string Id;
-        public readonly int Delay, Duration;
+        public readonly int Delay;
+        public readonly int Duration;
+
         public StatusEffectDefinition(StatusEffectKind kind, string id, int delay, int duration)
-        { Kind = kind; Id = id; Delay = delay; Duration = duration; }
+        {
+            Kind = kind;
+            Id = id;
+            Delay = delay;
+            Duration = duration;
+        }
     }
 }
