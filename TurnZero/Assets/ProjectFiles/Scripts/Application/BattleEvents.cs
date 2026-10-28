@@ -22,7 +22,7 @@ namespace TurnZero.Game
         public event Action<int, int> FieldRequested;
         public event Action<int, int> DeckRequested;
         public event Action<BattleCue> CueRequested;
-        public event Action HelpRequested;
+        public event Action HelpRequested, MovementRequested;
         public void Refresh() => Changed?.Invoke();
         public void Select(int id, bool focus = false) => CharacterRequested?.Invoke(id, focus);
         public void SetAction(BattleAction action) => ActionRequested?.Invoke(action);
@@ -45,6 +45,7 @@ namespace TurnZero.Game
         public void Field(int player, int index) => FieldRequested?.Invoke(player, index);
         public void Deck(int player, int slot) => DeckRequested?.Invoke(player, slot);
         public void Cue(BattleCue cue) => CueRequested?.Invoke(cue);
+        public void Movement() => MovementRequested?.Invoke();
         public void Help() => HelpRequested?.Invoke();
     }
 }

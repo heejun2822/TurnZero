@@ -1,60 +1,8 @@
 using System;
+using System.Linq;
 
 namespace TurnZero.Game
 {
-    public enum BattlePhase { Setup, BasePlacement, UnitPlacement, TurnStart, Planning, Resolving, Finished }
-    public enum BattleAction { Move, Attack, Skill, Equipment, Wait, Revive }
-    public enum SkillEffect { Damage, StealthMove, BurningGround, RootDamage, Precision }
-    public enum EquipmentEffect { Portal, Swap, Beacon }
-    public enum StructureKind { PortalEntrance, PortalExit, Beacon }
-    public enum BattleWinner { None, PlayerOne, PlayerTwo, Draw }
-    public enum Sight { Unknown, Explored, Visible }
-
-    [Serializable]
-    public struct GridCell : IEquatable<GridCell>
-    {
-        public int X, Y;
-        public GridCell(int x, int y) { X = x; Y = y; }
-        public int Distance(GridCell other) => Math.Abs(X - other.X) + Math.Abs(Y - other.Y);
-        public bool Equals(GridCell other) => X == other.X && Y == other.Y;
-        public override bool Equals(object obj) => obj is GridCell cell && Equals(cell);
-        public override int GetHashCode() => X * 397 ^ Y;
-        public static bool operator ==(GridCell a, GridCell b) => a.Equals(b);
-        public static bool operator !=(GridCell a, GridCell b) => !a.Equals(b);
-        public override string ToString() => $"{X + 1},{Y + 1}";
-    }
-
-    [Serializable]
-    public sealed class ActionSpec
-    {
-        public string Name;
-        public string Description;
-        public int Range, Area, Damage, Cost, Priority, Cooldown;
-        public ActionSpec Copy() => (ActionSpec)MemberwiseClone();
-    }
-
-    [Serializable]
-    public sealed class CharacterSpec
-    {
-        public string Id, Name;
-        public int Health;
-        public SkillEffect SkillEffect;
-        public ActionSpec Move, Attack, Skill;
-        public CharacterSpec Copy() => new CharacterSpec { Id = Id, Name = Name, Health = Health, SkillEffect = SkillEffect,
-            Move = Move.Copy(), Attack = Attack.Copy(), Skill = Skill.Copy() };
-    }
-
-    [Serializable]
-    public sealed class EquipmentSpec
-    {
-        public string Id, Name;
-        public EquipmentEffect Effect;
-        public ActionSpec Action;
-        public int Health, Duration, ExitRange;
-        public EquipmentSpec Copy() => new EquipmentSpec { Id = Id, Name = Name, Effect = Effect, Action = Action.Copy(),
-            Health = Health, Duration = Duration, ExitRange = ExitRange };
-    }
-
     [Serializable]
     public sealed class GameRules
     {
@@ -84,9 +32,11 @@ namespace TurnZero.Game
                 !Finite(TurnStartSeconds) || TurnStartSeconds < 0 || !Finite(PlanningSeconds) || PlanningSeconds <= 0 ||
                 Characters == null || Characters.Length != 5 || Equipment == null || Equipment.Length < 1)
                 throw new ArgumentException("Invalid local battle configuration.");
+            if (Characters.Any(c => c == null) || Characters.Select(c => c.Id).Distinct().Count() != 5) throw new ArgumentException("Five distinct character types are required.");
+            if (Equipment.Any(e => e == null) || Equipment.Select(e => e.Id).Distinct().Count() != Equipment.Length) throw new ArgumentException("Equipment types must be distinct.");
             foreach (var character in Characters)
             {
-                if (character == null || string.IsNullOrWhiteSpace(character.Id) || character.Health < 1) throw new ArgumentException("Invalid character.");
+                if (character == null || string.IsNullOrWhiteSpace(character.Id) || character.Health < 1 || character.SkillEffect == SkillEffect.BurningGround && character.SkillDuration < 1) throw new ArgumentException("Invalid character.");
                 Check(character.Move); Check(character.Attack); Check(character.Skill);
                 if (character.Move.Range < 1) throw new ArgumentException("Movement range must be positive.");
             }

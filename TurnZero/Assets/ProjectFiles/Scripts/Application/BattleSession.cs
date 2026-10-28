@@ -25,12 +25,12 @@ namespace TurnZero.Game
         public GridCell? HoverCell { get; private set; }
         public GridCell? PortalEntrance { get; private set; }
         public int[] Fields { get; } = new int[2];
-        public int[][] EquipmentDecks { get; } = new[] { new[] { 0,1,2,0,1 },new[] { 0,1,2,0,1 } };
+        public int[][] EquipmentDecks { get; } = new[] { new[] { 0,1,2,-1,-1 },new[] { 0,1,2,-1,-1 } };
         public List<string> History { get; } = new List<string>();
         public List<GridCell> PathPreview { get; private set; } = new List<GridCell>();
-        private MatchState display;
+        private BattlePlayback replay;
+        private MatchState display => replay?.Display;
         private double clock;
-        private bool fastForward;
         private Coroutine playback;
         public BattleUnit Selected => View.Units.FirstOrDefault(u => u.Id == SelectedId) ?? View.KnownEnemies.FirstOrDefault(o => o.Unit.Id == SelectedId)?.Unit;
         public bool CanUseCamera => !Running && (Match.Phase == BattlePhase.Planning || Match.Phase == BattlePhase.BasePlacement || Match.Phase == BattlePhase.UnitPlacement);
@@ -38,6 +38,7 @@ namespace TurnZero.Game
         public void Initialize(BattleConfiguration configuration)
         {
             Configuration = configuration;
+            replay = new BattlePlayback(configuration,Events);
             if (Match != null) { Restart(); return; }
             Events.CharacterRequested += Select;
             Events.ActionRequested += SelectAction;
@@ -74,13 +75,14 @@ namespace TurnZero.Game
         public void Restart()
         {
             if (playback != null) StopCoroutine(playback);
+            replay.Reset(); playback = null;
             Match = new LocalBattleMatch(Configuration.CreateRules()); Player = 0; SelectedId = 0; Action = BattleAction.Move;
             for (int owner = 0; owner < 2; owner++)
             {
                 Fields[owner] %= Configuration.Fields.Length;
-                for (int slot = 0; slot < 5; slot++) EquipmentDecks[owner][slot] %= Rules.Equipment.Length;
+                for (int slot = 0; slot < 5; slot++) if (EquipmentDecks[owner][slot] >= Rules.Equipment.Length) EquipmentDecks[owner][slot] = -1;
             }
-            Armed = false; Running = false; Paused = false; RevealAll = false; ShowHelp = false; display = null;
+            Armed = false; Running = false; Paused = false; RevealAll = false; ShowHelp = false;
             clock = 0; PortalEntrance = null; HoverCell = null; History.Clear();
             PathPreview.Clear();
             Message = "LOCAL PLAYTEST / Pick each side's field, then deploy a base and five characters.";
@@ -89,11 +91,13 @@ namespace TurnZero.Game
         private void Deploy()
         {
             if (Match.Phase != BattlePhase.Setup) return;
+            if (!ApplyDecks()) return;
             Match.BeginPlacement(); Message = "P1 / Place your base on your field. Then deploy five characters inside base vision."; Events.Refresh();
         }
         private void AutoDeploy()
         {
             if (Running || Match.Phase == BattlePhase.Planning || Match.Phase == BattlePhase.TurnStart || Match.Phase == BattlePhase.Finished) return;
+            if (Match.Phase == BattlePhase.Setup && !ApplyDecks()) return;
             Match.AutoDeploy(clock); Player = 0; SelectedId = 1; Message = "Both teams deployed. The first turn starts with 10 AP."; Events.Refresh();
         }
         private void SetField(int player, int index)
@@ -113,10 +117,20 @@ namespace TurnZero.Game
             Message = unit.Owner == Player ? "Q move / W attack / E skill / R equipment / T wait. Double-click a card to focus." : "Enemy information is limited to the latest observation.";
             Events.Refresh();
         }
+        private bool ApplyDecks()
+        {
+            for (int player = 0; player < 2; player++)
+                if (!Match.SetEquipmentDeck(player,EquipmentDecks[player].Where(i => i >= 0).ToArray()))
+                { Message = "Choose 1 to 5 distinct equipment types for each team."; Events.Refresh(); return false; }
+            return true;
+        }
         private void CycleDeck(int player, int slot)
         {
             if (Match.Phase != BattlePhase.Setup || player < 0 || player > 1 || slot < 0 || slot >= 5) return;
-            EquipmentDecks[player][slot] = (EquipmentDecks[player][slot] + 1) % Rules.Equipment.Length; Events.Refresh();
+            int candidate = EquipmentDecks[player][slot];
+            do { candidate = (candidate+2) % (Rules.Equipment.Length+1)-1; }
+            while (candidate >= 0 && EquipmentDecks[player].Where((_,i) => i != slot).Contains(candidate));
+            EquipmentDecks[player][slot] = candidate; Events.Refresh();
         }
         private void SelectAction(BattleAction action)
         {
@@ -193,7 +207,7 @@ namespace TurnZero.Game
         private void PreviewPath(List<GridCell> path) { PathPreview = new List<GridCell>(path); Events.Refresh(); }
         private bool Submit(BattleOrder order)
         {
-            bool accepted = Match.Queue(Player, View.Turn, order, out string error);
+            bool accepted = Match.Queue(Player, View.Turn, order, out string error, clock);
             Message = accepted ? order.Action == BattleAction.Wait ? "Order canceled. Reserved AP released." : $"{order.Action.ToString().ToUpperInvariant()} reserved. AP is spent when it executes." : error;
             Events.Refresh(); return accepted;
         }
@@ -204,8 +218,8 @@ namespace TurnZero.Game
         }
         private void Ready()
         {
-            if (!Match.Ready(Player)) return;
-            Armed = false; Message = "Team ready. Switch player with TAB. Both ready ends planning immediately.";
+            if (!Match.Ready(Player,clock)) return;
+            Armed = false; Message = View.Ready ? "Team ready. Press READY again to unlock while time remains." : "Ready canceled. Planning time is unchanged.";
             Events.Refresh(); if (Match.BothReady) Resolve();
         }
         private void Switch()
@@ -224,36 +238,47 @@ namespace TurnZero.Game
         private void Craft(int index, bool replace)
         {
             if (!EquipmentDecks[Player].Contains(index)) { Message = "This equipment is not in your chosen deck."; Events.Refresh(); return; }
-            Message = Match.Craft(Player, SelectedId, index, replace, out string error) ? $"{Rules.Equipment[index].Name} equipped. One crafting material used." : error;
+            Message = Match.Craft(Player, SelectedId, index, replace, out string error, clock) ? $"{Rules.Equipment[index].Name} equipped. One crafting material used." : error;
             Events.Refresh();
         }
         private void Resolve()
         {
-            if (Running) { fastForward = true; Message = "Fast-forwarding this resolution."; return; }
+            if (Running) { replay.FastForward = true; Message = "Fast-forwarding this resolution."; return; }
             var timeline = Match.Resolve(); if (timeline == null) return;
-            Running = true; fastForward = false; Armed = false; PortalEntrance = null;
+            Running = true; replay.FastForward = false; Armed = false; PortalEntrance = null;
             playback = StartCoroutine(Playback(timeline));
         }
         private IEnumerator Playback(BattleTimeline timeline)
         {
-            foreach (var step in timeline.Steps)
-            {
-                display = step.Before.Copy(); display.Phase = BattlePhase.Resolving; display.Winner = BattleWinner.None; Events.Refresh();
-                foreach (var cue in step.VisibleCues(Rules, Player, RevealAll))
-                {
-                    Message = $"P{cue.Owner+1} / {cue.Label}"; History.Add($"T{Match.Turn:00}  {Message}");
-                    if (History.Count > 32) History.RemoveAt(0);
-                    Events.Focus(cue.Target); Events.Cue(cue);
-                    float duration = cue.Kind == CueKind.Move || cue.Kind == CueKind.Portal ? Configuration.MoveSeconds : Configuration.ActionSeconds;
-                    float elapsed = 0;
-                    while (!fastForward && elapsed < duration) { elapsed += Time.unscaledDeltaTime; yield return null; }
-                    yield return null;
-                }
-                display = step.After.Copy(); display.Phase = BattlePhase.Resolving; display.Winner = BattleWinner.None; Events.Refresh();
-            }
-            display = null; Match.CompleteResolution(clock); Running = false; playback = null;
+            yield return replay.Play(timeline,Rules,Player,RevealAll,message => {
+                Message = message; History.Add($"T{Match.Turn:00}  {message}");
+                if (History.Count > 32) History.RemoveAt(0);
+            });
+            Match.CompleteResolution(clock); Running = false; playback = null;
             Message = Match.Phase == BattlePhase.Finished ? "Match complete. Review the result or start a rematch." : "Resolution complete. AP carries over into the next turn.";
             Events.Refresh();
+        }
+        private void OnDestroy()
+        {
+            if (playback != null) StopCoroutine(playback);
+            Events.CharacterRequested -= Select;
+            Events.ActionRequested -= SelectAction;
+            Events.TileRequested -= Tile;
+            Events.PathRequested -= SetPath;
+            Events.PathPreviewRequested -= PreviewPath;
+            Events.HoverRequested -= Hover;
+            Events.ReadyRequested -= Ready;
+            Events.SwitchRequested -= Switch;
+            Events.ResolveRequested -= Resolve;
+            Events.RestartRequested -= Restart;
+            Events.DeployRequested -= Deploy;
+            Events.AutoDeployRequested -= AutoDeploy;
+            Events.PauseRequested -= TogglePause;
+            Events.RevealRequested -= ToggleReveal;
+            Events.CraftRequested -= Craft;
+            Events.FieldRequested -= SetField;
+            Events.DeckRequested -= CycleDeck;
+            Events.HelpRequested -= Help;
         }
     }
 }

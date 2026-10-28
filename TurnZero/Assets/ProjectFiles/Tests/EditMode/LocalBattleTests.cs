@@ -87,8 +87,8 @@ namespace TurnZero.Game.Tests
             Assert.That(BattleCommands.Validate(state,rules,0,Move(1,new GridCell(2,10))), Is.Not.Null);
             state.Bases[0].Cell = new GridCell(2,9);
             Assert.That(BattleCommands.Validate(state,rules,0,Move(1,new GridCell(2,9))), Is.Not.Null);
-            Assert.That(BattleCommands.FindPath(state,rules,new GridCell(2,8),new GridCell(2,10),3,0), Is.Empty);
-            var reachable = BattleCommands.Reachable(state,rules,new GridCell(2,8),3,0);
+            Assert.That(BattlePathfinding.FindPath(state,rules,new GridCell(2,8),new GridCell(2,10),3,0), Is.Empty);
+            var reachable = BattlePathfinding.Reachable(state,rules,new GridCell(2,8),3,0);
             Assert.That(reachable.Contains(new GridCell(2,10)),Is.False); Assert.That(reachable.Contains(new GridCell(2,9)),Is.False);
             Assert.That(reachable.Contains(new GridCell(1,8)),Is.True);
         }
@@ -107,19 +107,19 @@ namespace TurnZero.Game.Tests
         [Test] public void AValidBlindMissSpendsOnceAndTargetsATileInsteadOfTrackingAUnit()
         {
             var rules = Rules(); var state = Arena(rules);
-            state.Orders.Add(Attack(1,2,9)); state.Orders.Add(Move(6,new GridCell(2,10)));
+            state.Orders.Add(Attack(1,2,9)); state.Orders.Add(Move(6,new GridCell(2,10),new GridCell(2,11)));
             var result = BattleSimulation.Resolve(state,rules).Final;
             Assert.That(result.Units.Find(u => u.Id == 6).Health, Is.EqualTo(14));
             Assert.That(result.AP[0], Is.EqualTo(8));
         }
-        [Test] public void EarlierFireDeathCancelsTheLaterAttackWithoutSpendingItsAP()
+        [Test] public void SamePhaseFireDeathPreservesTheAcceptedAttackAndItsCost()
         {
             var rules = Rules(); var state = Arena(rules); state.Units.Find(u => u.Id == 1).Health = 2;
             state.Fires.Add(new FireZone { Id = 999, Owner = 1, Cell = new GridCell(2,8), Area = 1, Damage = 2, ThroughTurn = 3 });
             state.Orders.Add(Attack(1,2,9));
             var result = BattleSimulation.Resolve(state,rules).Final;
-            Assert.That(result.Units.Find(u => u.Id == 1).Health, Is.Zero); Assert.That(result.AP[0], Is.EqualTo(10));
-            Assert.That(result.Units.Find(u => u.Id == 6).Health, Is.EqualTo(14));
+            Assert.That(result.Units.Find(u => u.Id == 1).Health, Is.Zero); Assert.That(result.AP[0], Is.EqualTo(8));
+            Assert.That(result.Units.Find(u => u.Id == 6).Health, Is.EqualTo(11));
         }
         [Test] public void AreaDamageHitsEveryEnemyStackAndRewardsEachDefeatOnce()
         {
@@ -182,7 +182,7 @@ namespace TurnZero.Game.Tests
             state.Items.Add(new GroundItem { Id = 900, Cell = new GridCell(3,9) });
             state.Orders.Add(Move(1,new GridCell(3,9))); state.Orders.Add(Move(6,new GridCell(3,9)));
             var result = BattleSimulation.Resolve(state,rules).Final; CollectionAssert.AreEqual(new[] { 3,3 },result.Materials);
-            Assert.That(result.Items.Single().Collected.All(c => c), Is.True);
+            Assert.That(result.Items, Is.Empty);
         }
         [Test] public void HiddenCardsKeepTheirObservedHealthInsteadOfReceivingLiveState()
         {
@@ -197,11 +197,11 @@ namespace TurnZero.Game.Tests
         {
             var rules = Rules(); var state = Arena(rules);
             foreach (var unit in state.Units) unit.Health = 0;
-            state.Bases[0].Health = 20; state.Bases[1].Health = 10; Assert.That(BattleSimulation.DetermineWinner(state), Is.EqualTo(BattleWinner.PlayerOne));
-            state.Bases[0].Health = 5; Assert.That(BattleSimulation.DetermineWinner(state), Is.EqualTo(BattleWinner.PlayerTwo));
-            state.Bases[0].Health = 10; Assert.That(BattleSimulation.DetermineWinner(state), Is.EqualTo(BattleWinner.Draw));
-            state.Units[0].Health = 14; state.Bases[0].Health = 0; Assert.That(BattleSimulation.DetermineWinner(state), Is.EqualTo(BattleWinner.PlayerTwo));
-            state.Bases[0].Health = 30; Assert.That(BattleSimulation.DetermineWinner(state), Is.EqualTo(BattleWinner.PlayerOne));
+            state.Bases[0].Health = 20; state.Bases[1].Health = 10; Assert.That(BattleVictory.Determine(state), Is.EqualTo(BattleWinner.PlayerOne));
+            state.Bases[0].Health = 5; Assert.That(BattleVictory.Determine(state), Is.EqualTo(BattleWinner.PlayerTwo));
+            state.Bases[0].Health = 10; Assert.That(BattleVictory.Determine(state), Is.EqualTo(BattleWinner.Draw));
+            state.Units[0].Health = 14; state.Bases[0].Health = 0; Assert.That(BattleVictory.Determine(state), Is.EqualTo(BattleWinner.PlayerTwo));
+            state.Bases[0].Health = 30; Assert.That(BattleVictory.Determine(state), Is.EqualTo(BattleWinner.PlayerOne));
         }
         [Test] public void ReversingOrdersAndEntitiesDoesNotChangeResolution()
         {
@@ -248,8 +248,8 @@ namespace TurnZero.Game.Tests
         [Test] public void CompletedPortalTriggersOnArrivalOnlyAndCollectsAtTheExit()
         {
             var rules = Rules(); var state = Arena(rules); state.Turn = 3;
-            state.Structures.Add(new BattleStructure { Id = 901, Link = 900, Owner = 0, Kind = StructureKind.PortalEntrance, Health = 5, ReadyTurn = 3, Cell = new GridCell(2,9), Destination = new GridCell(7,9) });
-            state.Structures.Add(new BattleStructure { Id = 902, Link = 900, Owner = 0, Kind = StructureKind.PortalExit, Health = 5, ReadyTurn = 3, Cell = new GridCell(7,9), Destination = new GridCell(2,9) });
+            state.Structures.Add(new BattleStructure { Id = 901, Link = 900, Owner = 0, Kind = StructureKind.PortalEntrance, Health = 5, Completed = true, ReadyTurn = 3, Cell = new GridCell(2,9), Destination = new GridCell(7,9) });
+            state.Structures.Add(new BattleStructure { Id = 902, Link = 900, Owner = 0, Kind = StructureKind.PortalExit, Health = 5, Completed = true, ReadyTurn = 3, Cell = new GridCell(7,9), Destination = new GridCell(2,9) });
             state.Items.Add(new GroundItem { Id = 903, Cell = new GridCell(7,9) });
             state.Orders.Add(Move(1,new GridCell(2,9)));
             var arrived = BattleSimulation.Resolve(state,rules).Final;
@@ -261,7 +261,7 @@ namespace TurnZero.Game.Tests
         {
             var rules = Rules(); var state = Arena(rules);
             state.Structures.Add(new BattleStructure { Id = 901, Link = 900, Owner = 0, Kind = StructureKind.PortalEntrance, Health = 2, ReadyTurn = 3, Cell = new GridCell(2,9), Destination = new GridCell(7,9) });
-            state.Structures.Add(new BattleStructure { Id = 902, Link = 900, Owner = 0, Kind = StructureKind.PortalExit, Health = 5, ReadyTurn = 3, Cell = new GridCell(7,9), Destination = new GridCell(2,9) });
+            state.Structures.Add(new BattleStructure { Id = 902, Link = 900, Owner = 0, Kind = StructureKind.PortalExit, Health = 5, Completed = true, ReadyTurn = 3, Cell = new GridCell(7,9), Destination = new GridCell(2,9) });
             state.Orders.Add(Attack(6,2,9)); var result = BattleSimulation.Resolve(state,rules).Final;
             Assert.That(result.Structures.All(s => s.Health == 0),Is.True); Assert.That(result.AP[1],Is.EqualTo(8));
         }

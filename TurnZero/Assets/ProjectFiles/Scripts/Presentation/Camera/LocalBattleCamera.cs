@@ -10,6 +10,9 @@ namespace TurnZero.Game
         private Vector3 focus, target;
         private float zoom;
         private int player = -1;
+        private bool resolution;
+        private Vector3 manualTarget;
+        private float manualZoom;
         public Camera Camera => cameraView;
         public Vector3 FocusPoint => target;
         public float Zoom => zoom;
@@ -21,10 +24,13 @@ namespace TurnZero.Game
             session.Events.ZoomRequested += ChangeZoom;
             session.Events.FocusRequested += Focus;
             session.Events.Changed += Refresh;
+            session.Events.MovementRequested += ShowMovement;
             Refresh();
         }
         private void Refresh()
         {
+            if (session.Running && !resolution) { resolution = true; manualTarget = target; manualZoom = zoom; }
+            else if (!session.Running && resolution) { resolution = false; target = manualTarget; zoom = manualZoom; }
             bool setup = session.Match.Phase == BattlePhase.Setup;
             if (setup) zoom = session.Configuration.InitialZoom;
             if (session.Player == player && !setup) return;
@@ -50,6 +56,7 @@ namespace TurnZero.Game
             cameraView.transform.position = focus - cameraView.transform.forward * distance;
             cameraView.farClipPlane = distance + boardHeight * 3;
         }
+        private void ShowMovement() { target = Vector3.zero; zoom = Mathf.Clamp(1,session.Configuration.MinimumZoom,session.Configuration.MaximumZoom); }
         private void Pan(Vector2 pixels)
         {
             if (!ManualEnabled) return;
@@ -81,6 +88,7 @@ namespace TurnZero.Game
             if (session == null) return;
             session.Events.PanRequested -= Pan; session.Events.ZoomRequested -= ChangeZoom;
             session.Events.FocusRequested -= Focus; session.Events.Changed -= Refresh;
+            session.Events.MovementRequested -= ShowMovement;
         }
     }
 }

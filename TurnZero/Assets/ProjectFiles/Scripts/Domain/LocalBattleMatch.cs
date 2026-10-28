@@ -18,6 +18,7 @@ namespace TurnZero.Game
             for (int player = 0; player < 2; player++)
             {
                 state.Materials[player] = Rules.InitialMaterials;
+                state.EquipmentDecks[player] = Enumerable.Range(0,Math.Min(5,Rules.Equipment.Length)).ToArray();
                 for (int slot = 0; slot < 5; slot++) state.Units.Add(new BattleUnit { Id = player * 5 + slot + 1, Owner = player, Slot = slot, Health = Rules.Characters[slot].Health });
                 for (int y = 0; y < Rules.Height; y++)
                     for (int x = 0; x < Rules.Width; x++)
@@ -75,9 +76,9 @@ namespace TurnZero.Game
                 if (!Place(player, cell, now, out string error)) throw new InvalidOperationException(error);
             }
         }
-        public bool Queue(int player, int turn, BattleOrder order, out string error)
+        public bool Queue(int player, int turn, BattleOrder order, out string error, double? now = null)
         {
-            error = turn != state.Turn ? "The submitted turn has ended." : BattleCommands.Validate(state, Rules, player, order);
+            error = now.HasValue && now.Value >= state.Deadline ? "Planning is closed." : turn != state.Turn ? "The submitted turn has ended." : BattleCommands.Validate(state, Rules, player, order);
             if (error != null) return false;
             int reserved = state.Orders.Where(o => o.UnitId != order.UnitId && state.Units.Find(u => u.Id == o.UnitId).Owner == player).Sum(o => BattleCommands.Cost(state, Rules, o));
             if (reserved + BattleCommands.Cost(state, Rules, order) > state.AP[player]) { error = "Not enough available AP. Cancel or replace another action."; return false; }
@@ -90,26 +91,32 @@ namespace TurnZero.Game
             var unit = state.Units.Find(u => u.Id == unitId);
             if (unit == null || !unit.Alive) return new List<GridCell>();
             int range = skill ? Rules.Characters[unit.Slot].Skill.Range : Rules.Characters[unit.Slot].Move.Range;
-            return BattleCommands.FindPath(state, Rules, unit.Cell, target, range, unit.Owner);
+            return BattlePathfinding.FindPath(state, Rules, unit.Cell, target, range, unit.Owner);
         }
-        public bool Ready(int player)
+        public bool Ready(int player, double? now = null)
         {
-            if (player < 0 || player > 1 || state.Phase != BattlePhase.Planning || state.Ready[player]) return false;
-            state.Ready[player] = true; return true;
+            if (player < 0 || player > 1 || state.Phase != BattlePhase.Planning || BothReady || now.HasValue && now.Value >= state.Deadline) return false;
+            state.Ready[player] = !state.Ready[player]; return true;
+        }
+        public bool SetEquipmentDeck(int player, int[] deck)
+        {
+            if (state.Phase != BattlePhase.Setup || player < 0 || player > 1 || deck == null || deck.Length < 1 || deck.Length > 5 ||
+                deck.Distinct().Count() != deck.Length || deck.Any(i => i < 0 || i >= Rules.Equipment.Length)) return false;
+            state.EquipmentDecks[player] = (int[])deck.Clone(); return true;
         }
         public HashSet<GridCell> Reachable(int unitId, bool skill = false)
         {
             var unit = state.Units.Find(u => u.Id == unitId);
             if (unit == null || !unit.Alive || unit.Rooted(state.Turn)) return new HashSet<GridCell>();
             int range = skill ? Rules.Characters[unit.Slot].Skill.Range : Rules.Characters[unit.Slot].Move.Range;
-            return BattleCommands.Reachable(state,Rules,unit.Cell,range,unit.Owner);
+            return BattlePathfinding.Reachable(state,Rules,unit.Cell,range,unit.Owner);
         }
-        public bool Craft(int player, int unitId, int equipment, bool replace, out string error)
+        public bool Craft(int player, int unitId, int equipment, bool replace, out string error, double? now = null)
         {
             error = null;
             var unit = state.Units.Find(u => u.Owner == player && u.Id == unitId && u.Alive);
-            if (state.Phase != BattlePhase.Planning || state.Ready[player] || unit == null) error = "Craft for a living ally during planning.";
-            else if (equipment < 0 || equipment >= Rules.Equipment.Length || state.Materials[player] < 1) error = "No crafting material or invalid equipment.";
+            if (player < 0 || player > 1 || state.Phase != BattlePhase.Planning || state.Ready[player] || unit == null || now.HasValue && now.Value >= state.Deadline) error = "Craft for a living ally during planning.";
+            else if (equipment < 0 || equipment >= Rules.Equipment.Length || !state.EquipmentDecks[player].Contains(equipment) || state.Materials[player] < 1) error = "No crafting material or invalid equipment.";
             else if (unit.Equipment >= 0 && !replace) error = "Replacing equipment destroys the current item. Confirm replacement.";
             if (error != null) return false;
             state.Orders.RemoveAll(o => o.UnitId == unitId && o.Action == BattleAction.Equipment);
@@ -133,34 +140,18 @@ namespace TurnZero.Game
         {
             if (state.Phase != BattlePhase.Resolving) return false;
             state.Orders.Clear(); state.Ready[0] = state.Ready[1] = false;
-            state.Items.RemoveAll(i => i.Collected.Any(c => c));
             state.Structures.RemoveAll(s => s.Health <= 0);
+            foreach (var revealed in state.Revealed) revealed.Clear();
+            BattleVisibility.Observe(state,Rules);
             if (state.Winner != BattleWinner.None) { state.Phase = BattlePhase.Finished; return true; }
             StartTurn(now); return true;
         }
         private void StartTurn(double now)
         {
             state.Turn++; state.Phase = BattlePhase.TurnStart; state.Deadline = now + Rules.TurnStartSeconds;
-            state.FireHits.Clear(); state.Fires.RemoveAll(f => f.ThroughTurn < state.Turn);
-            for (int player = 0; player < 2; player++) { state.AP[player] = Math.Min(Rules.MaximumAP, state.AP[player] + Rules.TurnIncome); state.Revealed[player].Clear(); }
-            SpawnMaterials(); BattleVisibility.Observe(state, Rules);
-        }
-        private void SpawnMaterials()
-        {
-            if (state.Turn % 5 != 0) return;
-            var random = new Random(unchecked(Rules.Seed + state.Turn * 7919));
-            for (int region = 0; region < 3; region++)
-            {
-                int start = region == 0 ? 0 : region == 1 ? Rules.HomeHeight : Rules.HomeHeight + Rules.NeutralHeight;
-                int height = region == 1 ? Rules.NeutralHeight : Rules.HomeHeight;
-                var candidates = new List<GridCell>();
-                for (int y = start; y < start + height; y++) for (int x = 0; x < Rules.Width; x++)
-                {
-                    var cell = new GridCell(x,y);
-                    if (BattleCommands.Movable(state, Rules, cell) && !state.Units.Any(u => u.Alive && u.Cell == cell) && !state.Items.Any(i => i.Cell == cell) && !state.Structures.Any(s => s.Health > 0 && s.Cell == cell)) candidates.Add(cell);
-                }
-                if (candidates.Count > 0) state.Items.Add(new GroundItem { Id = state.NextId++, Cell = candidates[random.Next(candidates.Count)] });
-            }
+            state.Fires.RemoveAll(f => f.ThroughTurn < state.Turn);
+            for (int player = 0; player < 2; player++) { state.AP[player] = Math.Min(Rules.MaximumAP, state.AP[player] + Rules.TurnIncome); }
+            BattleItems.Spawn(state,Rules); BattleVisibility.Observe(state, Rules);
         }
     }
 }

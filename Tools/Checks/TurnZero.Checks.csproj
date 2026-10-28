@@ -9,6 +9,7 @@
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Prototype/Tests/Editor/BattleTests.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Scripts/Domain/*.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Tests/EditMode/LocalBattleTests.cs" />
+    <Compile Include="../../TurnZero/Assets/ProjectFiles/Tests/EditMode/SpecificationTests.cs" />
     <Compile Include="Program.cs" />
     <NUnitAssembly Include="../../TurnZero/Library/PackageCache/com.unity.ext.nunit*/net40/unity-custom/nunit.framework.dll" />
     <Reference Include="nunit.framework">

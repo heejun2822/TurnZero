@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,8 +16,11 @@ namespace TurnZero.Game
         private BattleView lastView;
         private int lastMaximum;
         private Vector2 lastSize;
+        private Coroutine rewardFlash;
+        private string rewardHeading;
         public void Render(BattleView view, int maximum)
         {
+            if (view.Phase == BattlePhase.Setup && rewardFlash != null) { StopCoroutine(rewardFlash); rewardFlash = null; headingText.text = rewardHeading; headingText.color = Color.white; }
             lastView = view; lastMaximum = maximum; lastSize = ((RectTransform)transform).rect.size;
             bool portrait = Screen.height > Screen.width;
             Set(headingText.rectTransform,portrait ? 0.02f : 0.07f,portrait ? 0.55f : 0.86f,portrait ? 0.23f : 0.94f,portrait ? 0.95f : 0.97f);
@@ -40,6 +44,22 @@ namespace TurnZero.Game
             availableText.text = $"{available:00}"; reservedText.text = $"{view.ReservedAP} RESERVED"; maximumText.text = $"/ {maximum} AP";
             inventoryText.text = $"CRAFT  {view.Materials}   /   UPGRADE  --   /   CONSUMABLE  --";
             for (int i = 0; i < pips.Count; i++) pips[i].color = i < available ? new Color(0.15f,0.8f,0.73f) : i < view.AP ? new Color(0.95f,0.66f,0.24f) : new Color(0.13f,0.18f,0.23f);
+        }
+        public void FlashReward(int amount)
+        {
+            if (rewardFlash != null) StopCoroutine(rewardFlash);
+            else rewardHeading = headingText.text;
+            rewardFlash = StartCoroutine(Reward(amount));
+        }
+        private IEnumerator Reward(int amount)
+        {
+            headingText.text = amount > 0 ? $"+{amount} AP" : "AP CAP";
+            for (float elapsed = 0; elapsed < 0.7f; elapsed += Time.unscaledDeltaTime)
+            {
+                headingText.color = Color.Lerp(Color.white,new Color(1,0.72f,0.2f),Mathf.PingPong(elapsed*4,1));
+                yield return null;
+            }
+            headingText.text = rewardHeading; headingText.color = Color.white; rewardFlash = null;
         }
         private void LateUpdate() { if (lastView != null && lastSize != ((RectTransform)transform).rect.size) Render(lastView,lastMaximum); }
         private static void Set(RectTransform rect, float x0, float y0, float x1, float y1)

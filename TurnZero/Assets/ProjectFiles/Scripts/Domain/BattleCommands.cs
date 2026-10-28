@@ -30,7 +30,7 @@ namespace TurnZero.Game
         }
         public static int Cost(GameRules rules, BattleUnit unit, BattleAction action, int turn) => action == BattleAction.Revive ?
             Math.Max(rules.MinimumReviveCost,rules.ReviveCost-Math.Max(0,turn-unit.DiedTurn-1)) : Spec(rules,unit,action)?.Cost ?? 0;
-        public static int Priority(MatchState state, GameRules rules, BattleOrder order) => order.Action == BattleAction.Revive ? 1 : Spec(state, rules, order)?.Priority ?? 5;
+        public static int Priority(MatchState state, GameRules rules, BattleOrder order) => order.Action == BattleAction.Revive ? 0 : Spec(state, rules, order)?.Priority ?? 5;
         public static bool BaseAt(MatchState state, GridCell cell) => state.Bases.Any(b => b.Placed && b.Cell == cell);
         public static bool Movable(MatchState state, GameRules rules, GridCell cell, int player = -1)
         {
@@ -40,39 +40,11 @@ namespace TurnZero.Game
             return !state.Bases.Any(b => b.Placed && b.Cell == cell && (b.Owner == player || vision.Contains(cell) || state.KnownBases[player]?.Cell == cell));
         }
 
-        public static List<GridCell> FindPath(MatchState state, GameRules rules, GridCell start, GridCell target, int maximum, int player)
+        public static bool Installable(MatchState state, GameRules rules, GridCell cell, int player = -1)
         {
-            if (start == target || !rules.Contains(target)) return new List<GridCell>();
-            var distances = Search(state,rules,start,maximum,player,out var previous);
-            var path = new List<GridCell>();
-            if (!distances.ContainsKey(target)) return path;
-            while (target != start) { path.Add(target); target = previous[target]; }
-            path.Reverse(); return path;
-        }
-        public static HashSet<GridCell> Reachable(MatchState state, GameRules rules, GridCell start, int maximum, int player) =>
-            new HashSet<GridCell>(Search(state,rules,start,maximum,player,out _).Keys.Where(c => c != start));
-        private static Dictionary<GridCell,int> Search(MatchState state, GameRules rules, GridCell start, int maximum, int player, out Dictionary<GridCell,GridCell> previous)
-        {
-            var vision = player >= 0 ? BattleVisibility.Vision(state,rules,player) : null;
-            var blocked = new HashSet<GridCell>(state.Bases.Where(b => b.Placed && (player < 0 || b.Owner == player || vision.Contains(b.Cell) || state.KnownBases[player]?.Cell == b.Cell)).Select(b => b.Cell));
-            var frontier = new Queue<GridCell>();
-            previous = new Dictionary<GridCell, GridCell>();
-            var distance = new Dictionary<GridCell, int> { [start] = 0 };
-            frontier.Enqueue(start);
-            var directions = new[] { new GridCell(0,1), new GridCell(1,0), new GridCell(0,-1), new GridCell(-1,0) };
-            while (frontier.Count > 0)
-            {
-                var cell = frontier.Dequeue();
-                if (distance[cell] >= maximum) continue;
-                foreach (var direction in directions)
-                {
-                    var next = new GridCell(cell.X + direction.X, cell.Y + direction.Y);
-                    if (distance.ContainsKey(next) || !rules.Contains(next) || blocked.Contains(next)) continue;
-                    distance[next] = distance[cell] + 1; previous[next] = cell;
-                    frontier.Enqueue(next);
-                }
-            }
-            return distance;
+            if (!Movable(state,rules,cell,player)) return false;
+            var known = player < 0 ? state.Structures.Where(s => s.Operational) : BattleVisibility.View(state,rules,player,0).Structures;
+            return !known.Any(s => s.Cell == cell);
         }
 
         public static string Validate(MatchState state, GameRules rules, int player, BattleOrder order)
@@ -114,10 +86,11 @@ namespace TurnZero.Game
                 var ally = state.Units.Find(u => u.Id == order.TargetUnit && u.Owner == player && u.Id != unit.Id && u.Alive);
                 return ally != null && !unit.Rooted(state.Turn) && !ally.Rooted(state.Turn) ? null : "Choose another living, movable ally.";
             }
-            if (unit.Cell.Distance(order.Target) > spec.Range || !Movable(state, rules, order.Target)) return "Choose a valid structure tile within range.";
+            if (unit.Cell.Distance(order.Target) > spec.Range || !Installable(state, rules, order.Target, player)) return "Choose a valid structure tile within range.";
+            if (!state.Explored[player].Contains(order.Target) && !BattleVisibility.Vision(state,rules,player).Contains(order.Target)) return "Choose an explored structure tile.";
             if (equipment.Effect == EquipmentEffect.Portal)
             {
-                if (!Movable(state, rules, order.Exit) || order.Exit == order.Target || order.Target.Distance(order.Exit) > equipment.ExitRange) return "Choose a separate exit within portal range.";
+                if (!Installable(state, rules, order.Exit, player) || order.Exit == order.Target || order.Target.Distance(order.Exit) > equipment.ExitRange) return "Choose a separate exit within portal range.";
                 var known = state.Explored[player];
                 if (!known.Contains(order.Target) || !known.Contains(order.Exit)) return "Portal entrance and exit must be explored.";
             }

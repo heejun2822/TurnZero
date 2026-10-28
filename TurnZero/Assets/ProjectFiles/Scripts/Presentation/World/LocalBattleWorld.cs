@@ -84,7 +84,7 @@ namespace TurnZero.Game
                         range = view.Units.Any(u => u.Owner == view.Player && u.Alive && u.Id != selected.Id && u.Cell == cell);
                     else if (session.Action == BattleAction.Equipment && (cell == view.OwnBase.Cell || view.EnemyBase != null && cell == view.EnemyBase.Cell)) range = false;
                     if (range) highlight = session.Action == BattleAction.Move || session.Action == BattleAction.Revive ? new Color(0.06f,0.45f,0.45f) : new Color(0.54f,0.31f,0.12f);
-                    int previewRadius = spec == null ? 0 : Mathf.Max(0,spec.Area-1);
+                    int previewRadius = spec == null ? 0 : spec.Area;
                     if (session.Action == BattleAction.Equipment && selected.Equipment >= 0 && rules.Equipment[selected.Equipment].Effect == EquipmentEffect.Beacon) previewRadius = spec.Area;
                     if (session.HoverCell.HasValue && spec != null && session.Action != BattleAction.Move && cell.Distance(session.HoverCell.Value) <= previewRadius && selected.Cell.Distance(session.HoverCell.Value) <= spec.Range)
                         highlight = new Color(0.95f,0.47f,0.19f);
@@ -119,7 +119,7 @@ namespace TurnZero.Game
                         showLabel = unit.Id == session.SelectedId || !stack.Any(u => u.Id == session.SelectedId) && index == 0;
                     }
                 }
-                string text = unit == null ? "" : $"{unit.Slot+1}  {unit.Health}/{rules.Characters[unit.Slot].Health}" + (unit.Rooted(view.Turn) ? " ROOT" : unit.HiddenThrough >= view.Turn && unit.HiddenThrough > 0 ? " HIDDEN" : "");
+                string text = unit == null ? "" : $"{unit.Slot+1}  {unit.Health}/{rules.Characters[unit.Slot].Health}" + (unit.Rooted(view.Turn) ? " ROOT" : BattleStatusEffects.Has(unit,StatusEffectKind.Stealth,view.Turn) ? " HIDDEN" : "");
                 if (stackCount > 1) text += $"\nSTACK {stackCount}";
                 actor.Render(unit != null,unit?.Cell ?? default,unit == null ? Vector3.zero : Position(unit.Cell)+offset,text,Team(unit?.Owner ?? 0),unit?.Id == session.SelectedId,false,showLabel,stackCount > 1 ? 0.62f : 1);
             }
@@ -130,15 +130,16 @@ namespace TurnZero.Game
                     $"{rules.Characters[seen.Unit.Slot].Name}\n{view.Turn-seen.Turn} T AGO / {seen.Unit.Health} HP",Color.gray,false,true);
             }
             foreach (var marker in markers.Values) marker.SetActive(false);
-            foreach (var item in view.Items.Where(i => !i.Collected[view.Player])) Marker($"item/{item.Id}",itemPrefab,item.Cell,$"CRAFT",new Color(0.96f,0.72f,0.25f));
+            foreach (var item in view.Items) Marker($"item/{item.Id}",itemPrefab,item.Cell,$"CRAFT",new Color(0.96f,0.72f,0.25f));
             foreach (var structure in view.Structures) Marker($"structure/{structure.Id}",structurePrefab,structure.Cell,
-                structure.Kind == StructureKind.Beacon ? $"VISION\n{structure.Health} HP" : $"{(structure.Kind == StructureKind.PortalEntrance ? "IN" : "OUT")}\n{(view.Turn >= structure.ReadyTurn ? "READY" : $"{structure.ReadyTurn-view.Turn} T")} / {structure.Health} HP",Team(structure.Owner));
+                structure.Kind == StructureKind.Beacon ? $"VISION\n{structure.Health} HP" : $"{(structure.Kind == StructureKind.PortalEntrance ? "IN" : "OUT")}\n{(structure.Completed ? "READY" : $"{structure.ReadyTurn-view.Turn} T")} / {structure.Health} HP",Team(structure.Owner));
             foreach (var fire in view.Fires)
-                foreach (var cell in BattleVisibility.Area(rules,fire.Cell,Mathf.Max(0,fire.Area-1)).Where(c => fire.Owner == view.Player || view.Visible.Contains(c)))
+                foreach (var cell in BattleVisibility.Area(rules,fire.Cell,fire.Area).Where(c => fire.Owner == view.Player || view.Visible.Contains(c)))
                     Marker($"fire/{fire.Id}/{cell}",impactPrefab,cell,"",new Color(0.72f,0.19f,0.05f));
             RenderPath(view,selected);
             if (view.Phase == BattlePhase.Setup)
             {
+                StopAllCoroutines();
                 foreach (var marker in markers.Values) Destroy(marker); markers.Clear();
                 foreach (var effect in effects) if (effect != null) Destroy(effect); effects.Clear();
             }
@@ -169,6 +170,16 @@ namespace TurnZero.Game
         }
         private void Cue(BattleCue cue)
         {
+            if (cue.Kind == CueKind.Reward) return;
+            if (cue.Kind == CueKind.Swap)
+            {
+                foreach (var position in cue.Positions)
+                {
+                    var swapped = actors.FirstOrDefault(a => a.EntityId == position.Key);
+                    if (swapped != null && swapped.gameObject.activeSelf) swapped.MoveTo(Position(position.Value),session.Configuration.ActionSeconds);
+                }
+                return;
+            }
             if (cue.Kind == CueKind.Move || cue.Kind == CueKind.Portal)
             {
                 var actor = actors.FirstOrDefault(a => a.EntityId == cue.ActorId);
@@ -192,7 +203,7 @@ namespace TurnZero.Game
             }
             var area = new List<GameObject>();
             var view = session.View;
-            foreach (var cell in BattleVisibility.Area(session.Rules,cue.Target,Mathf.Max(0,cue.Area-1)).Where(c => cue.Owner == session.Player || view.Visible.Contains(c)))
+            foreach (var cell in (cue.VisibleCells ?? BattleVisibility.Area(session.Rules,cue.Target,cue.Area).ToList()))
             {
                 var effect = Instantiate(impactPrefab,dynamicRoot); effect.transform.position = Position(cell)+Vector3.up*0.12f; effects.Add(effect); area.Add(effect);
             }

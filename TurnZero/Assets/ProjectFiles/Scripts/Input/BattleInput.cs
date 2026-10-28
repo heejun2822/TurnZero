@@ -103,8 +103,7 @@ namespace TurnZero.Game
                 if (dragging && unitDrag && path.Count > 0) session.Events.Path(new List<GridCell>(path));
                 else if (!dragging && onBoard && world.TryCell(cameraRig.Camera,point,out var cell))
                 {
-                    bool swapping = session.Armed && session.Action == BattleAction.Equipment && session.Selected?.Equipment >= 0 && session.Rules.Equipment[session.Selected.Equipment].Effect == EquipmentEffect.Swap;
-                    if (session.Match.Phase == BattlePhase.Planning && world.TryActor(cameraRig.Camera,point,out int id) && !swapping && (!session.Armed || (id-1)/5 == session.Player)) session.Events.Select(id);
+                    if (session.Match.Phase == BattlePhase.Planning && world.TryActor(cameraRig.Camera,point,out int id) && !session.Armed) session.Events.Select(id);
                     else session.Events.Tile(cell);
                 }
                 path.Clear(); session.Events.PreviewPath(path); pressed = false;

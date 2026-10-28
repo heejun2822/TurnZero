@@ -6,7 +6,7 @@ using TurnZero.Tests;
 
 int failed = 0;
 int total = 0;
-foreach (var fixture in new object[] { new BattleTests(), new TurnZero.Game.Tests.LocalBattleTests() })
+foreach (var fixture in new object[] { new BattleTests(), new TurnZero.Game.Tests.LocalBattleTests(), new TurnZero.Game.Tests.SpecificationTests() })
 foreach (var test in fixture.GetType().GetMethods().Where(m => m.GetCustomAttribute<TestAttribute>() != null))
 {
     total++;

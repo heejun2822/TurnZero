@@ -46,19 +46,24 @@ MonoBehaviour:
   MaximumZoom: 1.1
   InitialZoom: 0.45
   ZoomSensitivity: 1.2
-  LocalProfileNotes: "LOCAL PLAYTEST PROFILE v1 \u2014 provisional, not final design
-    decisions.\nManhattan ranges. Area 0/1: one tile; area N: radius N-1. Tile-fixed
-    attacks may target darkness, damage enemies only. All units may overlap and pass.
-    CD1: next turn; CD2: skip one turn.\nBurn: initial area hit plus once per zone
-    per turn on entry/end of movement; lasts creation turn plus two. Stealth lasts
-    through next turn. Root affects next turn. Kill AP is awarded once per enemy
-    death immediately, capped at 25.\nRevive next turn at full HP inside own base
-    vision; first revival cost 15, then -1 per turn to 10. No action after revival
-    that turn.\nCraft during unlocked planning: one material, no AP/action; explicit
-    replacement confirmation. Portal build includes start turn and activates two
-    turns later; one-hop teleport; either endpoint destroyed removes both. Beacons
-    persist.\nStarter roster is all five distinct characters. Equipment deck has
-    five slots and may repeat the three defined items. Undefined upgrades/consumables
-    and account progression are not fabricated.\nReady locks edits; both ready ends
-    planning. Unassigned wait is free. Debug pause/reveal/force resolve are local
-    testing controls. Unresolved combined defeats retain a draw."
+  LocalProfileNotes: "LOCAL PLAYTEST PROFILE v2 \u2014 local controls and undefined
+    content remain provisional.\nManhattan ranges and effect radius N. Attacks retain
+    their reserved target and range eligibility. Same-phase attacks remain valid;
+    HP updates per attack and deaths settle at phase end.\nPhases 0\u20134: revive
+    at 0; movement advances concurrently by tile within each movement phase. First
+    item contact wins; contacts tied in one step award each team once and remove
+    the item immediately.\nBurn hits on creation and at its original skill phase
+    on later turns; duration includes the creation turn and has no movement-entry
+    damage. Stealth and root share status-effect definitions; operational beacons
+    detect stealth.\nKill AP is awarded at turn wrap, capped at 25, with a visible
+    actual-increase cue. Death clears all cooldowns. Revive next turn at full HP
+    in own base vision, cost 15 decreasing to 10, clearing status effects and preventing
+    another action that turn.\nEquipment decks contain 1\u20135 distinct reusable
+    crafting choices; only three item types are currently defined. Crafting replaces
+    equipment only after confirmation and resets its cooldown. Overlapping swaps
+    and installation claims fail without cost. Portal progress includes its creation
+    turn and completes at phase 4 end; linked ends die together.\nReady may be unlocked
+    before planning ends; both ready or the deadline starts one resolution. Enemy
+    identity and confirmed death are public; hidden revival requires observation,
+    and hidden paths or attack sources are not replayed.\nUndefined upgrades, consumables,
+    progression, online play and final input choices await their documented decisions."

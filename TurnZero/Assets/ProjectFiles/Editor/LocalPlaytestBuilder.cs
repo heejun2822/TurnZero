@@ -1,47 +1,29 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using TMPro;
-using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
+using UnityEditor.Tilemaps;
+using UnityEditor;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using UnityEngine;
 
 namespace TurnZero.Game.Editor
 {
-    public static class LocalPlaytestAuthoring
-    {
-        public const string ScenePath = "Assets/ProjectFiles/Scenes/LocalBattle.unity";
-        [MenuItem("TurnZero/Local Playtest/Open game")]
-        public static void Open()
-        {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            EditorSceneManager.OpenScene(ScenePath);
-        }
-        [MenuItem("TurnZero/Local Playtest/Build scene and missing defaults")]
-        public static void BuildMenu()
-        {
-            if (EditorApplication.isPlayingOrWillChangePlaymode || !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            if (System.IO.File.Exists(ScenePath) && !EditorUtility.DisplayDialog("Rebuild LocalBattle scene?","This rebuilds the generated LocalBattle scene and session prefab. Edited content ScriptableObjects are preserved. Save custom scene edits first.","Rebuild","Cancel")) return;
-            BuildBatch();
-        }
-        public static void BuildBatch() { new LocalPlaytestBuilder().Build(); Debug.Log("TurnZero local playtest authored successfully."); }
-    }
-
-    internal sealed partial class LocalPlaytestBuilder
+    internal sealed class LocalPlaytestBuilder
     {
         private const string Root = LocalGameContent.Root;
+        private readonly Color cyan = new Color(0.15f,0.82f,0.75f), amber = new Color(0.96f,0.7f,0.32f);
         private BattleConfiguration configuration;
         private GameRules rules;
         private GameObject root;
         private BattleSession session;
         private TMP_FontAsset font;
-        private readonly Color ink = new Color(0.028f,0.045f,0.066f), panel = new Color(0.045f,0.066f,0.09f), edge = new Color(0.12f,0.18f,0.23f);
-        private readonly Color muted = new Color(0.52f,0.62f,0.69f), cyan = new Color(0.15f,0.82f,0.75f), amber = new Color(0.96f,0.7f,0.32f);
         internal void Build()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -56,7 +38,7 @@ namespace TurnZero.Game.Editor
             camera.backgroundColor = new Color(0.015f,0.025f,0.04f); camera.clearFlags = CameraClearFlags.SolidColor; camera.farClipPlane = 200;
             camera.transform.rotation = Quaternion.Euler(configuration.CameraPitch,0,0); camera.transform.position = -camera.transform.forward*48;
             var rig = cameraObject.GetComponent<LocalBattleCamera>(); Wire(rig,("cameraView",camera));
-            var hud = BuildHud();
+            var hud = new LocalHudBuilder(root,configuration,rules,font).Build();
             var inputObject = new GameObject("Battle Input",typeof(BattleInput),typeof(EventSystem),typeof(InputSystemUIInputModule)); inputObject.transform.SetParent(root.transform,false);
             var module = inputObject.GetComponent<InputSystemUIInputModule>(); module.AssignDefaultActions(); module.submit = null; module.cancel = null; module.move = null;
             var audioObject = new GameObject("Battle Audio",typeof(AudioSource),typeof(BattleAudio)); audioObject.transform.SetParent(root.transform,false);
@@ -82,7 +64,7 @@ namespace TurnZero.Game.Editor
             var outline = Shape("Range outline",template.transform,PrimitiveType.Cube,new Vector3(0,-0.10f,0),new Vector3(2.14f,0.08f,2.14f),cyan,false); outline.SetActive(false);
             Wire(template.GetComponent<LocalTileView>(),("surface",floor.GetComponent<Renderer>()),("outline",outline.GetComponent<Renderer>()));
             var tilePrefab = PrefabUtility.SaveAsPrefabAsset(template,Root+"Prefabs/World/Tile.prefab"); UnityEngine.Object.DestroyImmediate(template);
-            var map = BuildMap(board,tilePrefab);
+            var map = LocalFieldMapBuilder.Build(board,tilePrefab,configuration.Fields[0],rules);
             foreach (int row in new[] { rules.HomeHeight,rules.HomeHeight+rules.NeutralHeight })
             {
                 Shape("Field boundary",board.transform,PrimitiveType.Cube,new Vector3(0,0.01f,(row-rules.Height*0.5f)*configuration.Fields[0].TileSpacing),new Vector3(rules.Width*configuration.Fields[0].TileSpacing,0.025f,0.045f),amber,false);
@@ -178,5 +160,6 @@ namespace TurnZero.Game.Editor
             }
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+
     }
 }

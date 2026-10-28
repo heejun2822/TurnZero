@@ -370,5 +370,83 @@ namespace TurnZero.Game.Tests
             }
             yield return null;
         }
+
+        [UnityTest] public IEnumerator ReadyCanBeUnlockedThroughTheHudWithoutRestartingPlanning()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            session.Events.Select(1); session.Events.SetAction(BattleAction.Move);
+            var target = new GridCell(session.Selected.Cell.X,session.Selected.Cell.Y+1); session.Events.Tile(target);
+            int reserved = session.View.ReservedAP; double seconds = session.View.SecondsLeft;
+            Button("Ready").onClick.Invoke(); Assert.That(session.View.Ready,Is.True);
+            Assert.That(Button("Ready").interactable,Is.True);
+            Button("Ready").onClick.Invoke(); Assert.That(session.View.Ready,Is.False);
+            Assert.That(session.View.ReservedAP,Is.EqualTo(reserved));
+            Assert.That(session.View.SecondsLeft,Is.LessThanOrEqualTo(seconds));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest] public IEnumerator SimultaneousMovesStartOnTheSameFrameAndRestoreTheManualCamera()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            configuration.MoveSeconds = 0.15f;
+            foreach (int id in new[] { 1,2 })
+            {
+                session.Events.Select(id); session.Events.SetAction(BattleAction.Move);
+                session.Events.Tile(new GridCell(session.Selected.Cell.X,session.Selected.Cell.Y+1));
+            }
+            var frames = new System.Collections.Generic.List<int>();
+            Action<BattleCue> observe = cue => { if (cue.Kind == CueKind.Move) frames.Add(Time.frameCount); };
+            var rig = root.GetComponentInChildren<LocalBattleCamera>(); var focus = rig.FocusPoint; float zoom = rig.Zoom;
+            session.Events.CueRequested += observe;
+            Button("Resolve").onClick.Invoke(); yield return Planning();
+            session.Events.CueRequested -= observe;
+            Assert.That(frames.Count,Is.EqualTo(2)); Assert.That(frames.Distinct().Count(),Is.EqualTo(1));
+            Assert.That(rig.FocusPoint,Is.EqualTo(focus)); Assert.That(rig.Zoom,Is.EqualTo(zoom));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest] public IEnumerator KillRewardFlashesTheActualApIncreaseThroughTheReplay()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            int rewards = 0; bool flash = false;
+            Action<BattleCue> observe = cue => {
+                if (cue.Kind != CueKind.Reward || cue.Owner != 0) return;
+                rewards++; flash = Text("AP heading").text == $"+{cue.APDelta} AP";
+            };
+            session.Events.CueRequested += observe;
+            for (int i = 0; i < 4 && rewards == 0; i++)
+            {
+                session.Events.Select(5);
+                var action = session.Selected.ReadyOn[(int)BattleAction.Skill] <= session.Match.Turn ? BattleAction.Skill : BattleAction.Attack;
+                session.Events.SetAction(action);
+                session.Events.Tile(session.Match.DebugSnapshot().Units.Single(u => u.Id == 6).Cell);
+                Assert.That(session.View.Orders.Any(o => o.UnitId == 5),Is.True,session.Message);
+                Button("Resolve").onClick.Invoke(); yield return Planning();
+            }
+            session.Events.CueRequested -= observe;
+            Assert.That(rewards,Is.EqualTo(1)); Assert.That(flash,Is.True);
+            session.Events.Restart(); yield return null;
+            Assert.That(Text("AP heading").text,Is.EqualTo("ACTION POINTS"));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+
+        [UnityTest] public IEnumerator CompletelyHiddenMovementDoesNotStartACameraTransition()
+        {
+            Button("Quick deploy").onClick.Invoke(); yield return Planning();
+            var before = session.Match.DebugSnapshot(); var after = before.Copy();
+            var actor = after.Units.Single(u => u.Id == 6); var source = actor.Cell;
+            actor.Cell = new GridCell(source.X,source.Y+1);
+            var step = new ResolutionStep { Before = before, After = after, SimultaneousMovement = true, Phase = 2 };
+            step.Cues.Add(new BattleCue { Kind = CueKind.Move, Owner = 1, ActorId = 6, Source = source, Target = actor.Cell });
+            Assert.That(step.VisibleCues(session.Rules,0,false),Is.Empty);
+            var timeline = new BattleTimeline { Final = after }; timeline.Steps.Add(step);
+            int moves = 0; Action observe = () => moves++; session.Events.MovementRequested += observe;
+            var playback = new BattlePlayback(configuration,session.Events);
+            yield return playback.Play(timeline,session.Rules,0,false,_ => { });
+            session.Events.MovementRequested -= observe;
+            Assert.That(moves,Is.Zero); LogAssert.NoUnexpectedReceived();
+        }
+
     }
 }

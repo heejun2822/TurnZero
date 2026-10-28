@@ -20,6 +20,7 @@ namespace TurnZero.Game
             bool twice = Time.unscaledTimeAsDouble - lastClick <= 0.32; lastClick = Time.unscaledTimeAsDouble;
             session.Events.Select((enemy ? 1-session.Player : session.Player) * 5 + slot + 1,twice);
         }
+        private void OnDestroy() { button.onClick.RemoveListener(Click); }
         public void Render(BattleView view)
         {
             int owner = enemy ? 1-view.Player : view.Player, id = owner * 5 + slot + 1;
@@ -35,8 +36,8 @@ namespace TurnZero.Game
             float healthRatio = known == null ? 0 : Mathf.Clamp01((float)known.Health / definition.Values.Health);
             healthFill.rectTransform.anchorMax = new Vector2(healthRatio,1);
             healthFill.enabled = healthRatio > 0;
-            healthFill.color = known != null && known.Health <= 0 ? Color.gray : LocalBattleWorld.Team(owner);
-            statusText.text = known == null ? "UNOBSERVED" : known.Health <= 0 ? enemy ? "DEFEATED" : "DEFEATED / REVIVE" : unit == null ? $"LAST SEEN {view.Turn-observation.Turn}T AGO" : !unit.Placed ? "DEPLOYING" : unit.Rooted(view.Turn) ? "ROOT" : unit.HiddenThrough >= view.Turn && unit.HiddenThrough > 0 ? "STEALTH" : "READY";
+            healthFill.color = known != null && known.Health <= 0 && !known.DefeatPending ? Color.gray : LocalBattleWorld.Team(owner);
+            statusText.text = known == null ? "UNOBSERVED" : known.Health <= 0 && !known.DefeatPending ? enemy ? "DEFEATED" : "DEFEATED / REVIVE" : unit == null ? $"LAST SEEN {view.Turn-observation.Turn}T AGO" : !unit.Placed ? "DEPLOYING" : unit.Rooted(view.Turn) ? "ROOT" : BattleStatusEffects.Has(unit,StatusEffectKind.Stealth,view.Turn) ? "STEALTH" : "READY";
             equipmentText.text = known == null || known.Equipment < 0 ? "NO EQUIPMENT" : session.Rules.Equipment[known.Equipment].Name.ToUpperInvariant();
             var order = view.Orders.Find(o => o.UnitId == id);
             orderText.text = enemy ? "" : order == null ? "WAIT / 0 AP" : $"{order.Action.ToString().ToUpperInvariant()} / {BattleCommands.Cost(session.Rules,known,order.Action,view.Turn)} AP";

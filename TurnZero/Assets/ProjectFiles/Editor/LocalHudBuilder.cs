@@ -1,14 +1,32 @@
 using System.Collections.Generic;
+using System.Linq;
+using System;
 using TMPro;
+using UnityEditor.SceneManagement;
+using UnityEditor.Tilemaps;
 using UnityEditor;
-using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using UnityEngine;
 
 namespace TurnZero.Game.Editor
 {
-    internal sealed partial class LocalPlaytestBuilder
+    internal sealed class LocalHudBuilder
     {
-        private LocalBattleHud BuildHud()
+        private const string Root = LocalGameContent.Root;
+        private readonly GameObject root;
+        private readonly BattleConfiguration configuration;
+        private readonly GameRules rules;
+        private readonly TMP_FontAsset font;
+        private readonly Color ink = new Color(0.028f,0.045f,0.066f), panel = new Color(0.045f,0.066f,0.09f), edge = new Color(0.12f,0.18f,0.23f);
+        private readonly Color muted = new Color(0.52f,0.62f,0.69f), cyan = new Color(0.15f,0.82f,0.75f), amber = new Color(0.96f,0.7f,0.32f);
+        public LocalHudBuilder(GameObject root, BattleConfiguration configuration, GameRules rules, TMP_FontAsset font)
+        { this.root = root; this.configuration = configuration; this.rules = rules; this.font = font; }
+        public LocalBattleHud Build()
         {
             var canvasObject = new GameObject("Game HUD",typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster),typeof(LocalBattleHud),typeof(LocalHudLayout));
             canvasObject.transform.SetParent(root.transform,false);
@@ -83,13 +101,13 @@ namespace TurnZero.Game.Editor
             var confirmButton = Button("Confirm replacement",confirmBody,0.18f,0.16f,0.49f,0.28f,"REPLACE",17,out _,cyan);
             var cancelConfirm = Button("Keep equipment",confirmBody,0.51f,0.16f,0.82f,0.28f,"KEEP CURRENT",17,out _); confirm.SetActive(false);
             var hud = canvasObject.GetComponent<LocalBattleHud>();
-            Wire(hud,("phaseText",phase),("timerText",timer),("baseText",bases),("perspectiveText",perspective),("messageText",message),("logText",log),
+            LocalPlaytestBuilder.Wire(hud,("phaseText",phase),("timerText",timer),("baseText",bases),("perspectiveText",perspective),("messageText",message),("logText",log),
                 ("selectedName",selectedName),("selectedHealth",selectedHealth),("selectedStatus",selectedStatus),("selectedPortrait",selectedPortrait),("actionInfo",actionInfo),("reservedInfo",reserved),("craftInfo",craftInfo),("phaseBannerText",bannerText),("resultText",resultText),
                 ("actionButtons",actionButtons.ToArray()),("actionLabels",actionLabels.ToArray()),("craftButtons",craftButtons.ToArray()),("craftLabels",craftLabels.ToArray()),("fieldButtons",fields),("fieldLabels",fieldLabels),("deckButtons",decks),("deckLabels",deckLabels),
                 ("readyButton",ready),("readyLabel",readyLabel),("switchButton",toolbarButtons[0]),("switchLabel",toolbarLabels[0]),("pauseButton",toolbarButtons[1]),("pauseLabel",toolbarLabels[1]),("resolveButton",toolbarButtons[2]),("resolveLabel",toolbarLabels[2]),
                 ("revealButton",toolbarButtons[3]),("revealLabel",toolbarLabels[3]),("helpButton",toolbarButtons[4]),("restartButton",toolbarButtons[5]),("startButton",start),("autoDeployButton",auto),("rematchButton",rematch),("closeHelpButton",closeHelp),
                 ("confirmButton",confirmButton),("cancelConfirmButton",cancelConfirm),("setupPanel",setup),("helpPanel",help),("resultPanel",result),("phaseBanner",banner.gameObject),("confirmPanel",confirm),("cards",cards.ToArray()),("apPanel",apComponent));
-            Wire(canvasObject.GetComponent<LocalHudLayout>(),("safeArea",safe),("header",header),("intel",intel),("commands",commands),("roster",roster),("ap",ap),("toolbar",toolbar),("hint",hint),
+            LocalPlaytestBuilder.Wire(canvasObject.GetComponent<LocalHudLayout>(),("safeArea",safe),("header",header),("intel",intel),("commands",commands),("roster",roster),("ap",ap),("toolbar",toolbar),("hint",hint),
                 ("selectionHeader",selection),("actions",actions),("details",detail),("craft",craft),("ready",ready.GetComponent<RectTransform>()),("ownCards",ownRects.ToArray()),("enemyCards",enemyRects.ToArray()),("desktopIntelLabels",new[] { intelHeading.gameObject,intelRule.gameObject,intelFooter.gameObject }));
             return hud;
         }
@@ -107,7 +125,7 @@ namespace TurnZero.Game.Editor
             var equipment = Text("Equipment",rect,0.04f,0.12f,0.96f,0.25f,"NO EQUIPMENT",9,muted);
             var order = Text("Order",rect,0.04f,0.01f,0.96f,0.14f,enemy ? "" : "WAIT / 0 AP",10,amber);
             var view = rect.gameObject.AddComponent<LocalRosterCard>();
-            Wire(view,("slot",slot),("enemy",enemy),("button",button),("portrait",portrait),("accent",accent),("background",rect.GetComponent<Image>()),("healthFill",hpFill),
+            LocalPlaytestBuilder.Wire(view,("slot",slot),("enemy",enemy),("button",button),("portrait",portrait),("accent",accent),("background",rect.GetComponent<Image>()),("healthFill",hpFill),
                 ("nameText",name),("healthText",hp),("statusText",status),("equipmentText",equipment),("orderText",order));
             return view;
         }
@@ -124,8 +142,8 @@ namespace TurnZero.Game.Editor
             var template = new GameObject("AP pip",typeof(RectTransform),typeof(Image)); template.layer = LayerMask.NameToLayer("UI"); var image = template.GetComponent<Image>(); image.color = cyan; image.raycastTarget = false;
             var pipPrefab = PrefabUtility.SaveAsPrefabAsset(template,Root+"Prefabs/UI/ApPip.prefab").GetComponent<Image>(); UnityEngine.Object.DestroyImmediate(template);
             var component = panelRoot.gameObject.AddComponent<LocalApPanel>();
-            Wire(component,("availableText",available),("reservedText",reserved),("maximumText",maximum),("inventoryText",inventory),("authoredPips",pips.ToArray()),("grid",grid),("pipPrefab",pipPrefab));
-            Wire(component,("headingText",heading));
+            LocalPlaytestBuilder.Wire(component,("availableText",available),("reservedText",reserved),("maximumText",maximum),("inventoryText",inventory),("authoredPips",pips.ToArray()),("grid",grid),("pipPrefab",pipPrefab));
+            LocalPlaytestBuilder.Wire(component,("headingText",heading));
             return component;
         }
         private GameObject BuildSetup(Transform parent, out Button start, out Button auto, out Button[] fieldButtons, out TMP_Text[] fieldLabels, out Button[] deckButtons, out TMP_Text[] deckLabels)
@@ -177,5 +195,6 @@ namespace TurnZero.Game.Editor
             var colors = button.colors; colors.highlightedColor = new Color(1.2f,1.2f,1.2f); colors.pressedColor = new Color(0.72f,0.84f,0.87f); colors.disabledColor = new Color(0.34f,0.4f,0.45f); button.colors = colors;
             label = Text("Label",rect,0.035f,0.05f,0.965f,0.95f,text,size,fill.HasValue ? ink : Color.white,TextAlignmentOptions.Center); return button;
         }
+
     }
 }
