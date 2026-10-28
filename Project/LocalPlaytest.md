@@ -4,24 +4,24 @@
 |---|---|
 | Git 최초 확인 | 2026-10-22, eba3e9b |
 | 직전 마지막 커밋 | 2026-10-23, ed5cc8a. 총 5개 커밋, 이후 기획 문답에서 작업 트리 수정 |
-| 현재 점검 / 갱신 | 2026-10-28, 실행 메뉴·씬·입력·설정 소스 확인 |
+| 현재 점검 / 갱신 | 2026-10-29, 오브젝트별 View 분리와 표시 상태 재사용 |
 | 역할 / 관리 조건 | 현재 로컬 씬의 실행·조작·데이터 편집 안내. 실행/입력 변경 시 갱신 |
 | 게임 기준 / 현재 차이 | [DevelopmentPlan.md](DevelopmentPlan.md) / [Development.md](Development.md#2-명세와-현재-구현의-차이) |
 | 구조 / 검증 | [GameArchitecture.md](GameArchitecture.md) / [Verification.md](Verification.md) |
 | 이전 판본 | [재편 전 가이드](Archive/2026-10-28/LocalPlaytest.md) |
 
-한 기기에서 양 팀을 번갈아 조작하는 로컬 개발 도구다. 아래 조작은 현재 구현 안내이며 최종 입력 기획의 확정과 구분한다. 현재 코드는 최신 명세의 모든 후속 결정을 반영하지 않았으며 이번 문서 재편에서는 Play 실행·실기기 검증을 하지 않았다.
+한 기기에서 양 팀을 번갈아 조작하는 로컬 개발 도구다. 아래 조작은 현재 구현 안내이며 최종 입력 기획의 확정과 구분한다. 확정된 로컬 전투 차이 PT-01~14를 반영하고 Unity 자동 검사를 실행했다. 전체 수용 플레이와 실기기 검증은 계속 필요하다. 실행 증거는 Verification.md 5장에서 확인한다.
 
 ## 1. 실행
 
 1. Unity 6000.3.5f2에서 TurnZero 프로젝트를 연다.
 2. 메뉴 **TurnZero > Local Playtest > Open game** 또는 [LocalBattle.unity](../TurnZero/Assets/ProjectFiles/Scenes/LocalBattle.unity)를 연다. 현재 빌드 설정의 첫 씬이다.
-3. Play를 누르고 양측 필드·장비 덱을 선택한다. 현재 장비 UI는 5칸에서 3종을 순환한다. 명세의 중복 없는 1~5종 선택과의 차이는 Development.md의 PT-08이다.
+3. Play를 누르고 양측 필드·장비 덱을 선택한다. 장비 UI는 5칸에서 빈칸과 정의된 3종을 순환하며 중복을 건너뛴다. 양측 각각 1종 이상 선택해야 배치를 시작할 수 있다.
 4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명 → P2 기지 → P2 캐릭터 5명을 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 둔다. **QUICK DEPLOY**는 로컬 빠른 배치 도구다.
 5. 턴 안내 후 준비 중 행동을 예약한다. **TAB / VIEW P2**로 상대도 조작한다. 양측 완료 또는 시간 만료에 판정/재생한다.
 6. 종료 후 **SET UP A REMATCH**로 다시 시작한다.
 
-실행 도구 근거: [LocalPlaytestBuilder.cs](../TurnZero/Assets/ProjectFiles/Editor/LocalPlaytestBuilder.cs), 입력 근거: [BattleInput.cs](../TurnZero/Assets/ProjectFiles/Scripts/Input/BattleInput.cs)와 [BattleSession.cs](../TurnZero/Assets/ProjectFiles/Scripts/Application/BattleSession.cs).
+실행 도구 근거: [LocalPlaytestBuilder.cs](../TurnZero/Assets/ProjectFiles/Editor/Playtest/LocalPlaytestBuilder.cs), 입력 근거: [BattleInput.cs](../TurnZero/Assets/ProjectFiles/Scripts/Input/BattleInput.cs)와 [BattleSession.cs](../TurnZero/Assets/ProjectFiles/Scripts/Application/BattleSession.cs).
 
 ## 2. 현재 조작
 
@@ -35,16 +35,19 @@
 | 대기 / 예약 취소 | T 또는 Esc | WAIT / CANCEL |
 | 부활 | 사망 아군 카드 → REVIVE → 부활 타일 | 동일 |
 | 카메라 이동 / 줌 | 빈 전장 드래그 / 휠 | 빈 전장 드래그 / 핀치 |
-| 준비 완료 | Enter | READY |
+| 준비 완료 / 해제 | Enter | READY / UNREADY |
 | 시점 전환 | Tab | VIEW P1 / P2 |
 | 타이머 정지 | P | PAUSE / RESUME |
 | 강제 판정 / 재생 넘기기 | Space | RESOLVE / FAST |
 | 조작 안내 | F1 | GUIDE |
 
 - 중첩 모델은 같은 타일 안에서 분산 표시한다. 논리 위치는 같은 타일이며 모델 직접 클릭과 바닥 순환 선택을 구분한다.
-- 현재 입력에는 행동 지정 중 아군 모델 클릭 시 선택 변경 예외가 남아 있다. 명세는 전장 모델/바닥 모두 대상 타일로 처리하며 PT-13에서 수정/검증한다.
+- 행동 지정 중에는 아군/적 모델과 바닥 클릭을 모두 대상 타일로 처리한다. 캐릭터 선택은 행동 미선택 상태의 모델/바닥 또는 카드를 이용한다.
 - 경로 드래그는 이동력까지 미리보기를 제한하고 되돌아가면 경로를 줄일 수 있다. 한도 밖 드래그 종료와 유효하지 않은 최종 경로 제출의 처리는 명세 기준 재검증 대상이다.
 - UI 위 드래그/휠은 전장 카메라 입력과 구분하고 시뮬레이션 중 수동 카메라·명령 편집을 잠근다.
+- 준비 완료 후 상대가 아직 완료하지 않았다면 READY 버튼으로 해제할 수 있다. 예약·AP·남은 시간은 유지한다. 양측 완료나 마감 후에는 편집할 수 없다.
+- 같은 페이즈 이동은 한 칸씩 함께 재생하고 공격/교환은 자기 팀 번호순 → 상대 팀 번호순으로 재생한다. 재생 후 수동 카메라 위치·줌을 복원한다.
+- 처치 AP는 턴 마무리의 실제 증가량으로 강조한다. 아이템은 최초/동시 접촉 확정 시 바로 제거하며 회색의 미관측 기억은 재관측 때 갱신한다.
 - **VISION / DEBUG**, 빠른 배치·강제 판정·타이머 정지는 테스트 도구다. 정상 시야와 온라인 정보 공개를 검증할 때 디버그 모드를 끈다.
 - 타이머 정지는 준비 시간만 멈춘다. 준비 완료와 강제 판정은 계속 사용할 수 있다.
 - 최종 단축키·제스처는 Q-18에서 결정한다. 현재 1~5·Q/W/E/R/T 구현만으로 원문 입력 공백을 확정하지 않는다.
@@ -75,11 +78,23 @@ LocalFieldMap Inspector의 **Paint … Field**로 Tile Palette/GameObject Brush�
 
 **TurnZero > Local Playtest > Build scene and missing defaults**는 없는 기본 에셋을 만들고 씬·세션 프리팹을 다시 저작한다. 기존 SO 수치는 유지하지만 직접 편집한 씬/프리팹 배치는 재생성 전에 보관한다. 일반 실행에는 Open game을 사용한다.
 
-Local Profile Notes는 과거 실행 프로필 메모일 수 있다. 최신 게임 규칙을 판단할 때는 명세와 Development.md의 차이 목록을 확인한다.
+Local Profile Notes는 v2로 갱신했다. 게임 규칙의 기준은 DevelopmentPlan.md이며 메모와 구현 차이는 Development.md에서 확인한다.
+
+
+### 3.3. View 컴포넌트 편집
+
+LocalBattleSession.prefab을 열고 수정할 화면 오브젝트를 선택한다. 예를 들어 Match header는 LocalMatchHeaderView, Timer는 LocalTurnTimerView, Selection header는 LocalSelectionView, Equipment crafting은 LocalEquipmentView가 담당한다. 각 컴포넌트의 Inspector에는 해당 표시 요소에 필요한 텍스트·이미지·버튼 참조만 둔다.
+
+- 기존 화면을 수정할 때 해당 오브젝트의 컴포넌트와 참조를 편집한다. 카드·AP·모델·타일 컴포넌트도 같은 방식이다.
+- 오브젝트를 교체할 때 새 오브젝트에 해당 View를 추가하고 UI 참조를 연결한 뒤, Game HUD의 LocalBattleHud 또는 World의 LocalBattleWorld에 있는 해당 컴포넌트 슬롯을 바꾼다. 게임을 다시 시작하면 BattleBootstrap이 Bind한다.
+- 도움말·결과·교체 확인처럼 처음 꺼져 있는 패널도 루트의 참조를 유지한다. 타이머를 추가할 때 전체 상태를 매 프레임 새로 생성하지 말고 SecondsLeft를 사용한다.
+- World 아래 Field / 12 x 20·Characters and bases·Planned path와 Items, structures and effects의 하위 그룹에서 범위·모델·경로·필드 표식·일시 효과를 각각 편집한다.
+
+전체 컴포넌트와 책임은 [GameArchitecture.md](GameArchitecture.md#21-오브젝트별-view-구성)에 정리했다. 씬 재생성 도구도 같은 연결을 생성하지만, 일반 표시 수정에 전체 씬 재생성을 사용할 필요는 없다.
 
 ## 4. 테스트와 판정 기준
 
-Unity Test Runner에서 현재 인게임 EditMode·PlayMode 테스트를 실행한다. Unity가 패키지를 가져온 뒤 .NET SDK 8에서도 코어 검사를 실행할 수 있다.
+Unity Test Runner에서 현재 인게임 EditMode·PlayMode 테스트를 실행한다. 에디터 자동화는 테스트 어셈블리의 LocalTestRun.Begin(mode, outputPath)로 같은 검사를 실행하고 XML을 저장할 수 있다. 씬 전환 전 사용자 편집 내용을 저장하거나 버릴지 결정한다. Unity가 패키지를 가져온 뒤 .NET SDK 8에서도 코어 검사를 실행할 수 있다.
 
 ```powershell
 dotnet run --project Tools/Checks/TurnZero.Checks.csproj
