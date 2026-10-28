@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -1245,6 +1246,118 @@ namespace TurnZero.Tests
             Assert.That(session.View.Materials, Is.Zero);
             Assert.That(session.Selected.Equipment, Is.EqualTo(1));
             Assert.That(confirmation.gameObject.activeSelf, Is.False);
+        }
+
+
+        [UnityTest]
+        public IEnumerator PreviewBufferCopiesCallerChangesAndSkipsRepeatedRefreshes()
+        {
+            int changes = 0;
+            Action changed = () => changes++;
+            List<GridCell> caller = new List<GridCell> { new GridCell(1, 1) };
+            session.Events.Changed += changed;
+
+            try
+            {
+                session.Events.PreviewPath(caller);
+                List<GridCell> buffer = session.PathPreview;
+
+                Assert.That(changes, Is.EqualTo(1));
+
+                caller.Clear();
+
+                Assert.That(session.PathPreview.Count, Is.EqualTo(1));
+
+                caller.Add(new GridCell(1, 1));
+                session.Events.PreviewPath(caller);
+
+                Assert.That(changes, Is.EqualTo(1));
+
+                caller[0] = new GridCell(1, 2);
+                session.Events.PreviewPath(caller);
+
+                Assert.That(changes, Is.EqualTo(2));
+                Assert.That(session.PathPreview, Is.SameAs(buffer));
+                Assert.That(session.PathPreview[0], Is.EqualTo(new GridCell(1, 2)));
+
+                caller.Clear();
+                session.Events.PreviewPath(caller);
+                session.Events.PreviewPath(caller);
+
+                Assert.That(changes, Is.EqualTo(3));
+                Assert.That(session.PathPreview, Is.Empty);
+            }
+            finally
+            {
+                session.Events.Changed -= changed;
+            }
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PinchUsesFirstTwoTouchesWithoutRedrawingAnEmptyPreview()
+        {
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+
+            LocalBattleCamera rig = root.GetComponentInChildren<LocalBattleCamera>();
+            Vector2 center = rig.Camera.pixelRect.center;
+            Touchscreen touch = InputSystem.AddDevice<Touchscreen>();
+            int changes = 0;
+            Action changed = () => changes++;
+            session.Events.Changed += changed;
+
+            try
+            {
+                for (int id = 1; id <= 3; id++)
+                {
+                    Vector2 position = id == 1
+                        ? center - new Vector2(30, 0)
+                        : id == 2 ? center + new Vector2(30, 0) : center + new Vector2(0, 60);
+
+                    InputSystem.QueueStateEvent(touch, new TouchState
+                    {
+                        touchId = id,
+                        phase = UnityEngine.InputSystem.TouchPhase.Began,
+                        position = position,
+                        pressure = 1
+                    });
+                }
+
+                yield return null;
+                float initial = rig.Zoom;
+
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 3,
+                    phase = UnityEngine.InputSystem.TouchPhase.Moved,
+                    position = center + new Vector2(0, 100),
+                    pressure = 1
+                });
+                yield return null;
+
+                Assert.That(rig.Zoom, Is.EqualTo(initial).Within(0.0001f));
+                Assert.That(changes, Is.Zero);
+
+                InputSystem.QueueStateEvent(touch, new TouchState
+                {
+                    touchId = 2,
+                    phase = UnityEngine.InputSystem.TouchPhase.Moved,
+                    position = center + new Vector2(80, 0),
+                    pressure = 1
+                });
+                yield return null;
+
+                Assert.That(Mathf.Abs(rig.Zoom - initial), Is.GreaterThan(0.001f));
+                Assert.That(changes, Is.Zero);
+                Assert.That(session.PathPreview, Is.Empty);
+            }
+            finally
+            {
+                session.Events.Changed -= changed;
+                InputSystem.RemoveDevice(touch);
+            }
         }
 
     }

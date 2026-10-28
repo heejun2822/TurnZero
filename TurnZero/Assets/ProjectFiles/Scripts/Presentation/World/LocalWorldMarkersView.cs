@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -56,9 +55,13 @@ namespace TurnZero
 
             foreach (FireZone fire in view.Fires)
             {
-                foreach (GridCell cell in BattleVisibility.Area(rules, fire.Cell, fire.Area)
-                    .Where(c => fire.Owner == view.Player || view.Visible.Contains(c)))
+                foreach (GridCell cell in BattleVisibility.Area(rules, fire.Cell, fire.Area))
                 {
+                    if (fire.Owner != view.Player && !view.Visible.Contains(cell))
+                    {
+                        continue;
+                    }
+
                     Marker($"fire/{fire.Id}/{cell}", impactPrefab, cell, "", new Color(0.72f, 0.19f, 0.05f));
                 }
             }

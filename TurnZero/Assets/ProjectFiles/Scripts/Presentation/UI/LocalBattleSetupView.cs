@@ -56,6 +56,12 @@ namespace TurnZero
         public void Render(BattleView view)
         {
             gameObject.SetActive(view.Phase == BattlePhase.Setup);
+
+            if (view.Phase != BattlePhase.Setup)
+            {
+                return;
+            }
+
             GameRules rules = session.Rules;
 
             for (int i = 0; i < fieldButtons.Length; i++)
@@ -76,9 +82,11 @@ namespace TurnZero
                 deckLabels[i].text = $"{i % GameDefinitions.EquipmentDeckSlots + 1}\n" + (type < 0 ? "EMPTY" : rules.Equipment[type].Name.ToUpperInvariant());
             }
 
+            string roster = "STARTER ROSTER / FIVE DISTINCT CHARACTERS\n" + string.Join(" / ", rules.Characters.Select(c => $"{c.Name.ToUpperInvariant()} {c.Health}HP"));
+
             foreach (TMP_Text text in rosterTexts)
             {
-                text.text = "STARTER ROSTER / FIVE DISTINCT CHARACTERS\n" + string.Join(" / ", rules.Characters.Select(c => $"{c.Name.ToUpperInvariant()} {c.Health}HP"));
+                text.text = roster;
             }
 
         }

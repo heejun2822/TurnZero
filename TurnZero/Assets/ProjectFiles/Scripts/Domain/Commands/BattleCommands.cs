@@ -58,7 +58,15 @@ namespace TurnZero
 
         public static bool BaseAt(MatchState state, GridCell cell)
         {
-            return state.Bases.Any(b => b.Placed && b.Cell == cell);
+            foreach (BattleBase home in state.Bases)
+            {
+                if (home.Placed && home.Cell == cell)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool Movable(MatchState state, GameRules rules, GridCell cell, int player = -1)
@@ -75,9 +83,16 @@ namespace TurnZero
 
             HashSet<GridCell> vision = BattleVisibility.Vision(state, rules, player);
 
-            return !state.Bases.Any(b => b.Placed &&
-                b.Cell == cell &&
-                (b.Owner == player || vision.Contains(cell) || state.KnownBases[player]?.Cell == cell));
+            foreach (BattleBase home in state.Bases)
+            {
+                if (home.Placed && home.Cell == cell &&
+                    (home.Owner == player || vision.Contains(cell) || state.KnownBases[player]?.Cell == cell))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static bool Installable(MatchState state, GameRules rules, GridCell cell, int player = -1)

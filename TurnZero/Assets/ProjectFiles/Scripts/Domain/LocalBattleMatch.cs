@@ -15,7 +15,21 @@ namespace TurnZero
         public int Turn => state.Turn;
         public int Revision { get; private set; }
         public double Deadline => state.Deadline;
-        public bool BothReady => state.Ready.All(r => r);
+        public bool BothReady
+        {
+            get
+            {
+                foreach (bool ready in state.Ready)
+                {
+                    if (!ready)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
 
         public LocalBattleMatch(GameRules rules)
         {

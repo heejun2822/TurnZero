@@ -21,12 +21,12 @@ namespace TurnZero
         public void Render(BattleView view)
         {
             points.Clear();
-            BattleUnit selected = view.Units.Find(u => u.Id == session.SelectedId);
+            BattleUnit selected = view.FindUnit(session.SelectedId);
 
             if (selected != null && selected.Alive && selected.Owner == view.Player)
             {
                 points.Add(selected.Cell);
-                BattleOrder order = view.Orders.Find(o => o.UnitId == selected.Id);
+                BattleOrder order = view.FindOrder(selected.Id);
 
                 if (session.PathPreview.Count > 0)
                 {

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace TurnZero
@@ -11,6 +10,9 @@ namespace TurnZero
 
         private BattleSession session;
         private LocalTileView[] tiles;
+        private readonly HashSet<GridCell> reservedTargets = new HashSet<GridCell>();
+        private readonly HashSet<GridCell> swapTargets = new HashSet<GridCell>();
+        private readonly HashSet<GridCell> previewCells = new HashSet<GridCell>();
 
         public void Bind(BattleSession value)
         {
@@ -22,7 +24,7 @@ namespace TurnZero
         {
             GameRules rules = session.Rules;
 
-            BattleUnit selected = view.Units.Find(u => u.Id == session.SelectedId);
+            BattleUnit selected = view.FindUnit(session.SelectedId);
             bool planning = view.Phase == BattlePhase.Planning && !view.Ready && selected != null && selected.Owner == view.Player;
             ActionSpec spec = selected == null
                 ? null
@@ -42,6 +44,33 @@ namespace TurnZero
             HashSet<GridCell> reachable = planning && session.Armed && moving
                 ? session.Match.Reachable(selected.Id, session.Action == BattleAction.Skill)
                 : null;
+            bool swapping = selected != null && session.Action == BattleAction.Equipment &&
+                selected.Equipment >= 0 && rules.Equipment[selected.Equipment].Effect == EquipmentEffect.Swap;
+
+            reservedTargets.Clear();
+            swapTargets.Clear();
+            previewCells.Clear();
+
+            foreach (BattleOrder order in view.Orders)
+            {
+                reservedTargets.Add(order.Target);
+            }
+
+            foreach (GridCell cell in session.PathPreview)
+            {
+                previewCells.Add(cell);
+            }
+
+            if (planning && session.Armed && swapping)
+            {
+                foreach (BattleUnit unit in view.Units)
+                {
+                    if (unit.Owner == view.Player && unit.Alive && unit.Id != selected.Id)
+                    {
+                        swapTargets.Add(unit.Cell);
+                    }
+                }
+            }
 
             foreach (LocalTileView tile in tiles)
             {
@@ -81,11 +110,9 @@ namespace TurnZero
                             view.Explored.Contains(cell);
                     }
 
-                    if (session.Action == BattleAction.Equipment &&
-                        selected.Equipment >= 0 &&
-                        rules.Equipment[selected.Equipment].Effect == EquipmentEffect.Swap)
+                    if (swapping)
                     {
-                        range = view.Units.Any(u => u.Owner == view.Player && u.Alive && u.Id != selected.Id && u.Cell == cell);
+                        range = swapTargets.Contains(cell);
                     }
                     else if (session.Action == BattleAction.Equipment &&
                         (cell == view.OwnBase.Cell || view.EnemyBase != null && cell == view.EnemyBase.Cell))
@@ -119,12 +146,12 @@ namespace TurnZero
                     }
                 }
 
-                if (view.Orders.Any(o => o.Target == cell))
+                if (reservedTargets.Contains(cell))
                 {
                     highlight = new Color(0.12f, 0.65f, 0.73f);
                 }
 
-                if (session.PathPreview.Contains(cell))
+                if (previewCells.Contains(cell))
                 {
                     highlight = new Color(0.15f, 0.9f, 0.8f);
                 }

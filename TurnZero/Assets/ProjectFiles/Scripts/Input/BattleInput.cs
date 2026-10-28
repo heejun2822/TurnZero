@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -9,6 +8,8 @@ namespace TurnZero
 {
     public sealed class BattleInput : MonoBehaviour
     {
+        private static readonly Key[] CharacterKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5 };
+        private static readonly Key[] ActionKeys = { Key.Q, Key.W, Key.E, Key.R, Key.T };
         private BattleSession session;
         private LocalBattleWorld world;
         private LocalBattleCamera cameraRig;
@@ -25,6 +26,8 @@ namespace TurnZero
         private int lastKey = -1;
         private double lastKeyTime;
         private float lastPinch;
+        private EventSystem pointerEventSystem;
+        private PointerEventData pointerData;
 
         public void Bind(BattleSession value, LocalBattleWorld board, LocalBattleCamera camera)
         {
@@ -45,19 +48,19 @@ namespace TurnZero
             Keys();
             Touchscreen touch = Touchscreen.current;
 
-            if (touch != null && touch.touches.Count(t => t.press.isPressed) >= 2)
+            if (TryGetPinchPoints(touch, out Vector2 first, out Vector2 second))
             {
-                Vector2[] points = touch.touches.Where(t => t.press.isPressed).Take(2).Select(t => t.position.ReadValue()).ToArray();
-                float distance = Vector2.Distance(points[0], points[1]);
+                float distance = Vector2.Distance(first, second);
 
-                if (lastPinch > 0 && !OverUI(points[0]) && !OverUI(points[1]))
+                if (lastPinch > 0 && !OverUI(first) && !OverUI(second))
                 {
                     session.Events.Zoom((distance - lastPinch) / 80);
                 }
 
                 lastPinch = distance;
                 pressed = false;
-                session.Events.PreviewPath(new List<GridCell>());
+                path.Clear();
+                session.Events.PreviewPath(path);
 
                 return;
             }
@@ -101,15 +104,49 @@ namespace TurnZero
                 mouse.leftButton.wasReleasedThisFrame,
                 mouse.rightButton.wasPressedThisFrame);
 
-            if (cameraRig.OnBoard(point) && !OverUI(point) && !mouse.leftButton.isPressed)
-            {
-                float wheel = mouse.scroll.ReadValue().y;
+            float wheel = mouse.scroll.ReadValue().y;
 
-                if (Mathf.Abs(wheel) > 0.01f)
+            if (Mathf.Abs(wheel) > 0.01f && !mouse.leftButton.isPressed && cameraRig.OnBoard(point) && !OverUI(point))
+            {
+                session.Events.Zoom(Mathf.Clamp(wheel / 120, -4, 4));
+            }
+        }
+
+        private static bool TryGetPinchPoints(Touchscreen touch, out Vector2 first, out Vector2 second)
+        {
+            first = default;
+            second = default;
+
+            if (touch == null)
+            {
+                return false;
+            }
+
+            int count = 0;
+
+            for (int i = 0; i < touch.touches.Count; i++)
+            {
+                UnityEngine.InputSystem.Controls.TouchControl point = touch.touches[i];
+
+                if (!point.press.isPressed)
                 {
-                    session.Events.Zoom(Mathf.Clamp(wheel / 120, -4, 4));
+                    continue;
+                }
+
+                if (count == 0)
+                {
+                    first = point.position.ReadValue();
+                    count++;
+                }
+                else
+                {
+                    second = point.position.ReadValue();
+
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private void Keys()
@@ -138,11 +175,9 @@ namespace TurnZero
                 return;
             }
 
-            Key[] digits = new[] { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5 };
-
-            for (int i = 0; i < digits.Length; i++)
+            for (int i = 0; i < CharacterKeys.Length; i++)
             {
-                if (keyboard[digits[i]].wasPressedThisFrame)
+                if (keyboard[CharacterKeys[i]].wasPressedThisFrame)
                 {
                     bool twice = lastKey == i && Time.unscaledTimeAsDouble - lastKeyTime <= 0.32;
 
@@ -152,11 +187,9 @@ namespace TurnZero
                 }
             }
 
-            Key[] actions = new[] { Key.Q, Key.W, Key.E, Key.R, Key.T };
-
-            for (int i = 0; i < actions.Length; i++)
+            for (int i = 0; i < ActionKeys.Length; i++)
             {
-                if (keyboard[actions[i]].wasPressedThisFrame)
+                if (keyboard[ActionKeys[i]].wasPressedThisFrame)
                 {
                     session.Events.SetAction((BattleAction)i);
                 }
@@ -332,18 +365,33 @@ namespace TurnZero
 
         private bool OverUI(Vector2 point)
         {
-            if (EventSystem.current == null)
+            EventSystem current = EventSystem.current;
+
+            if (current == null)
             {
                 return false;
             }
 
-            hits.Clear();
-            EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current)
+            if (pointerEventSystem != current || pointerData == null)
             {
-                position = point
-            }, hits);
+                pointerEventSystem = current;
+                pointerData = new PointerEventData(current);
+            }
 
-            return hits.Any(h => h.gameObject.GetComponentInParent<Canvas>() != null);
+            hits.Clear();
+            pointerData.Reset();
+            pointerData.position = point;
+            current.RaycastAll(pointerData, hits);
+
+            foreach (RaycastResult hit in hits)
+            {
+                if (hit.gameObject.GetComponentInParent<Canvas>() != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

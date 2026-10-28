@@ -1,4 +1,3 @@
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,7 +35,7 @@ namespace TurnZero
             selectedHealth.text = unit == null ? "-- / -- HP" : $"{unit.Health} / {definition.Values.Health} HP";
             selectedStatus.text = unit == null
                 ? "CLICK A MODEL OR CARD"
-                : unit.Owner != view.Player && !view.Units.Any(u => u.Id == unit.Id)
+                : unit.Owner != view.Player && view.FindUnit(unit.Id) == null
                 ? "LAST OBSERVED / READ ONLY"
                 : !unit.Alive
                 ? "DEFEATED / REVIVE NEXT TURN"
@@ -49,7 +48,7 @@ namespace TurnZero
             selectedPortrait.sprite = definition?.Portrait;
             selectedPortrait.color = definition == null ? Color.clear : Color.white;
 
-            BattleOrder selectedOrder = unit == null ? null : view.Orders.Find(o => o.UnitId == unit.Id);
+            BattleOrder selectedOrder = unit == null ? null : view.FindOrder(unit.Id);
 
             reservedInfo.text = selectedOrder == null
                 ? "RESERVED  /  WAIT"

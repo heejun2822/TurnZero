@@ -1,4 +1,3 @@
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,8 +59,8 @@ namespace TurnZero
             int owner = enemy ? 1 - view.Player : view.Player;
             int id = owner * GameDefinitions.CharactersPerTeam + slot + 1;
             CharacterDefinition definition = session.Configuration.Characters[slot];
-            BattleUnit unit = view.Units.FirstOrDefault(u => u.Id == id);
-            UnitObservation observation = view.KnownEnemies.FirstOrDefault(o => o.Unit.Id == id);
+            BattleUnit unit = view.FindUnit(id);
+            UnitObservation observation = view.FindKnownEnemy(id);
             BattleUnit known = unit ?? observation?.Unit;
 
             portrait.sprite = definition.Portrait;
@@ -90,7 +89,7 @@ namespace TurnZero
             equipmentText.text = known == null || known.Equipment < 0
                 ? "NO EQUIPMENT"
                 : session.Rules.Equipment[known.Equipment].Name.ToUpperInvariant();
-            BattleOrder order = view.Orders.Find(o => o.UnitId == id);
+            BattleOrder order = view.FindOrder(id);
 
             orderText.text = enemy
                 ? ""

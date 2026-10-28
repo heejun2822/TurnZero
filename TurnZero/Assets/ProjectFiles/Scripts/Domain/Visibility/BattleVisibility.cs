@@ -31,14 +31,20 @@ namespace TurnZero
                 cells.UnionWith(Area(rules, home.Cell, rules.BaseVision));
             }
 
-            foreach (BattleUnit unit in state.Units.Where(u => u.Owner == player && u.Alive))
+            foreach (BattleUnit unit in state.Units)
             {
-                cells.UnionWith(Area(rules, unit.Cell, rules.UnitVision));
+                if (unit.Owner == player && unit.Alive)
+                {
+                    cells.UnionWith(Area(rules, unit.Cell, rules.UnitVision));
+                }
             }
 
-            foreach (BattleStructure beacon in state.Structures.Where(s => s.Owner == player && s.Operational && s.Kind == StructureKind.Beacon))
+            foreach (BattleStructure beacon in state.Structures)
             {
-                cells.UnionWith(Area(rules, beacon.Cell, beacon.Vision));
+                if (beacon.Owner == player && beacon.Operational && beacon.Kind == StructureKind.Beacon)
+                {
+                    cells.UnionWith(Area(rules, beacon.Cell, beacon.Vision));
+                }
             }
 
             return cells;
@@ -46,8 +52,16 @@ namespace TurnZero
 
         public static bool Detected(BattleUnit unit, MatchState state, int player)
         {
-            return state.Structures.Any(s =>
-                s.Owner == player && s.Kind == StructureKind.Beacon && s.Operational && s.Cell.Distance(unit.Cell) <= s.Vision);
+            foreach (BattleStructure beacon in state.Structures)
+            {
+                if (beacon.Owner == player && beacon.Kind == StructureKind.Beacon &&
+                    beacon.Operational && beacon.Cell.Distance(unit.Cell) <= beacon.Vision)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool CanSee(BattleUnit unit, MatchState state, int player, HashSet<GridCell> vision)

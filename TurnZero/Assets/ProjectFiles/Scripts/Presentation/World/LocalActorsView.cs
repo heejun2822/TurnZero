@@ -64,7 +64,12 @@ namespace TurnZero
                     continue;
                 }
 
-                BattleUnit unit = view.Units.Find(u => u.Id == actor.EntityId && u.Alive);
+                BattleUnit unit = view.FindUnit(actor.EntityId);
+
+                if (unit != null && !unit.Alive)
+                {
+                    unit = null;
+                }
                 Vector3 offset = Vector3.zero;
 
                 int stackCount = 1;
@@ -126,7 +131,7 @@ namespace TurnZero
 
             foreach (LocalActorView ghost in ghosts)
             {
-                UnitObservation seen = view.LastSeen.Find(o => o.Unit.Id == ghost.EntityId);
+                UnitObservation seen = view.FindLastSeen(ghost.EntityId);
 
                 ghost.Render(
                     seen != null,
@@ -148,7 +153,7 @@ namespace TurnZero
             {
                 foreach (KeyValuePair<int, GridCell> position in cue.Positions)
                 {
-                    LocalActorView swapped = actors.FirstOrDefault(a => a.EntityId == position.Key);
+                    LocalActorView swapped = FindActor(position.Key);
 
                     if (swapped != null && swapped.gameObject.activeSelf)
                     {
@@ -161,7 +166,7 @@ namespace TurnZero
 
             if (cue.Kind == CueKind.Move || cue.Kind == CueKind.Portal)
             {
-                LocalActorView actor = actors.FirstOrDefault(a => a.EntityId == cue.ActorId);
+                LocalActorView actor = FindActor(cue.ActorId);
 
                 if (actor != null && actor.gameObject.activeSelf)
                 {
@@ -172,6 +177,19 @@ namespace TurnZero
             }
 
             return false;
+        }
+
+        private LocalActorView FindActor(int id)
+        {
+            foreach (LocalActorView actor in actors)
+            {
+                if (actor.EntityId == id)
+                {
+                    return actor;
+                }
+            }
+
+            return null;
         }
     }
 }

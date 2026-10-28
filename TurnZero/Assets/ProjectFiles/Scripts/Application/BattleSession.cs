@@ -53,7 +53,7 @@ namespace TurnZero
         public int[] Fields { get; } = new int[GameDefinitions.PlayerCount];
         public int[][] EquipmentDecks { get; } = new[] { new[] { 0, 1, 2, -1, -1 }, new[] { 0, 1, 2, -1, -1 } };
         public List<string> History { get; } = new List<string>();
-        public List<GridCell> PathPreview { get; private set; } = new List<GridCell>();
+        public List<GridCell> PathPreview { get; } = new List<GridCell>();
 
         private BattlePlayback replay;
         private BattleView cachedView;
@@ -70,8 +70,9 @@ namespace TurnZero
         {
             get
             {
-                return View.Units.FirstOrDefault(u => u.Id == SelectedId)
-                    ?? View.KnownEnemies.FirstOrDefault(o => o.Unit.Id == SelectedId)?.Unit;
+                BattleView view = View;
+
+                return view.FindUnit(SelectedId) ?? view.FindKnownEnemy(SelectedId)?.Unit;
             }
         }
 
@@ -258,7 +259,7 @@ namespace TurnZero
             }
 
             BattleView view = View;
-            BattleUnit unit = view.Units.Find(u => u.Id == id) ?? view.KnownEnemies.Find(o => o.Unit.Id == id)?.Unit;
+            BattleUnit unit = view.FindUnit(id) ?? view.FindKnownEnemy(id)?.Unit;
 
             if (unit == null)
             {
@@ -447,14 +448,11 @@ namespace TurnZero
 
             if (!Armed)
             {
-                List<BattleUnit> candidates = View.Units.Where(u => u.Alive && u.Cell == cell)
-                    .OrderBy(u => u.Owner == Player ? 0 : 1)
-                    .ThenBy(u => u.Id)
-                    .ToList();
+                BattleUnit next = View.FindNextUnitAt(cell, SelectedId);
 
-                if (candidates.Count > 0)
+                if (next != null)
                 {
-                    Select(candidates[(candidates.FindIndex(u => u.Id == SelectedId) + 1) % candidates.Count].Id, false);
+                    Select(next.Id, false);
                 }
 
                 return;
@@ -537,14 +535,27 @@ namespace TurnZero
             {
                 UnitId = SelectedId,
                 Action = action,
-                Target = path.Last(),
+                Target = path[path.Count - 1],
                 Path = path
             });
         }
 
         private void PreviewPath(List<GridCell> path)
         {
-            PathPreview = new List<GridCell>(path);
+            bool unchanged = PathPreview.Count == path.Count;
+
+            for (int i = 0; unchanged && i < path.Count; i++)
+            {
+                unchanged = PathPreview[i] == path[i];
+            }
+
+            if (unchanged)
+            {
+                return;
+            }
+
+            PathPreview.Clear();
+            PathPreview.AddRange(path);
             Events.Refresh();
         }
 

@@ -1,10 +1,17 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TurnZero
 {
     public static class BattlePathfinding
     {
+        private static readonly GridCell[] Directions =
+        {
+            new GridCell(0, 1),
+            new GridCell(1, 0),
+            new GridCell(0, -1),
+            new GridCell(-1, 0)
+        };
+
         public static List<GridCell> FindPath(MatchState state, GameRules rules, GridCell start, GridCell target, int maximum, int player)
         {
             if (start == target || !rules.Contains(target))
@@ -33,7 +40,11 @@ namespace TurnZero
 
         public static HashSet<GridCell> Reachable(MatchState state, GameRules rules, GridCell start, int maximum, int player)
         {
-            return new HashSet<GridCell>(Search(state, rules, start, maximum, player, out _).Keys.Where(c => c != start));
+            HashSet<GridCell> reachable = new HashSet<GridCell>(Search(state, rules, start, maximum, player, out _).Keys);
+
+            reachable.Remove(start);
+
+            return reachable;
         }
 
         private static Dictionary<GridCell, int> Search(
@@ -45,9 +56,17 @@ namespace TurnZero
             out Dictionary<GridCell, GridCell> previous)
         {
             HashSet<GridCell> vision = player >= 0 ? BattleVisibility.Vision(state, rules, player) : null;
-            HashSet<GridCell> blocked = new HashSet<GridCell>(state.Bases.Where(b => b.Placed &&
-                (player < 0 || b.Owner == player || vision.Contains(b.Cell) || state.KnownBases[player]?.Cell == b.Cell))
-                .Select(b => b.Cell));
+            HashSet<GridCell> blocked = new HashSet<GridCell>();
+
+            foreach (BattleBase home in state.Bases)
+            {
+                if (home.Placed &&
+                    (player < 0 || home.Owner == player || vision.Contains(home.Cell) || state.KnownBases[player]?.Cell == home.Cell))
+                {
+                    blocked.Add(home.Cell);
+                }
+            }
+
             Queue<GridCell> frontier = new Queue<GridCell>();
 
             previous = new Dictionary<GridCell, GridCell>();
@@ -57,14 +76,6 @@ namespace TurnZero
             };
 
             frontier.Enqueue(start);
-            GridCell[] directions = new[]
-            {
-                new GridCell(0,1),
-                new GridCell(1,0),
-                new GridCell(0,-1),
-                new GridCell(-1,0)
-            };
-
             while (frontier.Count > 0)
             {
                 GridCell cell = frontier.Dequeue();
@@ -74,7 +85,7 @@ namespace TurnZero
                     continue;
                 }
 
-                foreach (GridCell direction in directions)
+                foreach (GridCell direction in Directions)
                 {
                     GridCell next = new GridCell(cell.X + direction.X, cell.Y + direction.Y);
 
