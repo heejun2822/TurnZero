@@ -8,6 +8,8 @@
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Prototype/Scripts/Core/*.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Prototype/Tests/Editor/BattleTests.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Scripts/Domain/**/*.cs" />
+    <Compile Include="../../TurnZero/Assets/ProjectFiles/Scripts/Application/BattleBotController.cs" />
+    <Compile Include="../../TurnZero/Assets/ProjectFiles/Tests/EditMode/BattleBotTests.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Tests/EditMode/LocalBattleTests.cs" />
     <Compile Include="../../TurnZero/Assets/ProjectFiles/Tests/EditMode/SpecificationTests.cs" />
     <Compile Include="Program.cs" />

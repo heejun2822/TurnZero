@@ -1360,5 +1360,133 @@ namespace TurnZero.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator BotModePreservesHumanDeploymentAndLocksBotSetupControls()
+        {
+            Button("Match mode").onClick.Invoke();
+            Assert.That(session.Mode, Is.EqualTo(LocalBattleMode.HumanVsBot));
+            int field = session.Fields[1];
+            int deck = session.EquipmentDecks[1][0];
+            session.Events.Field(1, (field + 1) % session.Configuration.Fields.Length);
+            session.Events.Deck(1, 0);
+            Assert.That(session.Fields[1], Is.EqualTo(field));
+            Assert.That(session.EquipmentDecks[1][0], Is.EqualTo(deck));
+            Button("Start deployment").onClick.Invoke();
+            session.Events.Tile(new GridCell(3, 3));
+
+            for (int i = 0; i < 5; i++)
+            {
+                session.Events.Tile(new GridCell(3, 4));
+            }
+
+            yield return Planning();
+            Assert.That(session.Player, Is.Zero);
+            Assert.That(session.Match.DebugSnapshot().Units.Where(unit => unit.Owner == 0).All(unit => unit.Cell == new GridCell(3, 4)), Is.True);
+            Assert.That(session.Match.DebugSnapshot().Units.All(unit => unit.Placed), Is.True);
+            Assert.That(session.BotPlanningCount, Is.EqualTo(1));
+            Assert.That(session.BotPlan.Decisions.All(decision => decision.Accepted), Is.True);
+            Assert.That(session.Match.View(1, 0).Ready, Is.True);
+            session.Events.Mode(LocalBattleMode.TwoPlayers);
+            Assert.That(session.IsBotMatch, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator BotPlanIgnoresHumanEditsDebugVisionAndRepeatedRefreshes()
+        {
+            Button("Match mode").onClick.Invoke();
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+            session.Events.Pause();
+            BattleBotPlan plan = session.BotPlan;
+            string before = JsonUtility.ToJson(plan);
+            GridCell source = session.View.FindUnit(1).Cell;
+            session.Events.Select(1);
+            session.Events.Tile(new GridCell(source.X, source.Y + 1), true);
+            session.Events.Switch();
+            session.Events.Reveal();
+            session.Events.Refresh();
+            yield return null;
+            yield return null;
+            Assert.That(session.Player, Is.Zero);
+            Assert.That(session.BotPlanningCount, Is.EqualTo(1));
+            Assert.That(JsonUtility.ToJson(session.BotPlan), Is.EqualTo(before));
+            Assert.That(session.View.Orders.All(order => order.UnitId <= 5), Is.True);
+            Assert.That(session.View.ReservedAP, Is.EqualTo(2));
+            session.Events.Ready();
+            Assert.That(session.Running, Is.True);
+            session.Events.Resolve();
+            yield return Planning();
+        }
+
+        [UnityTest]
+        public IEnumerator ExportedBotObservationAndSeedReproduceEveryDecision()
+        {
+            Button("Match mode").onClick.Invoke();
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+            BattleBotPlan saved = JsonUtility.FromJson<BattleBotPlan>(JsonUtility.ToJson(session.BotPlan));
+            BattleBotPlan replay = new BattleBotPlanner().Plan(saved.Observation, saved.Seed);
+            Assert.That(saved.RulesSignature, Is.EqualTo(replay.RulesSignature));
+            Assert.That(saved.Version, Is.EqualTo(replay.Version));
+            Assert.That(saved.Decisions.Count, Is.EqualTo(replay.Decisions.Count));
+
+            for (int i = 0; i < saved.Decisions.Count; i++)
+            {
+                Assert.That(JsonUtility.ToJson(saved.Decisions[i].Order), Is.EqualTo(JsonUtility.ToJson(replay.Decisions[i].Order)));
+                Assert.That(JsonUtility.ToJson(saved.Decisions[i].Score), Is.EqualTo(JsonUtility.ToJson(replay.Decisions[i].Score)));
+                Assert.That(saved.Decisions[i].Result, Is.Not.Empty);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RematchClearsTheBotPlanAndCanReturnToLocalTwoPlayerMode()
+        {
+            Button("Match mode").onClick.Invoke();
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+            session.Events.Restart();
+            Assert.That(session.IsBotMatch, Is.True);
+            Assert.That(session.Match.Phase, Is.EqualTo(BattlePhase.Setup));
+            Assert.That(session.BotPlan, Is.Null);
+            Assert.That(session.BotPlanningCount, Is.Zero);
+            Button("Match mode").onClick.Invoke();
+            Assert.That(session.IsBotMatch, Is.False);
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+            session.Events.Switch();
+            Assert.That(session.Player, Is.EqualTo(1));
+            Assert.That(session.BotPlan, Is.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator SoloMatchEndsWithoutManuallyControllingTheOpponent()
+        {
+            Button("Match mode").onClick.Invoke();
+            Button("Quick deploy").onClick.Invoke();
+            yield return Planning();
+            float timeout = Time.realtimeSinceStartup + 45;
+
+            for (int turn = 0; turn < 120 && session.Match.Phase != BattlePhase.Finished; turn++)
+            {
+                Assert.That(Time.realtimeSinceStartup, Is.LessThan(timeout));
+                Assert.That(session.BotPlan.Decisions.All(decision => decision.Accepted), Is.True);
+                session.Events.Ready();
+
+                while (session.Running && Time.realtimeSinceStartup < timeout)
+                {
+                    session.Events.Resolve();
+                    yield return null;
+                }
+
+                yield return Planning();
+            }
+
+            Assert.That(session.Match.Phase, Is.EqualTo(BattlePhase.Finished));
+            Assert.That(session.View.Winner, Is.EqualTo(BattleWinner.PlayerTwo));
+            Assert.That(GameObject.Find("Match result"), Is.Not.Null);
+            session.Events.Restart();
+            Assert.That(session.Match.Phase, Is.EqualTo(BattlePhase.Setup));
+            Assert.That(session.BotPlan, Is.Null);
+        }
     }
 }

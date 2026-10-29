@@ -11,7 +11,8 @@ foreach (object fixture in new object[]
 {
     new BattleTests(),
     new TurnZero.Tests.LocalBattleTests(),
-    new TurnZero.Tests.SpecificationTests()
+    new TurnZero.Tests.SpecificationTests(),
+    new TurnZero.Tests.BattleBotTests()
 })
 {
     foreach (MethodInfo test in fixture.GetType().GetMethods().Where(m => m.GetCustomAttribute<TestAttribute>() != null))
