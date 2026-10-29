@@ -4,22 +4,24 @@
 |---|---|
 | Git 최초 확인 | 2026-10-22, eba3e9b |
 | 직전 마지막 커밋 | 2026-10-23, ed5cc8a. 총 5개 커밋, 이후 기획 문답에서 작업 트리 수정 |
-| 현재 점검 / 갱신 | 2026-10-29, 오브젝트별 View 분리와 표시 상태 재사용 |
+| 현재 점검 / 갱신 | 2026-10-29, 로컬 봇 모드·자동 배치·진단/재현 추가 |
 | 역할 / 관리 조건 | 현재 로컬 씬의 실행·조작·데이터 편집 안내. 실행/입력 변경 시 갱신 |
 | 게임 기준 / 현재 차이 | [DevelopmentPlan.md](DevelopmentPlan.md) / [Development.md](Development.md#2-명세와-현재-구현의-차이) |
 | 구조 / 검증 | [GameArchitecture.md](GameArchitecture.md) / [Verification.md](Verification.md) |
 | 이전 판본 | [재편 전 가이드](Archive/2026-10-28/LocalPlaytest.md) |
 
-한 기기에서 양 팀을 번갈아 조작하는 로컬 개발 도구다. 아래 조작은 현재 구현 안내이며 최종 입력 기획의 확정과 구분한다. 확정된 로컬 전투 차이 PT-01~14를 반영하고 Unity 자동 검사를 실행했다. 전체 수용 플레이와 실기기 검증은 계속 필요하다. 실행 증거는 Verification.md 5장에서 확인한다.
+한 기기에서 양 팀을 번갈아 조작하거나 사람 P1 대 봇 P2로 플레이하는 로컬 개발 도구다. 아래 조작은 현재 구현 안내이며 최종 입력 기획의 확정과 구분한다. 확정된 로컬 전투 차이 PT-01~14를 반영하고 Unity 자동 검사를 실행했다. 전체 수용 플레이와 실기기 검증은 계속 필요하다. 실행 증거는 Verification.md 5장에서 확인한다.
+
+봇은 1차 범위의 이동·기본 공격·스킬·대기·부활을 판단하며 제작·장비 행동은 사용하지 않는다. 사람은 기존 제작·장비를 사용할 수 있다. 규칙·점수는 [개발 명세](DevelopmentPlan.md#414-로컬-봇), 구현/검증 상태는 [개발 현황](Development.md#51-로컬-봇-1차-개발-계획)을 따른다.
 
 ## 1. 실행
 
 1. Unity 6000.3.5f2에서 TurnZero 프로젝트를 연다.
 2. 메뉴 **TurnZero > Local Playtest > Open game** 또는 [LocalBattle.unity](../TurnZero/Assets/ProjectFiles/Scenes/LocalBattle.unity)를 연다. 현재 빌드 설정의 첫 씬이다.
-3. Play를 누르고 양측 필드·장비 덱을 선택한다. 장비 UI는 5칸에서 빈칸과 정의된 3종을 순환하며 중복을 건너뛴다. 양측 각각 1종 이상 선택해야 배치를 시작할 수 있다.
-4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명 → P2 기지 → P2 캐릭터 5명을 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 둔다. **QUICK DEPLOY**는 로컬 빠른 배치 도구다.
-5. 턴 안내 후 준비 중 행동을 예약한다. **TAB / VIEW P2**로 상대도 조작한다. 양측 완료 또는 시간 만료에 판정/재생한다.
-6. 종료 후 **SET UP A REMATCH**로 다시 시작한다.
+3. Play를 누르고 설정 화면 오른쪽 아래 **LOCAL TWO PLAYER**를 눌러 **HUMAN VS BOT**으로 바꾸거나 로컬 2인 모드를 유지한다. 봇 대전은 P1이 사람, P2가 봇이며 P2 필드·덱은 기본값으로 고정한다. 로컬 2인은 양측 필드·장비 덱을 선택한다. 장비 UI는 5칸에서 빈칸과 정의된 3종을 순환하며 중복을 건너뛴다. 양측 각각 1종 이상 선택해야 배치를 시작할 수 있다.
+4. **DEPLOY TEAMS**로 P1 기지 → P1 캐릭터 5명을 배치한다. 봇 대전에서는 이후 P2가 자동 배치되고, 로컬 2인에서는 P2 기지 → P2 캐릭터 5명을 직접 배치한다. 캐릭터는 자기 필드의 기지 시야 안에 둔다. **QUICK DEPLOY**는 로컬 빠른 배치 도구다.
+5. 턴 안내 후 준비 중 행동을 예약한다. 봇은 준비 진입에 한 번 판단·완료하며 사람이 READY하면 바로 판정/재생한다. 로컬 2인에서는 **TAB / VIEW P2**로 상대도 조작하고 양측 완료 또는 시간 만료에 판정/재생한다.
+6. 종료 후 **SET UP A REMATCH**로 다시 시작한다. 선택한 모드·경기 시드는 유지하고 봇 계획·진단 상태는 초기화한다. 설정 화면에서 모드를 다시 선택할 수 있다.
 
 실행 도구 근거: [LocalPlaytestBuilder.cs](../TurnZero/Assets/ProjectFiles/Editor/Playtest/LocalPlaytestBuilder.cs), 입력 근거: [BattleInput.cs](../TurnZero/Assets/ProjectFiles/Scripts/Input/BattleInput.cs)와 [BattleSession.cs](../TurnZero/Assets/ProjectFiles/Scripts/Application/BattleSession.cs).
 
@@ -36,7 +38,7 @@
 | 부활 | 사망 아군 카드 → REVIVE → 부활 타일 | 동일 |
 | 카메라 이동 / 줌 | 빈 전장 드래그 / 휠 | 빈 전장 드래그 / 핀치 |
 | 준비 완료 / 해제 | Enter | READY / UNREADY |
-| 시점 전환 | Tab | VIEW P1 / P2 |
+| 시점 전환 | Tab, 로컬 2인에서만 | VIEW P1 / P2. 봇 대전은 VS BOT 표시·전환 비활성 |
 | 타이머 정지 | P | PAUSE / RESUME |
 | 강제 판정 / 재생 넘기기 | Space | RESOLVE / FAST |
 | 조작 안내 | F1 | GUIDE |
@@ -91,6 +93,13 @@ LocalBattleSession.prefab을 열고 수정할 화면 오브젝트를 선택한�
 - World 아래 Field / 12 x 20·Characters and bases·Planned path와 Items, structures and effects의 하위 그룹에서 범위·모델·경로·필드 표식·일시 효과를 각각 편집한다.
 
 전체 컴포넌트와 책임은 [GameArchitecture.md](GameArchitecture.md#21-오브젝트별-view-구성)에 정리했다. 씬 재생성 도구도 같은 연결을 생성하지만, 일반 표시 수정에 전체 씬 재생성을 사용할 필요는 없다.
+
+### 3.4. 봇 판단 진단
+
+- 준비 단계에 진입한 봇 경기에서 메뉴 **TurnZero > Local Playtest > Bot > Export last decision**을 실행한다. 마지막 판단의 정상 관측·규칙 사본·봇/규칙 식별자·시드·행동/대상/경로·점수 항목·예약 결과를 `Tools/Checks/Results/last-bot-plan.json`에 저장한다. 파일은 저장소 루트 기준이며 실행 로그와 같이 Git 제외 대상이다.
+- **Replay exported decision**은 저장한 관측·시드로 판단기를 다시 실행해 규칙 식별자·명령·점수의 일치를 검사한다. 현재 경기 상태를 바꾸지 않는다.
+- 정상 HUD에는 봇 예약·점수를 표시하지 않는다. VISION/DEBUG는 사람의 디버그 표시만 바꾸고 봇은 항상 P2의 정상 관측으로 판단한다.
+- `BattleConfiguration.DefaultMode`로 새 실행의 기본 모드를 정하고 `RandomSeed`로 재현 시드를 정한다. 기본 모드는 로컬 2인이다. 장비 포함 승률·최적 판단을 평가하는 도구로 1차 봇을 사용하지 않는다.
 
 ## 4. 테스트와 판정 기준
 

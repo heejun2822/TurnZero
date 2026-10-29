@@ -4,7 +4,7 @@
 |---|---|
 | Git 최초 확인 | 2026-10-22, eba3e9b |
 | 직전 마지막 커밋 | 2026-10-23, ed5cc8a. 디렉터리 이전 포함 총 3개 커밋 |
-| 현재 점검 / 갱신 | 2026-10-29, 오브젝트별 View 분리와 표시 상태 재사용 |
+| 현재 점검 / 갱신 | 2026-10-29, 로컬 봇 판단·세션/설정·진단 연결 반영 |
 | 역할 / 관리 조건 | 현재 코드의 책임·호출 관계·명세 적용 지점. 구조 변경 시 갱신 |
 | 게임 기준 / 차이 추적 | [DevelopmentPlan.md](DevelopmentPlan.md) / [Development.md](Development.md#2-명세와-현재-구현의-차이) |
 | 이전 판본 | [재편 전 구조 문서](Archive/2026-10-28/GameArchitecture.md) |
@@ -15,9 +15,9 @@
 
 | 위치 | 책임 / 주요 타입 |
 |---|---|
-| [Scripts/Domain](../TurnZero/Assets/ProjectFiles/Scripts/Domain) | Unity/UI를 참조하지 않는 상태·예약 검증·경로·관측·시뮬레이션. LocalBattleMatch, BattleCommands, BattleSimulation, BattleVisibility |
+| [Scripts/Domain](../TurnZero/Assets/ProjectFiles/Scripts/Domain) | Unity/UI를 참조하지 않는 상태·예약 검증·경로·관측·시뮬레이션. LocalBattleMatch, BattleCommands, BattleSimulation, BattleVisibility, Bots의 관측/후보/점수/계획 |
 | [Scripts/Data](../TurnZero/Assets/ProjectFiles/Scripts/Data) | 캐릭터·장비·필드·경기 설정 SO를 일반 C# 규칙 데이터로 복사 |
-| [Scripts/Application](../TurnZero/Assets/ProjectFiles/Scripts/Application) | BattleBootstrap 조합, BattleSession 경기/선택/시계 연결, BattlePlayback 공개 기록 재생, 씬 소유 BattleEvents |
+| [Scripts/Application](../TurnZero/Assets/ProjectFiles/Scripts/Application) | BattleBootstrap 조합, BattleSession 경기/선택/시계 연결, BattlePlayback 공개 기록 재생, 씬 소유 BattleEvents, 경기 소유 BattleBotController |
 | [Scripts/Input](../TurnZero/Assets/ProjectFiles/Scripts/Input) | BattleInput의 키보드·마우스·터치, UI/전장 입력 구분 |
 | [Presentation/World](../TurnZero/Assets/ProjectFiles/Scripts/Presentation/World) | 타일맵 좌표·모델·경로·아이템·설치물·마지막 관측·효과 |
 | [Presentation/Audio](../TurnZero/Assets/ProjectFiles/Scripts/Presentation/Audio) | BattleAudio의 턴 시작 사운드 재생 |
@@ -94,6 +94,14 @@ flowchart LR
   Data[콘텐츠 SO] --> Bootstrap[BattleBootstrap]
   Bootstrap --> Session[BattleSession]
   Session --> Match[LocalBattleMatch]
+  Session --> Bot[BattleBotController]
+  Bot --> Match
+  Match --> Observation[BattleBotObservation]
+  Observation --> Planner[BattleBotPlanner]
+  Planner --> Candidates[BattleBotCandidates]
+  Planner --> Scoring[BattleBotScoring]
+  Planner --> Plan[BattleBotPlan]
+  Plan --> Bot
   Match --> Commands[BattleCommands]
   Match --> Simulation[BattleSimulation]
   Simulation --> Timeline[BattleTimeline]
@@ -115,7 +123,8 @@ flowchart LR
 - 입력/HUD 요청은 세션을 거쳐 코어에서 검증한다. 뷰가 전투 상태를 직접 수정하지 않는다.
 - 표시에는 플레이어별 BattleView와 관측 기록을 사용한다. 숨은 실제 상태를 디버그 스냅샷에서 가져오지 않는다.
 - 경기마다 SO에서 규칙/상태를 복사하며 실행 중 HP·AP를 원본 에셋에 저장하지 않는다.
-- 재시작은 경기 데이터·선택·시계·관측을 초기화한다. 데이터 변경 후 새 경기에서 반영 여부를 확인한다.
+- 봇 컨트롤러는 경기마다 생성한다. 정상 팀 View에서 복사한 자료로 준비 진입 때 한 번만 판단하고 화면 Player/RevealAll과 분리한다.
+- 재시작은 경기 데이터·선택·시계·관측·봇 계획/실행 횟수를 초기화한다. 데이터 변경 후 새 경기에서 반영 여부를 확인한다.
 
 
 ### 2.1. 오브젝트별 View 구성
@@ -239,3 +248,41 @@ ActionSpec.Priority와 BattleCommands.Priority의 기존 코드 식별자는 직
 - 저장·계정 성장·필드 편집 UI는 해당 요구사항을 정한 뒤 별도 책임으로 추가한다.
 - 캐릭터/장비 수치·외형은 데이터 에셋, 새 효과의 실제 판정은 Domain과 표시 소비 지점에서 확장한다.
 - 구조 수정 시 현재 소스 경로·연결도·명세 적용 표를 갱신하고 해당 실행 증거를 Verification.md에 남긴다.
+
+### 5.1. 로컬 봇의 연결 구조
+
+현재 1차 봇은 일반 C# 판단 자료/계산과 세션 연결로 구성한다. 행동 규칙·점수의 기준은 [명세 4.14](DevelopmentPlan.md#414-로컬-봇)와 [5.8](DevelopmentPlan.md#58-로컬-봇-행동-평가식과-초기-조정값), 구현 상태·남은 작업은 [Development.md 5.1](Development.md#51-로컬-봇-1차-개발-계획)을 따른다.
+
+| 위치 / 타입 | 한 문장으로 설명한 책임 |
+|---|---|
+| Domain/Bots/BattleBotObservation | 정상 팀 View에서 자기 상태와 공개 적 대상·기억을 독립 복사한다. |
+| Domain/Bots/BattleBotTarget | 현재 관측 가능한 공격 대상의 공개 위치·HP·분류·고정 정보를 보관한다. |
+| Domain/Bots/BattleBotCandidate·BattleBotCandidates | 유효 행동/경로·관측 목표·탐색 효과를 가진 유한 후보를 만든다. |
+| Domain/Bots/BattleBotScore·BattleBotScoring | 관측 잔여 HP·이미 고른 공격/탐색을 반영해 후보의 점수 항목을 계산한다. |
+| Domain/Bots/BattleBotPlanner | 팀 AP 안에서 최고 점수 행동을 반복 선택하고 나머지 캐릭터를 대기로 정한다. |
+| Domain/Bots/BattleBotDecision·BattleBotPlan | 독립 관측·버전/규칙 식별자·시드·선택 행동/점수·예약 결과를 기록한다. |
+| Application/BattleBotController | 한 경기/팀의 배치·턴별 한 번 계획·기존 Queue/Ready 연결을 진행한다. |
+| BattleSession·BattleEvents·LocalBattleSetupView | 모드 설정·조작 권한·자동 배치/준비 진입·재시작·설정 버튼 수명을 연결한다. |
+| Editor/Playtest/LocalBotDiagnostics | 마지막 계획을 JSON으로 내보내고 기록 관측/시드로 명령·점수 재현을 검사한다. |
+
+각 주요 타입은 같은 이름의 파일 하나에 둔다. 판단기는 Unity·MatchState·실제 경기 객체·프레임 시간을 받지 않으며 관측과 규칙 사본을 소비한다. 컨트롤러만 LocalBattleMatch를 참조한다. 공통 모드 enum·봇 버전은 GameDefinitions, 봇 점수 가중치는 BattleBotScoring에서 관리한다. 구현 하나뿐인 인터페이스·전역 싱글톤·새 이벤트 버스·팩토리는 추가하지 않았다.
+
+후보·점수·동률 규칙을 변경할 때 BotVersion을 갱신하고 관련 회귀를 실행한다. 게임 수치의 변경은 명세/콘텐츠와 함께 갱신하며 진단에는 규칙 사본과 RulesSignature가 남는다.
+
+#### 5.1.1. 관측·후보·예약 연결
+
+1. BattleSession.Update에서 Match.Tick이 준비 진입을 알리면 컨트롤러의 Prepare를 호출한다. 경기마다 새 컨트롤러를 만들고 턴 번호로 중복 실행을 막는다. 사람의 예약으로 증가하는 Revision은 재계획 조건이 아니다.
+2. Capture는 Match.View(봇 팀, now, false)를 사용한다. BattleSession.View의 화면 Player/RevealAll·재생 중간 표시·DebugSnapshot을 사용하지 않는다. 적의 전체 BattleUnit을 복사하지 않고 공개 필드만 BattleBotTarget·정리된 관측 기억으로 옮긴다.
+3. 후보의 경로와 목표 거리는 BattlePathfinding.Paths/Distances를 사용한다. 기존 FindPath/Reachable과 같은 탐색 루프·방향 순서를 공유하며 차단 타일은 관측한 기지로 구성한다. 캐릭터 점유·미관측 기지를 몰래 차단하지 않는다.
+4. 판단기는 새 상태를 시뮬레이션하지 않고 현재 관측의 잔여 HP·고정·탐색 집계와 남은 AP만 갱신한다. 후보를 캐릭터/행동/좌표순으로 정렬하고 봇 전용 난수로 동률을 선택한다. GetHashCode·컬렉션 열거 순서·프레임 시간을 시드로 쓰지 않는다.
+5. 컨트롤러는 현재 턴·now를 전달해 Queue로 예약하고 결과를 기록한다. 미지정/거절은 기존 무료 대기 규칙을 따르며 타일을 바꿔 탐지용 재시도를 하지 않는다. Ready는 토글이므로 완료하지 않은 팀에 한 번만 호출한다.
+
+자료는 준비 진입에만 만들며 HUD 갱신·매 프레임 입력·사람 예약 변경마다 후보를 만들지 않는다. BattleBotPlan은 JsonUtility로 직렬화 가능한 관측/규칙·좌표 목록을 보관한다. 저장된 버전·규칙 식별자와 재실행한 명령/점수가 다르면 진단에서 실패를 보고한다. 현재 경기 상태를 재생하거나 변경하는 기능과 구분한다.
+
+#### 5.1.2. 배치·모드·경기 수명
+
+LocalBattleMatch.AutoDeploy(player, now, out error)는 한 팀의 남은 고정 배치 좌표를 먼저 검사한 뒤 기존 Place로 제출한다. 기존 양 팀 빠른 배치는 유지한다. 봇 대전은 P1 수동 배치 완료 후 P2 컨트롤러를 진행하고, 빠른 배치 도구는 P1과 P2를 각 유효 경로로 완료한다.
+
+DefaultMode는 BattleConfiguration의 실행 기본값이며 설정 화면에서 모드를 바꿀 수 있다. 경기 중 모드 변경, 봇 팀 필드/덱 편집·시점 전환은 세션 진입점에서 거절하고 버튼도 비활성화한다. 전장 선택·명령·제작·완료는 계속 기존 플레이어/코어 검증을 따른다. 정상 HUD는 봇의 예약·점수를 렌더링하지 않는다.
+
+재생 중 판단/예약하지 않으며 정상 턴 경계에서 다시 계획한다. 재시작은 선택 모드를 유지하고 새 경기·새 컨트롤러를 만들어 계획·실행 횟수·진단 상태를 초기화한다. 컨트롤러는 비동기 요청이나 전역 구독을 갖지 않는다. 씬 종료 시 세션 참조를 정리한다. 프리팹의 기존 오브젝트 ID·스크립트 GUID는 유지하고 모드 버튼과 직렬화 참조만 추가했다.
