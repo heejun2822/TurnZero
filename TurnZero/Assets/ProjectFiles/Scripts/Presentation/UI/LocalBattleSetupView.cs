@@ -21,6 +21,10 @@ namespace TurnZero
         [SerializeField]
         private Button autoDeployButton;
         [SerializeField]
+        private Button modeButton;
+        [SerializeField]
+        private TMP_Text modeLabel;
+        [SerializeField]
         private TMP_Text[] rosterTexts;
         private UnityAction[] fieldHandlers;
         private UnityAction[] deckHandlers;
@@ -33,6 +37,7 @@ namespace TurnZero
             session = value;
             startButton.onClick.AddListener(session.Events.Deploy);
             autoDeployButton.onClick.AddListener(session.Events.AutoDeploy);
+            modeButton.onClick.AddListener(ToggleMode);
             fieldHandlers = new UnityAction[fieldButtons.Length];
             deckHandlers = new UnityAction[deckButtons.Length];
 
@@ -68,7 +73,7 @@ namespace TurnZero
             {
                 int field = i % 3;
 
-                fieldButtons[i].interactable = field < session.Configuration.Fields.Length;
+                fieldButtons[i].interactable = field < session.Configuration.Fields.Length && (!session.IsBotMatch || i / 3 == 0);
 
                 fieldLabels[i].text = (session.Fields[i / 3] == field ? "> " : "") + (field < session.Configuration.Fields.Length
                     ? session.Configuration.Fields[field].DisplayName.ToUpperInvariant()
@@ -78,6 +83,7 @@ namespace TurnZero
             for (int i = 0; i < deckButtons.Length; i++)
             {
                 int type = session.EquipmentDecks[i / GameDefinitions.EquipmentDeckSlots][i % GameDefinitions.EquipmentDeckSlots];
+                deckButtons[i].interactable = !session.IsBotMatch || i / GameDefinitions.EquipmentDeckSlots == 0;
 
                 deckLabels[i].text = $"{i % GameDefinitions.EquipmentDeckSlots + 1}\n" + (type < 0 ? "EMPTY" : rules.Equipment[type].Name.ToUpperInvariant());
             }
@@ -89,6 +95,12 @@ namespace TurnZero
                 text.text = roster;
             }
 
+            modeLabel.text = session.IsBotMatch ? "HUMAN VS BOT" : "LOCAL TWO PLAYER";
+        }
+
+        private void ToggleMode()
+        {
+            session.Events.Mode(session.IsBotMatch ? LocalBattleMode.TwoPlayers : LocalBattleMode.HumanVsBot);
         }
 
         private void Unbind()
@@ -106,6 +118,11 @@ namespace TurnZero
             if (autoDeployButton != null)
             {
                 autoDeployButton.onClick.RemoveListener(session.Events.AutoDeploy);
+            }
+
+            if (modeButton != null)
+            {
+                modeButton.onClick.RemoveListener(ToggleMode);
             }
             if (fieldHandlers != null)
             {

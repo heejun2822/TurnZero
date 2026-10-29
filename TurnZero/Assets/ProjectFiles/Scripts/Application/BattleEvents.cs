@@ -31,6 +31,7 @@ namespace TurnZero
         public event Action<BattleCue> CueRequested;
         public event Action HelpRequested;
         public event Action MovementRequested;
+        public event Action<LocalBattleMode> ModeRequested;
 
         public void Refresh()
         {
@@ -150,6 +151,11 @@ namespace TurnZero
         public void Help()
         {
             HelpRequested?.Invoke();
+        }
+
+        public void Mode(LocalBattleMode mode)
+        {
+            ModeRequested?.Invoke(mode);
         }
     }
 }

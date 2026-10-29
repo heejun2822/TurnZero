@@ -15,6 +15,7 @@ namespace TurnZero
         public const int LastActionPhase = 4;
         public const int TurnWrapPhase = LastActionPhase + 1;
         public const int CraftMaterialSpawnPeriod = 5;
+        public const string BotVersion = "local-bot-1";
 
         // Shared immutable status definitions.
         public static readonly StatusEffectDefinition Stealth = new StatusEffectDefinition(StatusEffectKind.Stealth, "SE-01", 0, 2);
@@ -38,6 +39,11 @@ namespace TurnZero
         Planning = 4,
         Resolving = 5,
         Finished = 6
+    }
+    public enum LocalBattleMode
+    {
+        TwoPlayers = 0,
+        HumanVsBot = 1
     }
     public enum BattleAction
     {

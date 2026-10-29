@@ -43,6 +43,8 @@ namespace TurnZero
 
         public void Render(BattleView view)
         {
+            switchButton.interactable = !session.IsBotMatch;
+            switchLabel.text = session.IsBotMatch ? "VS BOT" : $"VIEW P{2 - view.Player}";
         }
 
         private void Unbind()

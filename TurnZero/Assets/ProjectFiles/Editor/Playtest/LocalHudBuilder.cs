@@ -271,6 +271,8 @@ namespace TurnZero.Editor
                 safe,
                 out Button start,
                 out Button auto,
+                out Button mode,
+                out TMP_Text modeLabel,
                 out Button[] fields,
                 out TMP_Text[] fieldLabels,
                 out Button[] decks,
@@ -285,7 +287,7 @@ namespace TurnZero.Editor
                 0.17f,
                 0.93f,
                 0.80f,
-                "<color=#39D1BE>SELECT & FOCUS</color>\nClick a model or card. 1-5 selects your roster; repeat a key quickly or double-click a card to focus. Click a stacked tile again to cycle observed characters.\n\n<color=#39D1BE>PLAN ONE ACTION</color>\nQ move / W attack / E skill / R equipment / T wait-cancel. Choose an action, then click a tile. Right-click moves immediately. Drag the selected character to draw a manual path. REVIVE appears on defeated ally cards.\n\n<color=#39D1BE>CAMERA & TOUCH</color>\nDrag empty battlefield space to pan. Scroll to zoom. On mobile: drag to pan, pinch to zoom, drag a selected character to draw a path, double-tap a card to focus. Camera controls lock during resolution.\n\n<color=#E7B768>SOLO TESTING</color>\nTAB switches teams; each sees their own field below. ENTER locks your team; both ready resolves immediately. P pauses the planning clock. SPACE resolves or fast-forwards. VISION toggles clearly marked debug sight. REMATCH returns to setup.\n\nAmber AP is reserved; teal is available. Dark slots are empty. Enemy * values are last observed. Local rule assumptions are recorded in DevelopmentPlan.md and the configuration asset.",
+                "<color=#39D1BE>SELECT & FOCUS</color>\nClick a model or card. 1-5 selects your roster; repeat a key quickly or double-click a card to focus. Click a stacked tile again to cycle observed characters.\n\n<color=#39D1BE>PLAN ONE ACTION</color>\nQ move / W attack / E skill / R equipment / T wait-cancel. Choose an action, then click a tile. Right-click moves immediately. Drag the selected character to draw a manual path. REVIVE appears on defeated ally cards.\n\n<color=#39D1BE>CAMERA & TOUCH</color>\nDrag empty battlefield space to pan. Scroll to zoom. On mobile: drag to pan, pinch to zoom, drag a selected character to draw a path, double-tap a card to focus. Camera controls lock during resolution.\n\n<color=#E7B768>SOLO TESTING</color>\nHUMAN VS BOT provides an automatic opponent. TAB switches teams in LOCAL TWO PLAYER; each sees their own field below. ENTER locks your team; both ready resolves immediately. P pauses the planning clock. SPACE resolves or fast-forwards. VISION toggles clearly marked debug sight. REMATCH returns to setup.\n\nAmber AP is reserved; teal is available. Dark slots are empty. Enemy * values are last observed. Local rule assumptions are recorded in DevelopmentPlan.md and the configuration asset.",
                 14,
                 muted);
 
@@ -393,6 +395,8 @@ namespace TurnZero.Editor
                 ("restartButton", toolbarButtons[5]),
                 ("startButton", start),
                 ("autoDeployButton", auto),
+                ("modeButton", mode),
+                ("modeLabel", modeLabel),
                 ("rematchButton", rematch),
                 ("closeHelpButton", closeHelp),
                 ("confirmButton", confirmButton),
@@ -528,6 +532,8 @@ namespace TurnZero.Editor
                 ("deckLabels", fields["deckLabels"]),
                 ("startButton", fields["startButton"]),
                 ("autoDeployButton", fields["autoDeployButton"]),
+                ("modeButton", fields["modeButton"]),
+                ("modeLabel", fields["modeLabel"]),
                 ("rosterTexts", Host("setupPanel").GetComponentsInChildren<TMP_Text>(true).Where(text => text.name == "Roster list").ToArray()));
 
             LocalBattleHelpView help = Attach<LocalBattleHelpView>(
@@ -701,6 +707,8 @@ namespace TurnZero.Editor
             Transform parent,
             out Button start,
             out Button auto,
+            out Button mode,
+            out TMP_Text modeLabel,
             out Button[] fieldButtons,
             out TMP_Text[] fieldLabels,
             out Button[] deckButtons,
@@ -822,12 +830,13 @@ namespace TurnZero.Editor
                 0.13f,
                 0.94f,
                 0.22f,
-                "LOCAL PROFILE v1 / provisional rules are documented, not final design decisions.\nThree defined equipment types may repeat across five deck slots. Upgrade and consumable content is undefined.\nDeploy manually to test placement, or quick-deploy both teams. TAB switches perspective during the match.",
+                "LOCAL PLAYTEST / Choose LOCAL TWO PLAYER or HUMAN VS BOT below.\nIn bot mode, deploy P1; P2 deploys and readies automatically. Equipment types form a distinct crafting list.\nQUICK DEPLOY is a test shortcut. TAB changes teams only in local two-player mode.",
                 11,
                 muted,
                 TextAlignmentOptions.Center);
-            start = Button("Start deployment", body, 0.18f, 0.035f, 0.49f, 0.115f, "DEPLOY TEAMS", 17, out _, cyan);
-            auto = Button("Quick deploy", body, 0.51f, 0.035f, 0.82f, 0.115f, "QUICK DEPLOY", 17, out _);
+            start = Button("Start deployment", body, 0.05f, 0.035f, 0.34f, 0.115f, "DEPLOY TEAMS", 17, out _, cyan);
+            auto = Button("Quick deploy", body, 0.36f, 0.035f, 0.64f, 0.115f, "QUICK DEPLOY", 17, out _);
+            mode = Button("Match mode", body, 0.66f, 0.035f, 0.95f, 0.115f, "LOCAL TWO PLAYER", 14, out modeLabel);
 
             fieldButtons = fields.ToArray();
             fieldLabels = labels.ToArray();

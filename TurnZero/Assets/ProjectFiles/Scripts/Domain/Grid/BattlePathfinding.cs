@@ -67,15 +67,63 @@ namespace TurnZero
                 }
             }
 
+            return Search(rules, new[] { start }, maximum, blocked, out previous);
+        }
+
+        public static Dictionary<GridCell, List<GridCell>> Paths(GameRules rules, GridCell start, int maximum, ISet<GridCell> blocked)
+        {
+            Dictionary<GridCell, int> distances = Search(rules, new[] { start }, maximum, blocked, out Dictionary<GridCell, GridCell> previous);
+            Dictionary<GridCell, List<GridCell>> paths = new Dictionary<GridCell, List<GridCell>>();
+
+            foreach (GridCell destination in distances.Keys)
+            {
+                if (destination == start)
+                {
+                    continue;
+                }
+
+                List<GridCell> path = new List<GridCell>();
+                GridCell current = destination;
+
+                while (current != start)
+                {
+                    path.Add(current);
+                    current = previous[current];
+                }
+
+                path.Reverse();
+                paths.Add(destination, path);
+            }
+
+            return paths;
+        }
+
+        public static Dictionary<GridCell, int> Distances(GameRules rules, IEnumerable<GridCell> goals, ISet<GridCell> blocked)
+        {
+            return Search(rules, goals, rules.Width * rules.Height, blocked, out _);
+        }
+
+        private static Dictionary<GridCell, int> Search(
+            GameRules rules,
+            IEnumerable<GridCell> starts,
+            int maximum,
+            ISet<GridCell> blocked,
+            out Dictionary<GridCell, GridCell> previous)
+        {
             Queue<GridCell> frontier = new Queue<GridCell>();
 
             previous = new Dictionary<GridCell, GridCell>();
-            Dictionary<GridCell, int> distance = new Dictionary<GridCell, int>
-            {
-                [start] = 0
-            };
+            Dictionary<GridCell, int> distance = new Dictionary<GridCell, int>();
 
-            frontier.Enqueue(start);
+            foreach (GridCell start in starts)
+            {
+                if (rules.Contains(start) && !distance.ContainsKey(start))
+                {
+                    distance.Add(start, 0);
+                    frontier.Enqueue(start);
+                }
+            }
+
             while (frontier.Count > 0)
             {
                 GridCell cell = frontier.Dequeue();

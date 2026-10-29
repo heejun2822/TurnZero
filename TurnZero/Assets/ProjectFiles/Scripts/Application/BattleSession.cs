@@ -12,6 +12,10 @@ namespace TurnZero
         public BattleConfiguration Configuration { get; private set; }
         public LocalBattleMatch Match { get; private set; }
         public GameRules Rules => Match.Rules;
+        public LocalBattleMode Mode { get; private set; }
+        public bool IsBotMatch => Mode == LocalBattleMode.HumanVsBot;
+        public BattleBotPlan BotPlan => bot?.LastPlan;
+        public int BotPlanningCount => bot?.PlanningCount ?? 0;
 
         public BattleView View
         {
@@ -56,6 +60,7 @@ namespace TurnZero
         public List<GridCell> PathPreview { get; } = new List<GridCell>();
 
         private BattlePlayback replay;
+        private BattleBotController bot;
         private BattleView cachedView;
         private int viewMatchRevision;
         private int viewPlaybackRevision;
@@ -90,6 +95,7 @@ namespace TurnZero
         public void Initialize(BattleConfiguration configuration)
         {
             Configuration = configuration;
+            Mode = configuration.DefaultMode;
             replay = new BattlePlayback(configuration, Events);
 
             if (Match != null)
@@ -117,6 +123,7 @@ namespace TurnZero
             Events.FieldRequested += SetField;
             Events.DeckRequested += CycleDeck;
             Events.HelpRequested += Help;
+            Events.ModeRequested += SetMode;
             Restart();
         }
 
@@ -140,6 +147,12 @@ namespace TurnZero
                 }
 
                 Message = "Plan one action per character. TAB switches player. ENTER readies your team.";
+                if (IsBotMatch)
+                {
+                    bot.Prepare(clock);
+                    Message = "BOT READY / Plan your team. ENTER starts resolution.";
+                }
+
                 Events.Refresh();
             }
 
@@ -160,6 +173,7 @@ namespace TurnZero
             playback = null;
 
             Match = new LocalBattleMatch(Configuration.CreateRules());
+            bot = IsBotMatch ? new BattleBotController(Match, 1) : null;
             cachedView = null;
             Player = 0;
             SelectedId = 0;
@@ -176,6 +190,11 @@ namespace TurnZero
                         EquipmentDecks[owner][slot] = -1;
                     }
                 }
+            }
+
+            if (IsBotMatch)
+            {
+                SetBotDefaults();
             }
 
             Armed = false;
@@ -226,7 +245,19 @@ namespace TurnZero
                 return;
             }
 
-            Match.AutoDeploy(clock);
+            if (IsBotMatch)
+            {
+                if (!Match.AutoDeploy(0, clock, out string error) || !bot.Deploy(clock, out error))
+                {
+                    Message = error;
+                    Events.Refresh();
+                    return;
+                }
+            }
+            else
+            {
+                Match.AutoDeploy(clock);
+            }
             Player = 0;
             SelectedId = 1;
             Message = "Both teams deployed. The first turn starts with 10 AP.";
@@ -236,6 +267,7 @@ namespace TurnZero
         private void SetField(int player, int index)
         {
             if (Match.Phase != BattlePhase.Setup ||
+                IsBotMatch && player != 0 ||
                 player < 0 ||
                 player >= GameDefinitions.PlayerCount ||
                 index < 0 ||
@@ -246,6 +278,36 @@ namespace TurnZero
 
             Fields[player] = index;
             Events.Refresh();
+        }
+
+        private void SetMode(LocalBattleMode mode)
+        {
+            if (Match.Phase != BattlePhase.Setup || !Enum.IsDefined(typeof(LocalBattleMode), mode))
+            {
+                return;
+            }
+
+            Mode = mode;
+            bot = IsBotMatch ? new BattleBotController(Match, 1) : null;
+
+            if (IsBotMatch)
+            {
+                SetBotDefaults();
+            }
+
+            Player = 0;
+            Message = IsBotMatch ? "HUMAN VS BOT / Deploy P1. P2 deploys and plans automatically." : "LOCAL TWO PLAYER / Control both teams.";
+            Events.Refresh();
+        }
+
+        private void SetBotDefaults()
+        {
+            Fields[1] = 0;
+
+            for (int slot = 0; slot < GameDefinitions.EquipmentDeckSlots; slot++)
+            {
+                EquipmentDecks[1][slot] = slot < Rules.Equipment.Length ? slot : -1;
+            }
         }
 
         private void Select(int id, bool focus)
@@ -306,6 +368,7 @@ namespace TurnZero
         private void CycleDeck(int player, int slot)
         {
             if (Match.Phase != BattlePhase.Setup ||
+                IsBotMatch && player != 0 ||
                 player < 0 ||
                 player >= GameDefinitions.PlayerCount ||
                 slot < 0 ||
@@ -398,12 +461,28 @@ namespace TurnZero
 
             if (Match.Phase == BattlePhase.BasePlacement || Match.Phase == BattlePhase.UnitPlacement)
             {
+                if (IsBotMatch && Match.PlacementPlayer != 0)
+                {
+                    return;
+                }
+
                 if (!Match.Place(Player, cell, clock, out string error))
                 {
                     Message = error;
                 }
                 else
                 {
+                    if (IsBotMatch && Match.PlacementPlayer == 1 &&
+                        (Match.Phase == BattlePhase.BasePlacement || Match.Phase == BattlePhase.UnitPlacement))
+                    {
+                        if (!bot.Deploy(clock, out string botError))
+                        {
+                            Message = botError;
+                            Events.Refresh();
+                            return;
+                        }
+                    }
+
                     if (Match.Phase == BattlePhase.BasePlacement || Match.Phase == BattlePhase.UnitPlacement)
                     {
                         Player = Match.PlacementPlayer;
@@ -561,6 +640,11 @@ namespace TurnZero
 
         private bool Submit(BattleOrder order)
         {
+            if (IsBotMatch && Player != 0)
+            {
+                return false;
+            }
+
             bool accepted = Match.Queue(Player, View.Turn, order, out string error, clock);
 
             Message = accepted
@@ -591,7 +675,7 @@ namespace TurnZero
 
         private void Ready()
         {
-            if (!Match.Ready(Player, clock))
+            if (IsBotMatch && Player != 0 || !Match.Ready(Player, clock))
             {
                 return;
             }
@@ -611,7 +695,7 @@ namespace TurnZero
 
         private void Switch()
         {
-            if (Running ||
+            if (IsBotMatch || Running ||
                 Match.Phase == BattlePhase.BasePlacement ||
                 Match.Phase == BattlePhase.UnitPlacement ||
                 Match.Phase == BattlePhase.Setup)
@@ -656,6 +740,11 @@ namespace TurnZero
 
         private void Craft(int index, bool replace)
         {
+            if (IsBotMatch && Player != 0)
+            {
+                return;
+            }
+
             if (!EquipmentDecks[Player].Contains(index))
             {
                 Message = "This equipment is not in your chosen deck.";
@@ -748,6 +837,8 @@ namespace TurnZero
             Events.FieldRequested -= SetField;
             Events.DeckRequested -= CycleDeck;
             Events.HelpRequested -= Help;
+            Events.ModeRequested -= SetMode;
+            bot = null;
         }
     }
 }

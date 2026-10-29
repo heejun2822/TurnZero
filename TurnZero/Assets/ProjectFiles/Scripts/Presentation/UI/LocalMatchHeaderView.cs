@@ -30,7 +30,7 @@ namespace TurnZero
                 : view.Phase == BattlePhase.UnitPlacement
                 ? $"DEPLOY {view.PlacementSlot + 1} / 5"
                 : $"TURN {view.Turn:00}  /  {view.Phase.ToString().ToUpperInvariant()}";
-            perspectiveText.text = $"P{view.Player + 1} PERSPECTIVE" + (session.RevealAll ? "  /  DEBUG VISION" : "");
+            perspectiveText.text = $"P{view.Player + 1} PERSPECTIVE" + (session.IsBotMatch ? " / VS BOT" : "") + (session.RevealAll ? "  /  DEBUG VISION" : "");
             baseText.text = $"P{view.Player + 1}  {view.OwnBase.Health}/{rules.BaseHealth}     VS     P{2 - view.Player}  " + (view.EnemyBase == null
                 ? "?/?"
                 : $"{view.EnemyBase.Health}/{rules.BaseHealth}{(view.EnemyBaseVisible ? "" : " *")}");

@@ -26,6 +26,7 @@ namespace TurnZero
         public float TurnStartSeconds = 2;
         public float PlanningSeconds = 30;
         public int RandomSeed = 2471;
+        public LocalBattleMode DefaultMode = LocalBattleMode.TwoPlayers;
         [Header("Presentation and camera")]
         public float MoveSeconds = 0.12f;
         [Header("Presentation and camera")]

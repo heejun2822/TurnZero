@@ -178,6 +178,57 @@ namespace TurnZero
             }
         }
 
+        public bool AutoDeploy(int player, double now, out string error)
+        {
+            error = null;
+
+            if (player < 0 ||
+                player >= GameDefinitions.PlayerCount ||
+                player != state.PlacementPlayer ||
+                state.Phase != BattlePhase.Setup &&
+                state.Phase != BattlePhase.BasePlacement &&
+                state.Phase != BattlePhase.UnitPlacement)
+            {
+                error = "This team is not placing characters.";
+                return false;
+            }
+
+            GridCell center = state.Bases[player].Placed
+                ? state.Bases[player].Cell
+                : new GridCell(Rules.Width / 2, player == 0 ? Rules.HomeHeight - 3 : Rules.HomeHeight + Rules.NeutralHeight + 2);
+            int first = state.Phase == BattlePhase.UnitPlacement ? state.PlacementSlot : -1;
+            List<GridCell> cells = new List<GridCell>();
+
+            for (int slot = first; slot < GameDefinitions.CharactersPerTeam; slot++)
+            {
+                GridCell cell = slot < 0
+                    ? center
+                    : new GridCell(center.X + slot % 3 - 1, center.Y + (player == 0 ? 1 : -1) * (slot / 3 + 1));
+
+                if (!Rules.Home(player, cell) ||
+                    BattleCommands.BaseAt(state, cell) ||
+                    slot >= 0 && (cell == center || center.Distance(cell) > Rules.BaseVision))
+                {
+                    error = "The automatic deployment preset is invalid for this field or base vision.";
+                    return false;
+                }
+
+                cells.Add(cell);
+            }
+
+            BeginPlacement();
+
+            foreach (GridCell cell in cells)
+            {
+                if (!Place(player, cell, now, out error))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public bool Queue(int player, int turn, BattleOrder order, out string error, double? now = null)
         {
             error = now.HasValue && now.Value >= state.Deadline
